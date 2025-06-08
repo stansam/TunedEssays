@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+
+{% block title %}TunedEssays: Writing Services{% endblock %}
+
+{% block meta_description %}Explore our comprehensive range of professional academic writing services including essays, research papers, dissertations, case studies, and more.{% endblock %}
+
+{% block body_class %}services-page{% endblock %}
+
+{% block extra_css %}
+<style>
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .service-item {
+        display: flex;
+        transition: transform 0.3s ease;
+    }
+    .service-tags {
+        display: flex;
+        flex-direction: row;
+        max-height: min-content;
+        font-size: 7px;
+        /* font-family: 'Courier New', Courier, monospace; */
+
+        align-items: flex-start;
+        margin-top: 5px;
+        /* padding: 3px 3px; */
+        gap: 2px;
+        justify-content: flex-start;
+    }
+    .service-item .card {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px;
+        background: #fff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .service-category {
+        padding: 20px;
+    }
+    .service-item .card-body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: center;
+        /* align-items: center; */
+    }
+    .card-body {
+        align-items: center;
+    }
+    
+    .service-item:hover .card {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .service-icon {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #4CAF50;
+        color: white;
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
+    }
+    .service-icon i {
+    display: flex !important;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+    
+    .service-item:hover .service-icon {
+        transform: rotate(10deg) scale(1.1);
+    }
+    
+    .service-price {
+        color: black;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        text-transform: none;
+    }
+    
+    .feature-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        background: #fff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--accent-color);
+        color: #4CAF50;
+        font-size: 1.8rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: rotate(15deg);
+    }
+    
+    .category-header {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 5px solid var(--primary-color);
+        border-top: 5px solid var(--primary-color);
+        border-right: 5px solid var(--primary-color);
+        text-align: center;
+    }
+    .nav-item {
+        margin: 5px 10px;
+
+        border: 1px solid #4CAF50;
+        border-radius: 10px;
+    }
+    .nav-link {
+        color: var(--text-color);
+        font-weight: 500;
+        transition: all 0.3s ease;
+        ;
+    }
+    .nav-link:hover:not(.navbar) {
+        color: var(--primary-color);
+        
+        border-radius: 10px;
+    }
+    .nav-pills .nav-link.active {
+        background: var(--primary-color);
+        color: white;
+        border: 1px solid #333;
+    }
+    
+    .btn-order {
+        background: var(--primary-color);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-order:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    /* Page Header Animation */
+    .animated-bg {
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+    }
+    
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    @media (max-width: 767px) {
+        .services-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+    }
+    @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1s ease-in-out;
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-black py-5 animated-bg" style="background: linear-gradient(135deg, green, #4CAF50, green, lightgray; background-size: 400% 400%;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="service-icon mx-auto mb-3" style="width: 80px; height: 80px; background: white; color: var(--primary-color);">
+                        <i class="fas fa-4x fa-graduation-cap"></i>
+                    </div>
+                    <h1 class="page-title display-4">Our Academic Services</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-black">Home</a></li>
+                            <li class="breadcrumb-item active text-black-50" aria-current="page">Services</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">Academic Writing Services</h2>
+            <p class="section-description text-center mb-5">We offer a wide range of high-quality academic writing services tailored to meet your specific needs.</p>
+            {% set service_icons = [
+                'pencil-ruler', 'flask', 'brain', 'landmark', 'chart-line', 
+                'microscope', 'atom', 'heartbeat', 'balance-scale', 'code', 
+                'book-reader', 'newspaper', 'theater-masks', 'scroll', 'project-diagram',
+                'calculator', 'globe-americas', 'dna', 'robot', 'drafting-compass',
+                'chart-pie', 'seedling', 'laptop-code', 'server', 'network-wired',
+                'leaf', 'palette', 'gavel', 'briefcase-medical', 'university'
+            ] %}
+            <!-- Categories Navigation -->
+            <div class="service-categories-nav mb-5">
+                <ul class="nav nav-pills justify-content-center">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#all" data-bs-toggle="tab">All Categories</a>
+                    </li>
+                    {% for category in categories %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#category-{{ category.id }}" data-bs-toggle="tab">{{ category.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- All Categories Tab -->
+                <div class="tab-pane fade show active" id="all">
+                    {% for category in categories %}
+                        <div class="service-category mb-5">
+                            <div class="category-header">
+                                <h3 class="service-category-title h4 mb-2">{{ category.name }}</h3>
+                                <p class="service-category-description mb-0">{{ category.description }}</p>
+                            </div>
+                            
+                            <div class="services-grid">
+                                {% for service in category.services %}
+                                {% set icon_index = (loop.index0 + category.id|default(0)) % service_icons|length %}
+                                    <div class="service-item">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <div class="service-icon">
+                                                    <i class=" fas fa-{{ service_icons[icon_index] }} fa-2x"></i>
+                                                </div>
+                                                <h4 class="card-title h5 mb-3 text-primary-dark">{{ service.name }}</h4>
+                                                <p class="card-text flex-grow-1">{{ service.description|safe|truncate(100) }}</p>
+                                                
+                                                
+                                                <div class="" style="float: left;">
+                                                    {#{% if service.tags%}#}
+                                                        <!-- <a href="{{url_for('main.search', q=service.tags)}}" class="service-price">{{ service.tags }}</a> -->
+                                                    {#{% endif %}#}
+                                                    <div class="btn btn-success">
+                                                        <a href="{{ url_for('main.service_detail', service_id=service.id) }}" style="color: white; text-decoration: none; ">View Details</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="service-tags">
+                                                {% if service.tags%} 
+                                                    <a href="{{url_for('main.search', q=service.tags)}}" class="btn btn-sm btn-outline-success rounded-pill">{{ service.tags }}</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="service-item col-12">
+                                        <p class="text-center">No services available in this category yet.</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Individual Category Tabs -->
+                {% for category in categories %}
+                    <div class="tab-pane fade" id="category-{{ category.id }}">
+                        <div class="service-category">
+                            <div class="category-header">
+                                <h3 class="service-category-title h4 mb-2">{{ category.name }}</h3>
+                                <p class="service-category-description mb-0">{{ category.description }}</p>
+                            </div>
+                            
+                            <div class="services-grid">
+                                {% for service in category.services %}
+                                {% set icon_index = (loop.index0 + category.id|default(0) * 3) % service_icons|length %}
+                                    <div class="service-item">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <div class="service-icon">
+                                                    <i class="fas fa-{{ service_icons[icon_index] }} fa-2x"></i>
+                                                </div>
+                                                <h4 class="card-title h5 mb-3">{{ service.name }}</h4>
+                                                <p class="card-text flex-grow-1">{{ service.description|safe|truncate(100) }}</p>
+                                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                                    <a href="{{ url_for('main.service_detail', service_id=service.id) }}" class="btn btn-sm btn-order">View Details</a>
+                                                </div>
+                                            </div>
+                                            <a href="{{url_for('main.search', q='service.tags')}}"><span class="btn btn-outline-success rounded-pill" style="margin-top: 2rem;">{{ service.tags }}</span></a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="service-item col-12">
+                                        <p class="text-center">No services available in this category yet.</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="section py-5 bg-white">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">Why Choose Our Academic Writing Services?</h2>
+            <p class="section-description text-center mb-5">We pride ourselves on delivering high-quality papers that meet your expectations.</p>
+            
+            <div class="services-grid mt-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">Expert Writers</h3>
+                    <p class="feature-description">Our writers are highly qualified with advanced degrees in their respective fields.</p>
+                </div>
+                
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-double fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">Original Content</h3>
+                    <p class="feature-description">We deliver 100% plagiarism-free papers that are written from scratch.</p>
+                </div>
+                
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">On-Time Delivery</h3>
+                    <p class="feature-description">We guarantee timely delivery of your papers, even with tight deadlines.</p>
+                </div>
+                
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-sync-alt fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">Free Revisions</h3>
+                    <p class="feature-description">We offer free revisions to ensure your complete satisfaction with the final paper.</p>
+                </div>
+                
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">Confidentiality</h3>
+                    <p class="feature-description">Your personal information and order details are kept strictly confidential.</p>
+                </div>
+                
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset fa-2x"></i>
+                    </div>
+                    <h3 class="feature-title h5">24/7 Support</h3>
+                    <p class="feature-description">Our customer support team is available around the clock to assist you.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sample Papers Section  -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">Sample Papers</h2>
+            <p class="section-description text-center mb-5">Browse our collection of sample papers to get a feel for our writing quality.</p>
+            
+            <div class="services-grid">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-3">Artificial Intelligence in Healthcare</h3>
+                        <p class="text-muted mb-3">Journal Article | 2200 words</p>
+                        <p class="card-text flex-grow-1">A review of how AI is transforming healthcare, from diagnosis to treatment and patient care, with a look at future advancements.</p>
+                        <button class="btn btn-outline-success w-100">Read Sample</button>
+                    </div>
+                </div>
+
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-3">Research Paper on AI Ethics</h3>
+                        <p class="text-muted mb-3">Research Paper | 2500 words</p>
+                        <p class="card-text flex-grow-1">An in-depth analysis of the ethical concerns surrounding artificial intelligence and its impact on society.</p>
+                        <button class="btn btn-outline-success w-100">Read Sample</button>
+                    </div>
+                </div>
+
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-3">Machine Learning Algorithms</h3>
+                        <p class="text-muted mb-3">Technical Paper | 3500 words</p>
+                        <p class="card-text flex-grow-1">A detailed study of different machine learning algorithms, their applications, and their limitations in real-world scenarios.</p>
+                        <button class="btn btn-outline-success w-100">Read Sample</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section py-5 bg-white">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">How It Works</h2>
+            <p class="section-description text-center mb-5">Our simple process makes it easy to get the academic help you need.</p>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center py-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-clipboard-list fa-3x"></i>
+                        </div>
+                        <h3 class="h5 mt-4">1. Place Your Order</h3>
+                        <p>Fill out our simple order form with your requirements and deadline.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="feature-card text-center py-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-pen-fancy fa-3x"></i>
+                        </div>
+                        <h3 class="h5 mt-4">2. Writer Works on Your Paper</h3>
+                        <p>Our expert writer researches and writes your paper from scratch.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="feature-card text-center py-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                        <h3 class="h5 mt-4">3. Receive Your Paper</h3>
+                        <p>Download your complete paper and request revisions if needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white animated-bg" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color)); background-size: 400% 400%;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" style="border-radius: 25px;" class="btn-outline-dark btn btn-lg btn-order">Order Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  
+{% endblock %}
+{% block extra_js %}
+<!-- Add JavaScript for interactive icon animations -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add interactive hover effects to service icons
+        const serviceIcons = document.querySelectorAll('.service-icon');
+        serviceIcons.forEach(icon => {
+            icon.addEventListener('mouseover', function() {
+                this.style.transform = 'rotate(10deg) scale(1.1)';
+            });
+            icon.addEventListener('mouseout', function() {
+                this.style.transform = 'rotate(0) scale(1)';
+            });
+        });
+        
+        // Add pulse effect to header icon
+        const headerIcon = document.querySelector('.page-header .service-icon');
+        if (headerIcon) {
+            setInterval(() => {
+                headerIcon.classList.add('pulse');
+                setTimeout(() => {
+                    headerIcon.classList.remove('pulse');
+                }, 1000);
+            }, 3000);
+        }
+    });
+</script>
+{% endblock %}

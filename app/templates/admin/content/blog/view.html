@@ -1,0 +1,727 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+
+<style>
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+    }
+    
+    .blog-header {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .blog-header-img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        filter: brightness(0.85);
+    }
+    
+    .blog-header-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 2rem;
+        background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        color: white;
+    }
+    
+    .blog-meta {
+        font-size: 0.9rem;
+        color: var(--gray);
+    }
+    
+    .blog-meta i {
+        margin-right: 5px;
+    }
+    
+    .blog-meta span {
+        margin-right: 15px;
+    }
+    
+    .blog-content {
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+    
+    .blog-content p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .badge-published {
+        background-color: var(--success);
+        color: white;
+    }
+    
+    .badge-draft {
+        background-color: var(--gray);
+        color: white;
+    }
+    
+    .comment-card {
+        border-left: 3px solid var(--primary);
+    }
+    
+    .comment-card.unapproved {
+        border-left: 3px solid var(--warning);
+    }
+    
+    .comment-meta {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+    
+    .comment-actions {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .comment-card:hover .comment-actions {
+        opacity: 1;
+    }
+    
+    .avatar {
+        width: 50px;
+        height: 50px;
+        background-color: var(--primary-subtle);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .blog-actions-bar {
+        position: sticky;
+        top: var(--top-nav-height);
+        background-color: white;
+        z-index: 98;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .comment-count {
+        background-color: var(--primary-light);
+        color: white;
+        font-size: 0.8rem;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5px;
+    }
+    
+    .social-share-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        color: white;
+        transition: all 0.2s ease;
+    }
+    
+    .social-share-btn:hover {
+        transform: translateY(-3px);
+    }
+    
+    .btn-twitter {
+        background-color: #1DA1F2;
+    }
+    
+    .btn-facebook {
+        background-color: #4267B2;
+    }
+    
+    .btn-linkedin {
+        background-color: #0e76a8;
+    }
+    
+    .tag {
+        display: inline-block;
+        background-color: var(--primary-subtle);
+        color: var(--primary);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .tag:hover {
+        background-color: var(--primary);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .stats-box {
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-light);
+        transition: all 0.2s ease;
+    }
+    
+    .stats-box:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transform: translateY(-3px);
+    }
+    
+    .author-badge {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--primary-subtle);
+        color: var(--primary-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .author-avatar {
+        width: 30px;
+        height: 30px;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+    
+    .related-post {
+        transition: all 0.2s ease;
+    }
+    
+    .related-post:hover {
+        transform: translateY(-3px);
+    }
+    
+    .related-post img {
+        border-radius: 8px;
+        height: 130px;
+        object-fit: cover;
+    }
+    
+    .floating-action-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        z-index: 999;
+        transition: all 0.3s ease;
+    }
+    
+    .floating-action-btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blog Post Actions Bar -->
+<div class="blog-actions-bar shadow-sm">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.list_blog_posts') }}">Blog</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ post.title|truncate(30) }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div>
+                <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit me-1"></i> Edit Post
+                </a>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deletePostModal">
+                    <i class="fas fa-trash-alt me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Blog Post Card -->
+            <div class="card shadow-sm mb-4">
+                {% if post.featured_image %}
+                <div class="blog-header">
+                    <img src="{{ url_for('static', filename=post.featured_image.replace('\\', '/')) }}" alt="{{ post.title }}" class="blog-header-img">
+                    <div class="blog-header-content">
+                        <h1 class="mb-2">{{ post.title }}</h1>
+                        <div class="blog-meta text-white-50">
+                            <span><i class="far fa-calendar-alt"></i> {{ post.published_at.strftime('%b %d, %Y') if post.published_at else post.created_at.strftime('%b %d, %Y') }}</span>
+                            <span><i class="far fa-user"></i> {{ post.author.username if post.author else 'Unknown' }}</span>
+                            <span>
+                                <i class="far fa-bookmark"></i> 
+                                {{ post.category.name if post.category else 'Uncategorized' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="mb-0">{{ post.title }}</h1>
+                        <span class="badge {% if post.is_published %}badge-published{% else %}badge-draft{% endif %} px-3 py-2">
+                            {{ 'Published' if post.is_published else 'Draft' }}
+                        </span>
+                    </div>
+                    <div class="blog-meta mt-2">
+                        <span><i class="far fa-calendar-alt"></i> {{ post.published_at.strftime('%b %d, %Y') if post.published_at else post.created_at.strftime('%b %d, %Y') }}</span>
+                        <span><i class="far fa-user"></i> {{ post.author.username if post.author else 'Unknown' }}</span>
+                        <span>
+                            <i class="far fa-bookmark"></i> 
+                            {{ post.category.name if post.category else 'Uncategorized' }}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    {% if post.excerpt %}
+                    <div class="alert alert-light mb-4">
+                        <h5 class="mb-2">Excerpt:</h5>
+                        <p class="mb-0 fst-italic">{{ post.excerpt }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="blog-content mb-4">
+                        {{ post.content|safe }}
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted me-2">Share:</span>
+                            <a href="#" class="social-share-btn btn-twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-share-btn btn-facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-share-btn btn-linkedin"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                        <div>
+                            {% if post.author %}
+                            <span class="author-badge">
+                                <span class="author-avatar">{{ post.author.username[0]|upper }}</span>
+                                {{ post.author.username }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            Comments
+                            <span class="comment-count">{{ comments|length }}</span>
+                        </h5>
+                        <button class="btn btn-sm btn-primary" id="approveAllBtn" {% if not comments or all_approved %}disabled{% endif %}>
+                            <i class="fas fa-check-double me-1"></i> Approve All
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="comment-card p-3 mb-3 {% if not comment.approved %}unapproved bg-light{% endif %}">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <div class="avatar">
+                                        {{ (comment.user.username[0] if comment.user else comment.name[0])|upper }}
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-0">
+                                                {{ comment.user.username if comment.user else comment.name }}
+                                                {% if not comment.approved %}
+                                                <span class="badge bg-warning text-dark ms-2">Pending Approval</span>
+                                                {% endif %}
+                                            </h6>
+                                            <p class="comment-meta mb-2">
+                                                {{ comment.created_at.strftime('%b %d, %Y at %H:%M') }}
+                                                {% if comment.email %}
+                                                • <a href="mailto:{{ comment.email }}">{{ comment.email }}</a>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="comment-actions">
+                                            {% if not comment.approved %}
+                                            <button class="btn btn-sm btn-success approve-comment-btn" data-comment-id="{{ comment.id }}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-sm btn-outline-danger delete-comment-btn" data-comment-id="{{ comment.id }}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="comment-content mt-2">
+                                        {{ comment.content }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="far fa-comment-dots fa-3x text-muted"></i>
+                            </div>
+                            <h5>No Comments Yet</h5>
+                            <p class="text-muted">There are no comments on this post yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Post Status -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Post Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="stats-box text-center">
+                                <h2 class="mb-1">{{ 'Yes' if post.is_published else 'No' }}</h2>
+                                <p class="text-muted mb-0">Published</p>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stats-box text-center">
+                                <h2 class="mb-1">{{ comments|length }}</h2>
+                                <p class="text-muted mb-0">Comments</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Created Date</span>
+                            <span class="text-muted">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Published Date</span>
+                            <span class="text-muted">{{ post.published_at.strftime('%b %d, %Y') if post.published_at else 'Not Published' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Category</span>
+                            <span class="text-muted">{{ post.category.name if post.category else 'Uncategorized' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Post Slug</span>
+                            <span class="text-muted">{{ post.slug }}</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('admin.toggle_post_published', post_id=post.id) }}" class="btn btn-{% if post.is_published %}warning{% else %}success{% endif %} w-100">
+                            {% if post.is_published %}
+                            <i class="fas fa-eye-slash me-1"></i> Unpublish
+                            {% else %}
+                            <i class="fas fa-eye me-1"></i> Publish
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Post Preview -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> This link shows how the post appears on the public site
+                    </div>
+                    <a href="{{ url_for('blog.post', slug=post.slug) }}" class="btn btn-outline-primary w-100" target="_blank">
+                        <i class="fas fa-external-link-alt me-1"></i> View Live Post
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i> Edit Post
+                        </a>
+                        <a href="{{ url_for('admin.duplicate_blog_post', post_id=post.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-copy me-1"></i> Duplicate Post
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletePostModal">
+                            <i class="fas fa-trash-alt me-1"></i> Delete Post
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Post Modal -->
+<div class="modal fade" id="deletePostModal" tabindex="-1" aria-labelledby="deletePostModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePostModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle text-warning fa-3x"></i>
+                </div>
+                <p>Are you sure you want to delete the blog post "<strong>{{ post.title }}</strong>"?</p>
+                <p class="text-danger">This action cannot be undone and all associated comments will also be deleted.</p>
+            </div>
+            <form id="delete-form-{{ post.id }}" method="POST" action="{{ url_for('admin.delete_blog_post', post_id=post.id) }}" style="display: none;">
+                {{ csrf_token() }}
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" onclick="document.getElementById('delete-form-{{ post.id }}').submit();" class="btn btn-danger">Delete Post</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<a href="{{ url_for('admin.create_blog_post') }}" class="floating-action-btn" title="Create New Post">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle approve comment button clicks
+        document.querySelectorAll('.approve-comment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-comment-id');
+                approveComment(commentId, this);
+            });
+        });
+        
+        // Handle delete comment button clicks
+        document.querySelectorAll('.delete-comment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-comment-id');
+                if (confirm('Are you sure you want to delete this comment?')) {
+                    deleteComment(commentId, this);
+                }
+            });
+        });
+        
+        // Handle approve all button
+        document.getElementById('approveAllBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to approve all pending comments?')) {
+                approveAllComments();
+            }
+        });
+    });
+    
+    function approveComment(commentId, button) {
+        fetch(`/admin/blog/comments/${commentId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI to show comment is approved
+                const commentCard = button.closest('.comment-card');
+                commentCard.classList.remove('unapproved', 'bg-light');
+                
+                // Remove the approval button
+                button.remove();
+                
+                // Remove pending badge
+                const badge = commentCard.querySelector('.badge.bg-warning');
+                if (badge) badge.remove();
+                
+                // Show success toast
+                showToast('Comment approved successfully', 'success');
+                
+                // Check if all comments are now approved
+                const pendingCount = document.querySelectorAll('.comment-card.unapproved').length;
+                if (pendingCount === 0) {
+                    document.getElementById('approveAllBtn').setAttribute('disabled', 'disabled');
+                }
+            } else {
+                showToast('Error approving comment', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error approving comment', 'danger');
+        });
+    }
+    
+    function deleteComment(commentId, button) {
+        fetch(`/admin/blog/comments/${commentId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove comment from UI
+                const commentCard = button.closest('.comment-card');
+                commentCard.remove();
+                
+                // Update comment count
+                const commentCountEl = document.querySelector('.comment-count');
+                const currentCount = parseInt(commentCountEl.textContent);
+                commentCountEl.textContent = currentCount - 1;
+                
+                // Show success toast
+                showToast('Comment deleted successfully', 'success');
+                
+                // If no comments left, show no comments message
+                if (currentCount - 1 === 0) {
+                    const commentsContainer = document.querySelector('.card-body');
+                    commentsContainer.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="far fa-comment-dots fa-3x text-muted"></i>
+                            </div>
+                            <h5>No Comments Yet</h5>
+                            <p class="text-muted">There are no comments on this post yet.</p>
+                        </div>
+                    `;
+                }
+            } else {
+                showToast('Error deleting comment', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error deleting comment', 'danger');
+        });
+    }
+    
+    function approveAllComments() {
+        fetch(`/admin/blog/{{ post.id }}/approve-all-comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI to show all comments are approved
+                document.querySelectorAll('.comment-card.unapproved').forEach(card => {
+                    card.classList.remove('unapproved', 'bg-light');
+                    
+                    // Remove approval buttons
+                    const approveBtn = card.querySelector('.approve-comment-btn');
+                    if (approveBtn) approveBtn.remove();
+                    
+                    // Remove pending badges
+                    const badge = card.querySelector('.badge.bg-warning');
+                    if (badge) badge.remove();
+                });
+                
+                // Disable the approve all button
+                document.getElementById('approveAllBtn').setAttribute('disabled', 'disabled');
+                
+                // Show success toast
+                showToast(`${data.count} comments approved successfully`, 'success');
+            } else {
+                showToast('Error approving comments', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error approving comments', 'danger');
+        });
+    }
+    
+    function showToast(message, type) {
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body bg-${type} text-white">
+                ${message}
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+</script>
+{% endblock %}

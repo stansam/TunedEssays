@@ -1,0 +1,841 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - TunedEssays{% endblock %}
+
+{% block meta_description %}Search results for "{{ query }}" - Find academic writing services, blog posts, and more at TunedEssays.{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-light: #81C784;
+        --primary-dark: #388E3C;
+        --accent-color: #FFC107;
+        --text-dark: #2C3E50;
+        --text-light: #6C757D;
+        --bg-light: #F8F9FA;
+        --white: #FFFFFF;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --gradient: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    }
+
+    .search-hero {
+        background: var(--gradient);
+        color: white;
+        padding: 4rem 0 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .search-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,0 1000,0 1000,100 0,80"/></svg>') repeat-x;
+        background-size: 100px 100px;
+    }
+
+    .search-hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .search-stats {
+        display: flex;
+        gap: 2rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 1rem 1.5rem;
+        border-radius: 25px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+
+    .results-container {
+        padding: 3rem 0;
+        background: var(--bg-light);
+    }
+
+    .search-filters {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px var(--shadow);
+        border: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
+    .filter-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .filter-title i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+    }
+
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-tag {
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--primary-color);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .filter-tag:hover,
+    .filter-tag.active {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .results-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .section-title {
+        color: var(--text-dark);
+        font-weight: 700;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-title i {
+        color: var(--primary-color);
+        margin-right: 0.8rem;
+        font-size: 1.3rem;
+    }
+
+    .result-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .result-card {
+        background: var(--white);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px var(--shadow);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(76, 175, 80, 0.1);
+        position: relative;
+    }
+
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.2);
+    }
+
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient);
+    }
+
+    .card-content {
+        padding: 2rem;
+    }
+
+    .card-category {
+        display: inline-block;
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--primary-color);
+        padding: 0.3rem 1rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .card-title a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .card-title a:hover {
+        color: var(--primary-color);
+    }
+
+    .card-description {
+        color: var(--text-light);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #EEEEEE;
+    }
+
+    .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+    }
+
+    .card-tag {
+        background: #F1F3F4;
+        color: var(--text-light);
+        padding: 0.2rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+    }
+
+    .card-action {
+        background: var(--gradient);
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .card-action:hover {
+        transform: scale(1.05);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: 15px;
+        box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    .no-results-icon {
+        font-size: 4rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+    }
+
+    .no-results h3 {
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .no-results p {
+        color: var(--text-light);
+        margin-bottom: 2rem;
+    }
+
+    .suggestions {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    .suggestion-item {
+        padding: 1rem;
+        border-left: 4px solid var(--primary-color);
+        background: rgba(76, 175, 80, 0.05);
+        margin-bottom: 1rem;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .search-highlight {
+        background: rgba(255, 193, 7, 0.3);
+        padding: 0.1rem 0.2rem;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+
+    .floating-search {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: var(--white);
+        border-radius: 50px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px var(--shadow);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        border: 2px solid var(--primary-color);
+    }
+
+    .floating-search:hover {
+        transform: scale(1.05);
+    }
+
+    .floating-search input {
+        border: none;
+        outline: none;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        background: transparent;
+        width: 200px;
+    }
+
+    .floating-search button {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .floating-search button:hover {
+        background: var(--primary-dark);
+    }
+
+    @media (max-width: 768px) {
+        .search-hero {
+            padding: 2rem 0 1rem;
+        }
+
+        .search-stats {
+            gap: 1rem;
+        }
+
+        .stat-item {
+            padding: 0.8rem 1rem;
+        }
+
+        .results-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .floating-search {
+            position: static;
+            margin-bottom: 2rem;
+        }
+
+        .floating-search input {
+            width: 150px;
+        }
+    }
+
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.6s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search Hero Section -->
+<section class="search-hero">
+    <div class="container">
+        <div class="search-hero-content text-center">
+            <h1 class="display-4 fw-bold mb-3">Search Results</h1>
+            <p class="lead mb-4">Found results for "<span class="fw-bold">{{ query }}</span>"</p>
+            
+            <div class="search-stats justify-content-center">
+                {% set total_results = services|length + categories|length + blogs|length + blog_categories|length %}
+                <div class="stat-item">
+                    <span class="stat-number">{{ total_results }}</span>
+                    <span>Total Results</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ services|length }}</span>
+                    <span>Services</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ blogs|length }}</span>
+                    <span>Blog Posts</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ categories|length + blog_categories|length }}</span>
+                    <span>Categories</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="results-container">
+    <div class="container">
+        <!-- Floating Search -->
+        <div class="floating-search d-none d-lg-block">
+            <form method="GET" action="{{ url_for('main.search') }}" class="d-flex align-items-center">
+                <input type="text" name="q" value="{{ query }}" placeholder="Refine search..." class="me-2">
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Mobile Search -->
+        <div class="d-lg-none mb-4">
+            <div class="search-filters">
+                <form method="GET" action="{{ url_for('main.search') }}">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Refine your search...">
+                        <button class="btn btn-success" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if total_results > 0 %}
+            <!-- Quick Filters -->
+            <div class="search-filters fade-in">
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <i class="fas fa-filter"></i>
+                        Filter Results
+                    </div>
+                    <div class="filter-tags">
+                        <div class="filter-tag active" data-filter="all">All Results</div>
+                        {% if services %}
+                        <div class="filter-tag" data-filter="services">Services ({{ services|length }})</div>
+                        {% endif %}
+                        {% if blogs %}
+                        <div class="filter-tag" data-filter="blogs">Blog Posts ({{ blogs|length }})</div>
+                        {% endif %}
+                        {% if categories or blog_categories %}
+                        <div class="filter-tag" data-filter="categories">Categories ({{ categories|length + blog_categories|length }})</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Results -->
+            {% if services %}
+            <div class="results-section fade-in" data-section="services">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Services
+                    </h2>
+                    <span class="result-count">{{ services|length }} found</span>
+                </div>
+                
+                <div class="results-grid">
+                    {% for service in services %}
+                    <div class="result-card">
+                        <div class="card-content">
+                            <span class="card-category">Service</span>
+                            <h3 class="card-title">
+                                <a href="{{ url_for('main.services') }}#service-{{ service.id }}">
+                                    {{ service.name|replace(query, '<span class="search-highlight">' + query + '</span>')|safe }}
+                                </a>
+                            </h3>
+                            <p class="card-description">
+                                {{ service.description[:150]|safe }}{% if service.description|length > 150 %}...{% endif %}
+                            </p>
+                            <div class="card-meta">
+                                <div class="card-tags">
+                                    {% if service.category %}
+                                    <span class="card-tag">{{ service.category.name }}</span>
+                                    {% endif %}
+                                    {% if service.featured %}
+                                    <span class="card-tag">Featured</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('orders.create_order') }}?service_id={{ service.id }}" class="card-action">
+                                    Order Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Blog Posts Results -->
+            {% if blogs %}
+            <div class="results-section fade-in" data-section="blogs">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-blog"></i>
+                        Blog Posts
+                    </h2>
+                    <span class="result-count">{{ blogs|length }} found</span>
+                </div>
+                
+                <div class="results-grid">
+                    {% for blog in blogs %}
+                    <div class="result-card">
+                        <div class="card-content">
+                            <span class="card-category">Blog Post</span>
+                            <h3 class="card-title">
+                                <a href="{{ url_for('blog.post', slug=blog.slug) }}">
+                                    {{ blog.title|replace(query, '<span class="search-highlight">' + query + '</span>')|safe }}
+                                </a>
+                            </h3>
+                            <p class="card-description">
+                                {{ blog.excerpt or blog.content[:150] }}{% if (blog.excerpt or blog.content)|length > 150 %}...{% endif %}
+                            </p>
+                            <div class="card-meta">
+                                <div class="card-tags">
+                                    {% if blog.category %}
+                                    <span class="card-tag">{{ blog.category.name }}</span>
+                                    {% endif %}
+                                    {% if blog.tags %}
+                                        {% for tag in blog.tags.split(',')[:3] %}
+                                        <span class="card-tag">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('blog.post', slug=blog.slug) }}" class="card-action">
+                                    Read More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Categories Results -->
+            {% if categories or blog_categories %}
+            <div class="results-section fade-in" data-section="categories">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-folder"></i>
+                        Categories
+                    </h2>
+                    <span class="result-count">{{ categories|length + blog_categories|length }} found</span>
+                </div>
+                
+                <div class="results-grid">
+                    {% for category in categories %}
+                    <div class="result-card">
+                        <div class="card-content">
+                            <span class="card-category">Service Category</span>
+                            <h3 class="card-title">
+                                <a href="{{ url_for('main.services') }}#category-{{ category.id }}">
+                                    {{ category.name|replace(query, '<span class="search-highlight">' + query + '</span>')|safe }}
+                                </a>
+                            </h3>
+                            <p class="card-description">
+                                {{ category.description[:150] }}{% if category.description|length > 150 %}...{% endif %}
+                            </p>
+                            <div class="card-meta">
+                                <div class="card-tags">
+                                    <span class="card-tag">{{ category.services|length }} Services</span>
+                                </div>
+                                <a href="{{ url_for('main.services') }}#category-{{ category.id }}" class="card-action">
+                                    Explore
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for category in blog_categories %}
+                    <div class="result-card">
+                        <div class="card-content">
+                            <span class="card-category">Blog Category</span>
+                            <h3 class="card-title">
+                                <a href="{{ url_for('blog.category', slug=category.slug) }}">
+                                    {{ category.name|replace(query, '<span class="search-highlight">' + query + '</span>')|safe }}
+                                </a>
+                            </h3>
+                            <p class="card-description">
+                                {{ category.description[:150] }}{% if category.description|length > 150 %}...{% endif %}
+                            </p>
+                            <div class="card-meta">
+                                <div class="card-tags">
+                                    <span class="card-tag">{{ category.posts|length }} Posts</span>
+                                </div>
+                                <a href="{{ url_for('blog.category', slug=category.slug) }}" class="card-action">
+                                    Browse
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- No Results -->
+            <div class="no-results fade-in">
+                <div class="no-results-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>No results found for "{{ query }}"</h3>
+                <p>We couldn't find anything matching your search. Try adjusting your search terms or browse our popular categories below.</p>
+                <a href="{{ url_for('main.services') }}" class="card-action">Browse All Services</a>
+            </div>
+
+            <!-- Search Suggestions -->
+            <div class="suggestions fade-in">
+                <h4 class="mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>Search Suggestions</h4>
+                <div class="suggestion-item">
+                    <strong>Try different keywords:</strong> Use synonyms or related terms for better results.
+                </div>
+                <div class="suggestion-item">
+                    <strong>Check spelling:</strong> Make sure all words are spelled correctly.
+                </div>
+                <div class="suggestion-item">
+                    <strong>Be more general:</strong> Try broader search terms for more results.
+                </div>
+                <div class="suggestion-item">
+                    <strong>Popular searches:</strong> essay writing, research papers, dissertations, academic help
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const filterTags = document.querySelectorAll('.filter-tag');
+    const resultSections = document.querySelectorAll('.results-section');
+    
+    filterTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active filter
+            filterTags.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide sections
+            resultSections.forEach(section => {
+                if (filter === 'all' || section.dataset.section === filter) {
+                    section.style.display = 'block';
+                    // Add animation
+                    section.classList.add('fade-in');
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Smooth scroll for floating search
+    const floatingSearch = document.querySelector('.floating-search');
+    if (floatingSearch) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                floatingSearch.style.opacity = '1';
+                floatingSearch.style.transform = 'translateY(0)';
+            } else {
+                floatingSearch.style.opacity = '0.8';
+                floatingSearch.style.transform = 'translateY(-10px)';
+            }
+        });
+    }
+    
+    // Add hover effects to result cards
+    const resultCards = document.querySelectorAll('.result-card');
+    resultCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Highlight search terms in content
+    function highlightSearchTerms() {
+        const searchQuery = "{{ query|safe }}".toLowerCase();
+        const elements = document.querySelectorAll('.card-description, .card-title');
+        
+        elements.forEach(element => {
+            if (!element.querySelector('.search-highlight')) {
+                const text = element.textContent;
+                const regex = new RegExp(`(${searchQuery})`, 'gi');
+                const highlightedText = text.replace(regex, '<span class="search-highlight">$1</span>');
+                
+                if (highlightedText !== text) {
+                    element.innerHTML = highlightedText;
+                }
+            }
+        });
+    }
+    
+    // Add pulse animation to featured items
+    const featuredItems = document.querySelectorAll('.result-card:nth-child(-n+3)');
+    featuredItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.classList.add('pulse-animation');
+            setTimeout(() => item.classList.remove('pulse-animation'), 2000);
+        }, index * 200);
+    });
+    
+    // Enhanced search functionality
+    const searchForms = document.querySelectorAll('form[action*="search"]');
+    searchForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const input = this.querySelector('input[name="q"]');
+            if (input.value.trim() === '') {
+                e.preventDefault();
+                input.classList.add('is-invalid');
+                setTimeout(() => input.classList.remove('is-invalid'), 2000);
+            }
+        });
+    });
+    
+    // Add loading animation for links
+    const actionLinks = document.querySelectorAll('.card-action');
+    actionLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+        });
+    });
+    
+    // Lazy load animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all result cards for animation
+    document.querySelectorAll('.result-card').forEach(card => {
+        observer.observe(card);
+    });
+});
+
+// Add some dynamic functionality
+function toggleAdvancedSearch() {
+    const advancedOptions = document.querySelector('.advanced-search-options');
+    if (advancedOptions) {
+        advancedOptions.style.display = advancedOptions.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Statistics counter animation
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent);
+        let current = 0;
+        const increment = target / 30;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 50);
+    });
+}
+
+// Run counter animation on page load
+window.addEventListener('load', animateCounters);
+</script>
+{% endblock %}

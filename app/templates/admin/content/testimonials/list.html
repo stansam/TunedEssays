@@ -1,0 +1,643 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Testimonial Management - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .testimonial-card {
+        transition: all 0.25s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .testimonial-card.approved {
+        border-left-color: var(--success);
+    }
+    
+    .testimonial-card.pending {
+        border-left-color: var(--warning);
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+    }
+    
+    .rating-stars.inactive {
+        color: #e9ecef;
+    }
+    
+    .filters-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-badge {
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.35rem 0.7rem;
+        border-radius: 50px;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-badge:hover {
+        opacity: 0.9;
+    }
+    
+    .filter-badge.active {
+        background-color: var(--primary);
+        color: white;
+    }
+    
+    .filter-badge.all {
+        background-color: var(--gray-light);
+        color: var(--dark);
+    }
+    
+    .filter-badge.all.active {
+        background-color: var(--dark);
+        color: white;
+    }
+    
+    .filter-badge.approved {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--success);
+    }
+    
+    .filter-badge.approved.active {
+        background-color: var(--success);
+        color: white;
+    }
+    
+    .filter-badge.pending {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+    
+    .filter-badge.pending.active {
+        background-color: var(--warning);
+        color: white;
+    }
+    
+    .testimonial-client {
+        font-weight: 600;
+    }
+    
+    .testimonial-date {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+    
+    .testimonial-content {
+        position: relative;
+        padding-left: 1.2rem;
+        margin: 0.7rem 0;
+    }
+    
+    .testimonial-content:before {
+        content: """;
+        position: absolute;
+        left: 0;
+        top: -0.5rem;
+        font-size: 2rem;
+        color: var(--primary-light);
+        font-family: serif;
+        line-height: 1;
+    }
+    
+    .testimonial-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 50px;
+    }
+    
+    .status-badge.approved {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--success);
+    }
+    
+    .status-badge.pending {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+    
+    .stats-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        border-left: 4px solid transparent;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .stats-card .icon-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .stats-card.all {
+        border-left-color: var(--secondary);
+    }
+    
+    .stats-card.all .icon-circle {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: var(--secondary);
+    }
+    
+    .stats-card.approved {
+        border-left-color: var(--success);
+    }
+    
+    .stats-card.approved .icon-circle {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--success);
+    }
+    
+    .stats-card.pending {
+        border-left-color: var(--warning);
+    }
+    
+    .stats-card.pending .icon-circle {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-light);
+        margin-bottom: 1rem;
+    }
+    
+    .search-box {
+        position: relative;
+    }
+    
+    .search-box .clear-search {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+        cursor: pointer;
+        display: none;
+    }
+    
+    .search-box input:not(:placeholder-shown) + .clear-search {
+        display: block;
+    }
+    
+    .action-btn.approve {
+        color: var(--success);
+    }
+    
+    .action-btn.reject {
+        color: var(--warning);
+    }
+    
+    .action-btn.delete {
+        color: var(--danger);
+    }
+    
+    .action-btn:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Testimonial Management</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Testimonials</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTestimonialModal">
+                <i class="fas fa-plus-circle me-2"></i>Add Testimonial
+            </button>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card all shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-muted">Total Testimonials</h6>
+                            <h3 class="card-title mb-0">{{ total_testimonials }}</h3>
+                        </div>
+                        <div class="icon-circle">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card approved shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-muted">Approved</h6>
+                            <h3 class="card-title mb-0">{{ approved_testimonials }}</h3>
+                        </div>
+                        <div class="icon-circle">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card pending shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-muted">Pending</h6>
+                            <h3 class="card-title mb-0">{{ pending_testimonials }}</h3>
+                        </div>
+                        <div class="icon-circle">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters and Search -->
+    <div class="card filters-container shadow-sm mb-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <span class="me-3">Filter by:</span>
+                    <a href="{{ url_for('admin.list_testimonials') }}" class="filter-badge all {% if not approved_filter %}active{% endif %}">
+                        All
+                    </a>
+                    <a href="{{ url_for('admin.list_testimonials', approved='true', search=search_query) }}" class="filter-badge approved {% if approved_filter == 'true' %}active{% endif %}">
+                        Approved
+                    </a>
+                    <a href="{{ url_for('admin.list_testimonials', approved='false', search=search_query) }}" class="filter-badge pending {% if approved_filter == 'false' %}active{% endif %}">
+                        Pending
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <form action="{{ url_for('admin.list_testimonials') }}" method="get" id="searchForm">
+                    {% if approved_filter %}
+                    <input type="hidden" name="approved" value="{{ approved_filter }}">
+                    {% endif %}
+                    <div class="search-box">
+                        <input type="text" name="search" class="form-control" placeholder="Search by client name or content" value="{{ search_query }}">
+                        <i class="fas fa-times clear-search" id="clearSearch"></i>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Testimonials List -->
+    <div class="row">
+        {% if testimonials %}
+        {% for testimonial in testimonials %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card testimonial-card shadow-sm {% if testimonial.is_approved %}approved{% else %}pending{% endif %}">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="testimonial-client">{{ testimonial.client_name }}</span>
+                        <div class="d-flex align-items-center mt-1">
+                            <div class="rating-stars me-2">
+                                {% for i in range(1, 6) %}
+                                <i class="{% if i <= testimonial.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="status-badge {% if testimonial.is_approved %}approved{% else %}pending{% endif %}">
+                                {% if testimonial.is_approved %}Approved{% else %}Pending{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="testimonial-date">
+                        {{ testimonial.created_at.strftime('%b %d, %Y') }}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="testimonial-content">{{ testimonial.content }}</p>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary">{{ testimonial.service.name if testimonial.service else 'No Service' }}</span>
+                        </div>
+                        <div class="testimonial-actions">
+                            {% if not testimonial.is_approved %}
+                            <form action="{{ url_for('admin.approve_testimonial', testimonial_id=testimonial.id) }}" method="post" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="action-btn approve" title="Approve">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <form action="{{ url_for('admin.reject_testimonial', testimonial_id=testimonial.id) }}" method="post" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="action-btn reject" title="Reject">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <button type="button" class="action-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#editTestimonialModal{{ testimonial.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="action-btn delete" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteTestimonialModal{{ testimonial.id }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Testimonial Modal -->
+        <!-- <div class="modal fade" id="editTestimonialModal{{ testimonial.id }}" tabindex="-1" aria-labelledby="editTestimonialModalLabel{{ testimonial.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editTestimonialModalLabel{{ testimonial.id }}">Edit Testimonial</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{#{{ url_for('admin.edit_testimonial', testimonial_id=testimonial.id) }}#}" method="post">
+                            <div class="mb-3">
+                                <label for="clientName{{ testimonial.id }}" class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="clientName{{ testimonial.id }}" name="client_name" value="{{ testimonial.client_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="content{{ testimonial.id }}" class="form-label">Content</label>
+                                <textarea class="form-control" id="content{{ testimonial.id }}" name="content" rows="4" required>{{ testimonial.content }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rating{{ testimonial.id }}" class="form-label">Rating</label>
+                                <select class="form-select" id="rating{{ testimonial.id }}" name="rating">
+                                    {% for i in range(1, 6) %}
+                                    <option value="{{ i }}" {% if i == testimonial.rating %}selected{% endif %}>{{ i }} Star{% if i != 1 %}s{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="isApproved{{ testimonial.id }}" name="is_approved" {% if testimonial.is_approved %}checked{% endif %}>
+                                <label class="form-check-label" for="isApproved{{ testimonial.id }}">
+                                    Approved
+                                </label>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        
+        <!-- Delete Testimonial Modal -->
+        <div class="modal fade" id="deleteTestimonialModal{{ testimonial.id }}" tabindex="-1" aria-labelledby="deleteTestimonialModalLabel{{ testimonial.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTestimonialModalLabel{{ testimonial.id }}">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-exclamation-triangle text-warning display-4 mb-3"></i>
+                        <p>Are you sure you want to delete this testimonial from <strong>{{ testimonial.client_name }}</strong>?</p>
+                        <p class="text-muted small">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <form action="{{ url_for('admin.delete_testimonial', testimonial_id=testimonial.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="approved" value="{{ approved_filter }}">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body empty-state">
+                    <i class="fas fa-star-half-alt"></i>
+                    <h5>No testimonials found</h5>
+                    <p class="text-muted">
+                        {% if search_query %}
+                        No testimonials match your search criteria. 
+                        <a href="{{ url_for('admin.list_testimonials', approved=approved_filter) }}">Clear search</a>
+                        {% elif approved_filter %}
+                        No {{ 'approved' if approved_filter == 'true' else 'pending' }} testimonials found.
+                        <a href="{{ url_for('admin.list_testimonials') }}">View all testimonials</a>
+                        {% else %}
+                        There are no testimonials in the system yet.
+                        {% endif %}
+                    </p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTestimonialModal">
+                        <i class="fas fa-plus-circle me-2"></i>Add First Testimonial
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Testimonial Modal -->
+<div class="modal fade" id="addTestimonialModal" tabindex="-1" aria-labelledby="addTestimonialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTestimonialModalLabel">Add New Testimonial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{#{{ url_for('admin.add_testimonial') }}#}" method="post" id="addTestimonialForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="clientName" class="form-label">Client Name</label>
+                        <input type="text" class="form-control" id="clientName" name="client_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="serviceId" class="form-label">Service</label>
+                        <select class="form-select" id="serviceId" name="service_id">
+                            <option value="">-- Select a service --</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <div class="rating-input">
+                            <div class="rating-stars">
+                                {% for i in range(1, 6) %}
+                                <i class="far fa-star rating-star" data-value="{{ i }}"></i>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" id="rating" value="5">
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isApproved" name="is_approved">
+                        <label class="form-check-label" for="isApproved">
+                            Approved
+                        </label>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Testimonial</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize selectize for service selection
+        $('#serviceId').select2({
+            placeholder: "Select a service",
+            width: '100%'
+        });
+        
+        // Clear search functionality
+        const clearSearchBtn = document.getElementById('clearSearch');
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function() {
+                const searchInput = document.querySelector('input[name="search"]');
+                searchInput.value = '';
+                document.getElementById('searchForm').submit();
+            });
+        }
+        
+        // Rating star selection in add modal
+        const ratingStars = document.querySelectorAll('.rating-input .rating-star');
+        const ratingInput = document.getElementById('rating');
+        
+        function updateStars(value) {
+            ratingStars.forEach(star => {
+                const starValue = parseInt(star.getAttribute('data-value'));
+                if (starValue <= value) {
+                    star.classList.remove('far');
+                    star.classList.add('fas');
+                } else {
+                    star.classList.remove('fas');
+                    star.classList.add('far');
+                }
+            });
+            ratingInput.value = value;
+        }
+        
+        // Set initial state
+        updateStars(5);
+        
+        ratingStars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                updateStars(value);
+            });
+            
+            star.addEventListener('mouseover', function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                ratingStars.forEach(s => {
+                    const starValue = parseInt(s.getAttribute('data-value'));
+                    if (starValue <= value) {
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                    } else {
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseout', function() {
+                const currentValue = parseInt(ratingInput.value);
+                ratingStars.forEach(s => {
+                    const starValue = parseInt(s.getAttribute('data-value'));
+                    if (starValue <= currentValue) {
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                    } else {
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                    }
+                });
+            });
+        });
+        
+        // Submit search on input change after a delay
+        const searchInput = document.querySelector('input[name="search"]');
+        let searchTimeout;
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    document.getElementById('searchForm').submit();
+                }, 500);
+            });
+        }
+        
+        // Add hover animations to testimonial cards
+        const testimonialCards = document.querySelectorAll('.testimonial-card');
+        
+        testimonialCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.classList.add('shadow');
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.classList.remove('shadow');
+            });
+        });
+    });
+</script>
+{% endblock %}

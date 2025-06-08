@@ -1,0 +1,52 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>Your Referral Dashboard</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Your Referral Code</h5>
+            <div class="input-group">
+                <input type="text" class="form-control" value="{{ referral_code }}" id="referralCode" readonly>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" onclick="copyReferralCode()">Copy</button>
+                </div>
+            </div>
+            <p class="mt-2">Share this code with friends to earn rewards!</p>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Total Earnings</h5>
+            <h2>${{ "%.2f"|format(total_earnings) }}</h2>
+        </div>
+    </div>
+    
+    <h3>Your Referrals</h3>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Earnings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for referral in referrals %}
+                <tr>
+                    <td>{{ referral.referred.username }}</td>
+                    <td>{{ referral.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ referral.status }}</td>
+                    <td>${{ "%.2f"|format(referral.earnings) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

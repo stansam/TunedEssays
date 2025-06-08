@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | Academic Writing Services{% endblock %}
+
+{% block meta_description %}Contact our team for any questions about our academic writing services, get a quote, or inquire about custom orders.{% endblock %}
+
+{% block body_class %}contact-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: var(--primary-color);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4">Contact Us</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">Contact</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section py-5">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">Get in Touch</h2>
+            <p class="section-description text-center mb-5">We're here to help with any questions or concerns you might have.</p>
+            
+            <div class="row">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <div class="contact-info">
+                        <div class="contact-card p-4 bg-light rounded mb-4 d-flex">
+                            <div class="contact-icon me-3">
+                                <i class="fas fa-envelope fa-2x text-success"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h3 class="h5">Email Us</h3>
+                                <p>For general inquiries: <a href="mailto:stanleycmam122@gmail.com">info@academicwriting.com</a></p>
+                                <p class="mb-0">For support: <a href="mailto:support@academicwriting.com">support@academicwriting.com</a></p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card p-4 bg-light rounded mb-4 d-flex">
+                            <div class="contact-icon me-3">
+                                <i class="fas fa-phone-alt fa-2x text-success"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h3 class="h5">Call Us</h3>
+                                <p>Toll Free: <a href="tel:+18001234567">+1 (800) 123-4567</a></p>
+                                <p class="mb-0">International: <a href="tel:+12345678901">+1 (234) 567-8901</a></p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card p-4 bg-light rounded mb-4 d-flex">
+                            <div class="contact-icon me-3">
+                                <i class="fas fa-comments fa-2x text-success"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h3 class="h5">Live Chat</h3>
+                                <p class="mb-2">Our live chat support is available 24/7.</p>
+                                <button class="btn btn-outline-success btn-sm" onclick="alert('Live chat feature will be available soon.')">Start Chat</button>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card p-4 bg-light rounded d-flex">
+                            <div class="contact-icon me-3">
+                                <i class="fas fa-clock fa-2x text-success"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h3 class="h5">Working Hours</h3>
+                                <p>Our support team is available 24/7.</p>
+                                <p class="mb-0">Office hours: Monday to Friday, 9:00 AM - 6:00 PM (EST)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="contact-form card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h3 class="card-title mb-4">Send Us a Message</h3>
+                            
+                            <form action="{{ url_for('main.contact') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Your Name</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Your Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <input type="text" class="form-control" id="subject" name="subject" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg">Send Message</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-2">Frequently Asked Questions</h2>
+            <p class="section-description text-center mb-5">Find quick answers to common questions.</p>
+            
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="accordion" id="contactFaqAccordion">
+                        <!-- FAQ Item 1 -->
+                        <div class="accordion-item mb-3 border-0 shadow-sm">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    How quickly will I receive a response to my inquiry?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#contactFaqAccordion">
+                                <div class="accordion-body">
+                                    We aim to respond to all inquiries within 1-2 business hours. For urgent inquiries, we recommend using our live chat service for immediate assistance.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- FAQ Item 2 -->
+                        <div class="accordion-item mb-3 border-0 shadow-sm">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    I need a paper urgently. How can I get help?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#contactFaqAccordion">
+                                <div class="accordion-body">
+                                    For urgent orders, please use our live chat service or call our customer support number. We offer expedited delivery options for urgent papers, including 3-hour, 6-hour, and 12-hour deadlines.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- FAQ Item 3 -->
+                        <div class="accordion-item mb-3 border-0 shadow-sm">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    Can I speak directly with my writer?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#contactFaqAccordion">
+                                <div class="accordion-body">
+                                    Yes, once your order is assigned to a writer, you can communicate directly with them through our messaging system in your client dashboard. This allows you to provide additional instructions, answer questions, and stay updated on your order's progress.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- FAQ Item 4 -->
+                        <div class="accordion-item border-0 shadow-sm">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    How can I request a refund?
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#contactFaqAccordion">
+                                <div class="accordion-body">
+                                    If you're not satisfied with the quality of your paper, you can request a refund by contacting our customer support team through email, phone, or live chat. Please refer to our Refund Policy for detailed information on our refund process and eligibility criteria.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white" style="background: var(--primary-color);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg">Order Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

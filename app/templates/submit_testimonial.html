@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit a Testimonial{% endblock %}
+
+{% block meta_description %}Share your experience with our academic writing services. Submit a testimonial to help other students understand the quality and benefits of our work.{% endblock %}
+
+{% block body_class %}submit-testimonial-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4"><i class="fas fa-quote-left me-2"></i>Submit a Testimonial</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white"><i class="fas fa-home me-1"></i>Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.testimonials') }}" class="text-white"><i class="fas fa-star me-1"></i>Testimonials</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page"><i class="fas fa-pen me-1"></i>Submit Testimonial</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Submit Testimonial Form Section -->
+    <section class="section py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <div class="testimonial-icon text-center mb-2">
+                                <span class="icon-circle bg-light-green">
+                                    <i class="fas fa-comment-dots text-green"></i>
+                                </span>
+                            </div>
+                            <h2 class="card-title text-center mb-2">Share Your Experience</h2>
+                            <p class="text-center text-muted mb-4">We value your feedback! Please share your experience with our academic writing services.</p>
+                        </div>
+                        <div class="card-body p-4 p-md-5 pt-md-3">
+                            <form action="{{ url_for('main.submit_testimonial') }}" method="POST" >
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="mb-4">
+                                    <label for="client_name" class="form-label fw-bold"><i class="fas fa-user me-2 text-green"></i>Your Name</label>
+                                    <input type="text" class="form-control form-control-lg border-0 bg-light" id="client_name" name="client_name" required placeholder="e.g., John S. or Anonymous Student">
+                                    <div class="form-text"><i class="fas fa-shield-alt me-1 text-muted"></i>Your privacy is important. You can use your first name with last initial, or remain anonymous.</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="service_id" class="form-label fw-bold"><i class="fas fa-bookmark me-2 text-green"></i>Service Used</label>
+                                    <select class="form-select form-select-lg border-0 bg-light" id="service_id" name="service_id" required>
+                                        <option value="" selected disabled>Select a service</option>
+                                        {% for service in services %}
+                                            <option value="{{ service.id }}">{{ service.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="content" class="form-label fw-bold"><i class="fas fa-pen-fancy me-2 text-green"></i>Your Review</label>
+                                    <textarea class="form-control form-control-lg border-0 bg-light" id="content" name="content" rows="5" required placeholder="Share your experience with our service..."></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold"><i class="fas fa-star me-2 text-green"></i>Rating</label>
+                                    <div class="rating-container">
+                                        <div class="rating">
+                                            {% for i in range(5, 0, -1) %}
+                                                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if i == 5 %}checked{% endif %} />
+                                                <label for="star{{ i }}">
+                                                    <i class="fas fa-star"></i>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-lg text-white" style="background-color: #4CAF50;">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Testimonial
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 alert alert-light border-start border-4 border-success shadow-sm">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle text-green fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0"><strong>Note:</strong> All testimonials are reviewed before being published on our website. Your testimonial may be slightly edited for clarity or length.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonial Examples Section -->
+    <section class="section py-5" style="background-color: #f8f9fa;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge bg-success px-3 py-2 mb-2"><i class="fas fa-thumbs-up me-1"></i> Client Feedback</span>
+                <h2 class="section-title h1">Example Testimonials</h2>
+                <p class="section-description text-muted">Check out what our clients have to say about our services</p>
+                <div class="divider-green mx-auto mt-3"></div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm testimonial-card">
+                        <div class="card-body p-4">
+                            <div class="testimonial-quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="testimonial-text mb-4">"The writer delivered a well-researched paper that exceeded my expectations. Communication was excellent throughout the process, and the final result was amazing!"</p>
+                            <div class="testimonial-author">
+                                <div class="d-flex align-items-center">
+                                    <div class="testimonial-avatar me-3">
+                                        <div class="avatar-placeholder text-white rounded-circle">J</div>
+                                    </div>
+                                    <div class="testimonial-info">
+                                        <h5 class="testimonial-name mb-0">Jessica P.</h5>
+                                        <p class="testimonial-service small text-muted mb-0"><i class="fas fa-file-alt me-1"></i>Research Paper</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm testimonial-card">
+                        <div class="card-body p-4">
+                            <div class="testimonial-quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="testimonial-text mb-4">"Truly impressed with the quality of work I received. The writer incorporated all my requirements and delivered a perfectly formatted paper ahead of schedule. Highly recommend!"</p>
+                            <div class="testimonial-author">
+                                <div class="d-flex align-items-center">
+                                    <div class="testimonial-avatar me-3">
+                                        <div class="avatar-placeholder text-white rounded-circle">M</div>
+                                    </div>
+                                    <div class="testimonial-info">
+                                        <h5 class="testimonial-name mb-0">Michael R.</h5>
+                                        <p class="testimonial-service small text-muted mb-0"><i class="fas fa-book me-1"></i>Dissertation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm testimonial-card">
+                        <div class="card-body p-4">
+                            <div class="testimonial-quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="far fa-star text-warning"></i>
+                            </div>
+                            <p class="testimonial-text mb-4">"Great experience with this service. My essay was well-written with proper citations and academic language. Customer service was responsive and helpful throughout the process."</p>
+                            <div class="testimonial-author">
+                                <div class="d-flex align-items-center">
+                                    <div class="testimonial-avatar me-3">
+                                        <div class="avatar-placeholder text-white rounded-circle">A</div>
+                                    </div>
+                                    <div class="testimonial-info">
+                                        <h5 class="testimonial-name mb-0">Alex T.</h5>
+                                        <p class="testimonial-service small text-muted mb-0"><i class="fas fa-pencil-alt me-1"></i>Academic Essay</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <a href="{{ url_for('main.testimonials') }}" class="btn btn-outline-success">
+                    <i class="fas fa-chevron-right me-2"></i>View All Testimonials
+                </a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --green-primary: #4CAF50;
+        --green-dark: #2E7D32;
+        --green-light: #A5D6A7;
+        --green-very-light: #E8F5E9;
+    }
+    
+    /* Global Styles */
+    .text-green {
+        color: var(--green-primary) !important;
+    }
+    
+    .bg-green {
+        background-color: var(--green-primary) !important;
+    }
+    
+    .bg-light-green {
+        background-color: var(--green-very-light) !important;
+    }
+    
+    .btn-green {
+        background-color: var(--green-primary);
+        color: white;
+    }
+    
+    .btn-green:hover {
+        background-color: var(--green-dark);
+        color: white;
+    }
+    
+    .divider-green {
+        height: 4px;
+        width: 60px;
+        background-color: var(--green-primary);
+        border-radius: 2px;
+    }
+    
+    /* Icon Circle */
+    .icon-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+    
+    .icon-circle i {
+        font-size: 32px;
+        color: var(--green-primary);
+    }
+    
+    /* Form Elements */
+    .form-control:focus, .form-select:focus {
+        border-color: var(--green-primary);
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+    }
+    
+    /* Rating Stars */
+    .rating-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    
+    .rating input {
+        display: none;
+    }
+    
+    .rating label {
+        cursor: pointer;
+        width: 45px;
+        font-size: 30px;
+        color: #ddd;
+        padding: 5px;
+        transition: all 0.2s ease;
+    }
+    
+    .rating label:hover,
+    .rating label:hover ~ label,
+    .rating input:checked ~ label {
+        color: #FFC107;
+    }
+    
+    /* Testimonial Cards */
+    .testimonial-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .avatar-placeholder {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.4rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    }
+    
+    .testimonial-quote-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+        opacity: 0.1;
+        color: var(--green-primary);
+    }
+    
+    /* Testimonial Card Badges */
+    .badge {
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .icon-circle i {
+            font-size: 24px;
+        }
+    }
+</style>
+{% endblock %}

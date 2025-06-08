@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='assets/images.jpeg') }}">
+    <title>{{ title }} - TunedEssays Writing Services</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>  
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #45a049;
+            --primary-light: #81C784;
+            --secondary-color: #2196F3;
+            --accent-color: #FF9800;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --background-light: #f8f9fa;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .order-form {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            background: var(--background-light);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .form-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .datetime-container {
+            position: relative;
+        }
+
+        .datetime-input {
+            position: relative;
+        }
+
+        .datetime-input input[type="datetime-local"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .datetime-input input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .deadline-info {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            display: none;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: var(--primary-color);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .file-upload i {
+            font-size: 3em;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--background-light);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .file-item span {
+            flex: 1;
+        }
+
+        .file-item button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .pricing-summary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .pricing-summary h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .price-breakdown {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .price-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.2em;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            padding-top: 15px;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .word-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--white);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .step i {
+            font-size: 1.2em;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border-color: var(--error-color);
+            color: #c62828;
+        }
+
+        .alert-success {
+            background: #e8f5e8;
+            border-color: var(--success-color);
+            color: #2e7d32;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #1976d2;
+        }
+
+        .alert .close-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .alert .close-btn:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .order-form {
+                padding: 20px;
+            }
+            
+            .step-indicator {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+
+        .required {
+            color: var(--error-color);
+        }
+        .report-section {
+            flex-direction: row;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #e8e8ed;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex-direction: row;
+            /* max-width: 570px; */
+            width: 100%;
+        }
+
+        .toggle-option {
+            flex: 1;
+            /* min-width: 280px; */
+            background: #f2f2f7;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .toggle-option:hover {
+            background: #ebebf0;
+        }
+
+        .toggle-option.selected {
+            background: #ffffff;
+            border-color: #4CAF50;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 2rem;
+        }
+
+        .option-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .option-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: #86868b;
+            line-height: 1.4;
+        }
+
+        .ai-check-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #4CAF50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .heart-icon {
+            width: 12px;
+            height: 12px;
+        }
+
+        .selected-indicator {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-option.selected .selected-indicator {
+            display: flex;
+        }
+
+        .checkmark {
+            width: 12px;
+            height: 12px;
+            color: white;
+        }
+
+        @media (max-width: 640px) {
+            .toggle-container {
+                flex-direction: column;
+            }
+            
+            .toggle-option {
+                min-width: unset;
+            }
+        }
+        .flatpickr-custom-buttons {
+    padding: 10px;
+    border-top: 1px solid #e6e6e6;
+    background: #f8f9fa;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.flatpickr-custom-btn {
+    padding: 4px 8px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.flatpickr-custom-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.flatpickr-custom-btn.clear {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.flatpickr-custom-btn.clear:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> Place Your Order</h1>
+            <p>Get professional academic writing assistance tailored to your needs</p>
+        </div>
+
+        <div class="step-indicator">
+            <button class="step" style="border-radius:30px;" id="backBtn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="step active">
+                <i class="fas fa-edit"></i>
+                <span>Order Details</span>
+            </div>
+           
+        </div>
+
+        <!-- Alert container for messages -->
+        <div id="alertContainer"></div>
+
+        <form class="order-form" id="orderForm" method="POST" enctype="multipart/form-data">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-section">
+                    <h3><i class="fas fa-clipboard-list"></i> Service Details</h3>
+                    
+                    <div class="form-group">
+                        <label for="service">Type of Service <span class="required">*</span></label>
+                        <select class="form-control" id="service" name="service" required>
+                            <option value="">Select a service...</option>
+                            {% if services %}
+                                {% for service in services %}
+                                    <option value="{{ service.id }}" 
+                                        {% if selected_service and selected_service.id == service.id %}selected{% endif %}>
+                                        {{ service.name }}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                        <div class="error-message" id="serviceError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="academic_level">Project Level <span class="required">*</span></label>
+                        <select class="form-control" id="academic_level" name="academic_level" required>
+                            <option value="">Select project level...</option>
+                            {% if academic_levels %}
+                                {% for level in academic_levels %}
+                                    <option value="{{ level.id }}" 
+                                        {% if selected_academic_level and selected_academic_level.id == level.id %}selected{% endif %}>
+                                        {{ level.name }}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                        <div class="error-message" id="academicLevelError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="citation_style">Citation Style</label>
+                        <select class="form-control" id="citation_style" name="citation_style">
+                            <option value="">Select citation style...</option>
+                            <option value="APA">APA</option>
+                            <option value="MLA">MLA</option>
+                            <option value="Chicago">Chicago</option>
+                            <option value="Harvard">Harvard</option>
+                            <option value="IEEE">IEEE</option>
+                            <option value="OSCOLA">OSCOLA</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><i class="fas fa-clock"></i> Deadline & Specifications</h3>
+    
+                    <div class="form-group">
+                        <label for="deadline_picker">Due Date & Time <span class="required">*</span></label>
+                        <div class="datetime-container">
+                            <div class="datetime-input">
+                                <input type="text" class="form-control" id="deadline_picker" name="deadline_picker" required readonly>
+                            </div>
+                            
+                            <div class="deadline-info" id="deadlineInfo">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="deadlineText"></span>
+                            </div>
+                            <input type="hidden" id="deadline" name="deadline" value="{{ selected_deadline.id if selected_deadline else ''  }}">
+                            <input type="hidden" id="dateDue" name="due_date" value="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="word_count">Number of Words <span class="required">*</span></label>
+                        <input type="number" class="form-control" id="word_count" name="word_count" 
+                               min="275" max="50000" placeholder="e.g., 1500" 
+                               value="{{ word_count or '' }}" required>
+                        <div class="word-counter">
+                            <span>Pages: <span id="pageCount">{{ pages or 0 }}</span></span>
+                            <span id="wordCountStatus"></span>
+                        </div>
+                        <div class="error-message" id="wordCountError"></div>
+                    </div>
+                </div>
+
+                <div class="form-section full-width">
+                    <h3><i class="fas fa-file-alt"></i> Paper Details</h3>
+                    
+                    <div class="form-group">
+                        <label for="title">Paper Title <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               placeholder="Enter your paper title..." required>
+                        <div class="error-message" id="titleError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Instructions & Requirements</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  placeholder="Provide detailed instructions for your paper. Include specific requirements, formatting guidelines, and any additional notes..." 
+                                  rows="6"></textarea>
+                        <div class="word-counter">
+                            <span id="instructionCount">0 characters</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section full-width">
+                    <h2 class="section-title">Plagiarism report</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-option selected" data-option="standard">
+                            <div class="selected-indicator">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="option-header">
+                                <span class="option-title">Standard</span>
+                                <span class="option-price">$4.99</span>
+                            </div>
+                            <div class="option-description">
+                                Plagiarism report without database storage
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-option" data-option="turnitin">
+                            <div class="selected-indicator">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="option-header">
+                                <span class="option-title">
+                                    Turnitin
+                                    <span class="ai-check-badge">
+                                        <svg class="heart-icon" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        AI check
+                                    </span>
+                                </span>
+                                <span class="option-price">$9.99</span>
+                            </div>
+                            <div class="option-description">
+                                Turnitin report without database storage + AI check
+                            </div>
+                        </div>
+                        <input type="hidden" name="report_type" id="report_type">
+                        <div id="plagiarismReportError" class="error-message"></div>
+                    </div>
+                </div>
+
+                <div class="form-section full-width">
+                    <h3><i class="fas fa-upload"></i> File Attachments</h3>
+                    
+                    <div class="file-upload" id="fileUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h4>Drop files here or click to browse</h4>
+                        <p>Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG (Max 10MB each)</p>
+                        <input type="file" id="files" name="files" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;">
+                    </div>
+                    
+                    <div class="file-list" id="fileList"></div>
+                </div>
+            </div>
+
+
+            <div class="pricing-summary">
+                <h3><i class="fas fa-calculator"></i> Order Summary</h3>
+                <div class="price-breakdown">
+                    <div class="price-item">
+                        <span>Service:</span>
+                        <span id="selectedService">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Project Level:</span>
+                        <span id="selectedLevel">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Pages:</span>
+                        <!-- <span id="pagePrice">0</span> -->
+                         <span id="summaryPages">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Deadline:</span>
+                        <span id="selectedDeadline">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Plagiarism Report Price:</span>
+                        <span id="selectedReport">0.00</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Total Price:</span>
+                        <span id="totalPrice">${{ "%.2f"|format(total_price) if total_price else "0.00" }}</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-block" id="submitBtn">
+                    <i class="fas fa-shopping-cart"></i>
+                    Proceed to Payment
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const toastContainer = document.querySelector('.toast-container');
+                    {% for category, message in messages %}
+                        const toast = document.createElement('div');
+                        toast.className = 'toast show';
+                        toast.setAttribute('role', 'alert');
+                        toast.setAttribute('aria-live', 'assertive');
+                        toast.setAttribute('aria-atomic', 'true');
+                        
+                        toast.innerHTML = `
+                            <div class="toast-header">
+                                <strong class="me-auto">Notification</strong>
+                                <small>Just now</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body bg-{{ category if category != 'message' else 'info' }} text-white">
+                                {{ message }}
+                            </div>
+                        `;
+                        
+                        toastContainer.appendChild(toast);
+                        
+                        setTimeout(() => {
+                            toast.remove();
+                        }, 5000);
+                    {% endfor %}
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+    <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    let selectedFiles = [];
+    let currentPrice = 0;
+    let selectedReportPrice = 0;
+    let flatpickrInstance = null;
+
+    // Initialize the page
+    initializePage();
+
+    function initializePage() {
+        initializeFlatpickr();
+        initializeFormValidation();
+        initializeFileUpload();
+        initializePlagiarismToggle();
+        bindEventListeners();
+
+        processTemplateArguments();
+        updateProgress();
+        
+        // Calculate initial price if form has pre-filled values
+        if (document.getElementById('word_count').value) {
+            calculatePrice();
+        }
+    }
+
+    function processTemplateArguments() {
+        // Handle pre-selected service
+        const selectedServiceData = {{ selected_service|tojson|safe if selected_service else 'null' }};
+        if (selectedServiceData) {
+            const serviceSelect = document.getElementById('service');
+            serviceSelect.value = selectedServiceData.id;
+            updateSelectedService();
+        }
+
+        // Handle pre-selected academic level
+        const selectedAcademicLevelData = {{ selected_academic_level|tojson|safe if selected_academic_level else 'null' }};
+        if (selectedAcademicLevelData) {
+            const academicLevelSelect = document.getElementById('academic_level');
+            academicLevelSelect.value = selectedAcademicLevelData.id;
+            updateSelectedLevel();
+        }
+
+        // Handle pre-filled word count
+        const preFilledWordCount = {{ word_count if word_count else 'null' }};
+        if (preFilledWordCount) {
+            document.getElementById('word_count').value = preFilledWordCount;
+            updatePageCount();
+        }
+
+        // Handle pre-filled due date and deadline
+        const preFillDueDate = {{ due_date|tojson|safe if due_date else 'null' }};
+        const preFilledDeadlineHours = {{ hoursUntilDeadline if hoursUntilDeadline else 'null' }};
+        
+        if (preFillDueDate && preFilledDeadlineHours) {
+            // Set the flatpickr date
+            if (flatpickrInstance) {
+                flatpickrInstance.setDate(preFillDueDate, true);
+            }
+            
+            // Set hidden deadline field
+            document.getElementById('deadline').value = preFilledDeadlineHours;
+            document.getElementById('dateDue').value = preFillDueDate;
+            
+            // Update deadline info display
+            updateDeadlineInfo(preFilledDeadlineHours);
+        }
+
+        // Handle pre-filled pages (this will be recalculated from word count anyway)
+        const preFilledPages = {{ pages if pages else 'null' }};
+        if (preFilledPages) {
+            document.getElementById('pageCount').textContent = preFilledPages;
+            document.getElementById('summaryPages').textContent = preFilledPages;
+        }
+    }
+
+    function initializeFlatpickr() {
+        const deadlinePicker = document.getElementById('deadline_picker');
+        
+        flatpickrInstance = flatpickr(deadlinePicker, {
+            enableTime: true,
+            dateFormat: "Y-m-d, H:i",
+            plugins: [new confirmDatePlugin({})],
+            altFormat: "h:i K, M d",
+            altInput: true,
+            time_24hr: true,
+            minDate: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours from now
+            maxDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+            minuteIncrement: 30,
+            defaultDate: new Date(Date.now() + 3 * 60 * 60 * 1000),
+            defaultHour: 23,
+            defaultMinute: 59,
+            confirmIcon: "<i class='fa fa-check'></i>", 
+            confirmText: "OK ",
+            showAlways: false,
+            theme: "dark",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const selectedDate = selectedDates[0];
+                    const now = new Date();
+                    const timeDiff = selectedDate - now;
+                    const hoursUntilDeadline = timeDiff / (1000 * 60 * 60);
+                    
+                    
+                    // Update deadline info
+                    updateDeadlineInfo(hoursUntilDeadline);
+                    
+                    // Store the formatted date in hidden field
+                    document.getElementById('deadline').value = hoursUntilDeadline;
+                    document.getElementById('dateDue').value = dateStr;
+                    // Recalculate price
+                    calculatePrice();
+                }
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                // Add custom time buttons
+                addCustomTimeButtons(instance);
+            }
+        });
+    }
+
+    function addCustomTimeButtons(instance) {
+        const calendarContainer = instance.calendarContainer;
+        
+        // Create time buttons container
+        const timeButtonsContainer = document.createElement('div');
+        timeButtonsContainer.className = 'flatpickr-time-buttons';
+        timeButtonsContainer.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        `;
+
+        // Time options
+        const timeOptions = [
+            { label: '3 hours', hours: 3 },
+            { label: '6 hours', hours: 6 },
+            { label: '12 hours', hours: 12 },
+            { label: '24 hours', hours: 24 },
+            { label: '2 days', hours: 48 },
+            { label: '3 days', hours: 72 },
+            { label: '7 days', hours: 168 },
+            { label: '14 days', hours: 336 }
+        ];
+
+        timeOptions.forEach(option => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = option.label;
+            btn.className = 'flatpickr-time-btn';
+            btn.style.cssText = `
+                padding: 4px 8px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            
+            btn.addEventListener('click', function() {
+                const futureDate = new Date(Date.now() + option.hours * 60 * 60 * 1000);
+                instance.setDate(futureDate, true);
+                // calculatePrice();
+                 const now = new Date();
+                 const timeDiff = futureDate - now;
+                 const hoursUntilDeadline = timeDiff / (1000 * 60 * 60);
+
+                 updateDeadlineInfo(hoursUntilDeadline);
+
+                 const formattedDate = instance.formatDate(futureDate, "Y-m-d, H:i");
+                 document.getElementById('deadline').value = hoursUntilDeadline;
+                 document.getElementById('dateDue').value = formattedDate
+            });
+            
+            timeButtonsContainer.appendChild(btn);
+        });
+
+        calendarContainer.appendChild(timeButtonsContainer);
+    }
+
+    function updateDeadlineInfo(hoursUntilDeadline) {
+        const deadlineInfo = document.getElementById('deadlineInfo');
+        const deadlineText = document.getElementById('deadlineText');
+        
+        deadlineInfo.style.display = 'block';
+
+        if (hoursUntilDeadline < 3) {
+            deadlineText.innerHTML = '<span style="color: red;">⚠️ Minimum 3 hours required</span>';
+        } else if (hoursUntilDeadline < 24) {
+            deadlineText.innerHTML = `<span style="color: orange;">⏰ ${Math.round(hoursUntilDeadline)} hours</span>`;
+        } else {
+            const days = Math.floor(hoursUntilDeadline / 24);
+            const hours = Math.round(hoursUntilDeadline % 24);
+            deadlineText.innerHTML = `<span style="color: green;">📅 ${days} day(s) ${hours} hour(s)</span>`;
+        }
+    }
+
+    function initializePlagiarismToggle() {
+        const toggleOptions = document.querySelectorAll('.toggle-option');
+        
+        // Remove default selection
+        toggleOptions.forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        toggleOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                 if (this.classList.contains('selected')) {
+                    // Untoggle - remove selection
+                    this.classList.remove('selected');
+                    selectedReportPrice = 0;
+                    document.getElementById('selectedReport').textContent = '$0.00';
+                } else {
+                // Remove selection from all options
+                toggleOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selection to clicked option
+                this.classList.add('selected');
+                
+                // Update report price
+                const reportType = this.dataset.option;
+                document.getElementById('report_type').value = reportType
+                if (reportType === 'standard') {
+                    selectedReportPrice = 4.99;
+                } else if (reportType === 'turnitin') {
+                    selectedReportPrice = 9.99;
+                }
+                
+                // Update display
+                document.getElementById('selectedReport').textContent = `$${selectedReportPrice.toFixed(2)}`;
+            }
+                updateTotalPrice();
+            });
+        });
+    }
+
+    function initializeFileUpload() {
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInput = document.getElementById('files');
+        const fileList = document.getElementById('fileList');
+
+        // Click to browse
+        fileUpload.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (validateFile(file)) {
+                    selectedFiles.push(file);
+                    addFileToList(file);
+                }
+            });
+        }
+
+        function validateFile(file) {
+            const allowedTypes = ['application/pdf', 'application/msword', 
+                               'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                               'text/plain', 'image/jpeg', 'image/jpg', 'image/png'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('Invalid file type. Please upload PDF, DOC, DOCX, TXT, JPG, or PNG files.', 'error');
+                return false;
+            }
+
+            if (file.size > maxSize) {
+                showAlert(`File "${file.name}" is too large. Maximum size is 10MB.`, 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function addFileToList(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <i class="fas fa-file"></i>
+                    <div class="file-details">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                    </div>
+                </div>
+                <button type="button" class="remove-file" onclick="removeFile('${file.name}', this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+        }
+    }
+
+    function removeFile(fileName, button) {
+        selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+        button.parentElement.remove();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function bindEventListeners() {
+        // Word count change
+        document.getElementById('word_count').addEventListener('input', function() {
+            updatePageCount();
+            calculatePrice();
+            updateProgress();
+        });
+
+        // Service change
+        document.getElementById('service').addEventListener('change', function() {
+            updateSelectedService();
+            calculatePrice();
+            updateProgress();
+        });
+
+        // Academic level change
+        document.getElementById('academic_level').addEventListener('change', function() {
+            updateSelectedLevel();
+            calculatePrice();
+            updateProgress();
+        });
+
+        // Instructions character count
+        document.getElementById('description').addEventListener('input', function() {
+            updateInstructionCount();
+        });
+
+        // Form submission
+        document.getElementById('orderForm').addEventListener('submit', handleFormSubmit);
+
+        // Title input
+        document.getElementById('title').addEventListener('input', updateProgress);
+    }
+
+    function updatePageCount() {
+        const wordCount = parseInt(document.getElementById('word_count').value) || 0;
+        const pages = Math.max(1, Math.round(wordCount / 275 * 100) / 100);
+        document.getElementById('pageCount').textContent = pages.toFixed(0);
+        document.getElementById('summaryPages').textContent = pages.toFixed(0);
+    }
+
+    function updateSelectedService() {
+        const serviceSelect = document.getElementById('service');
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        document.getElementById('selectedService').textContent = 
+            selectedOption.value ? selectedOption.text : '-';
+    }
+
+    function updateSelectedLevel() {
+        const levelSelect = document.getElementById('academic_level');
+        const selectedOption = levelSelect.options[levelSelect.selectedIndex];
+        document.getElementById('selectedLevel').textContent = 
+            selectedOption.value ? selectedOption.text : '-';
+    }
+
+    function updateInstructionCount() {
+        const description = document.getElementById('description').value;
+        document.getElementById('instructionCount').textContent = `${description.length} characters`;
+    }
+
+    function calculatePrice() {
+        const serviceId = document.getElementById('service').value;
+        const academicLevelId = document.getElementById('academic_level').value;
+        const deadlineData = document.getElementById('deadline').value;
+        const wordCount = document.getElementById('word_count').value;
+
+        if (!serviceId || !academicLevelId || !deadlineData || !wordCount) {
+            return;
+        }
+
+        const requestData = {
+            service_id: serviceId,
+            academic_level_id: academicLevelId,
+            deadline_data: deadlineData,
+            word_count: wordCount,
+            report_price: selectedReportPrice
+        };
+
+        fetch('/api/calculate-price', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showAlert(data.error, 'error');
+                return;
+            }
+
+            currentPrice = data.total_price;
+            
+            updatePriceDisplay(data);
+        })
+        .catch(error => {
+            console.error('Error calculating price:', error);
+            showAlert('Error calculating price. Please try again.', 'error');
+        });
+    }
+
+    function updatePriceDisplay(priceData) {
+        const days = Math.floor(priceData.hours_until_deadline / 24);
+        const hours = Math.round(priceData.hours_until_deadline % 24);
+        const mins = Math.round((priceData.hours_until_deadline % 1)* 60);
+        let priceText = '';
+        if (days > 0) {
+            priceText = `${days} Day${days > 1 ? 's' : ''}`;
+            if (hours > 0) priceText += ` : ${hours} hour${hours > 1 ? 's' : ''}`;
+            if (mins > 0) priceText += ` : ${mins} min${mins > 1 ? 's' : ''}`;
+        } else if (hours > 0) {
+            priceText = `${hours} hour${hours > 1 ? 's' : ''}`;
+            if (mins > 0) priceText += ` : ${mins} min${mins > 1 ? 's' : ''}`;
+        } else {
+            priceText = `${mins} min${mins > 1 ? 's' : ''}`;
+        }
+        document.getElementById('selectedDeadline').textContent = 
+            `${priceText}`;
+        updateTotalPrice();
+    }
+
+    function updateTotalPrice() {
+        const totalPrice = currentPrice + selectedReportPrice;
+        document.getElementById('totalPrice').textContent = `$${totalPrice.toFixed(2)}`;
+    }
+
+    function updateProgress() {
+        const requiredFields = ['service', 'academic_level', 'deadline', 'title', 'word_count'];
+        const filledFields = requiredFields.filter(fieldId => {
+            const field = document.getElementById(fieldId);
+            return field && field.value.trim() !== '';
+        }).length;
+
+        const progress = (filledFields / requiredFields.length) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    function initializeFormValidation() {
+        const form = document.getElementById('orderForm');
+        const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => validateField(input));
+            input.addEventListener('input', () => clearFieldError(input));
+        });
+    }
+
+    function validateField(field) {
+        const fieldName = field.name;
+        const errorElement = document.getElementById(`${fieldName}Error`) || 
+                           document.getElementById(`${field.id}Error`);
+
+        if (!field.value.trim()) {
+            showFieldError(field, errorElement, 'This field is required');
+            return false;
+        }
+
+        // Specific validations
+        if (fieldName === 'word_count') {
+            const wordCount = parseInt(field.value);
+            if (wordCount < 275 || wordCount > 50000) {
+                showFieldError(field, errorElement, 'Word count must be between 275 and 50,000');
+                return false;
+            }
+        }
+
+        if (fieldName === 'deadline') {
+            const timeDiff = field.value;
+            const hoursUntilDeadline = timeDiff / (1000 * 60 * 60);
+
+            if (hoursUntilDeadline < 3) {
+                showFieldError(field, errorElement, 'Deadline must be at least 3 hours from now');
+                return false;
+            }
+        }
+
+        clearFieldError(field, errorElement);
+        return true;
+    }
+
+    function showFieldError(field, errorElement, message) {
+        field.classList.add('error');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    }
+
+    function clearFieldError(field, errorElement) {
+        field.classList.remove('error');
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.style.display = 'none';
+        }
+    }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+
+        // Validate all required fields
+        const requiredFields = document.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+
+        // Check if plagiarism report is selected
+        const selectedReport = document.querySelector('.toggle-option.selected');
+        // if (!selectedReport) {
+        //     document.getElementById('plagiarismReportError').textContent = 'Please select a plagiarism report option';
+        //     document.getElementById('plagiarismReportError').style.display = 'block';
+        //     isValid = false;
+        // } else {
+        //     document.getElementById('plagiarismReportError').style.display = 'none';
+        // }
+
+        if (!isValid) {
+            showAlert('Please fix the errors before submitting', 'error');
+            return;
+        }
+
+        // Add selected files to form data
+        const formData = new FormData(e.target);
+        
+        // Clear existing file inputs
+        const existingFileInputs = document.querySelectorAll('input[name="files"]');
+        existingFileInputs.forEach(input => input.remove());
+
+        // Add selected files
+        // selectedFiles.forEach(file => {
+        //     formData.append('files', file);
+        // });
+
+        // Add report type to form data
+        if (selectedReport) {
+            formData.append('report_price', selectedReportPrice);
+        }
+
+        // Submit form
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        fetch(e.target.action || window.location.pathname, {
+            method: 'POST',
+            headers: {
+            'X-CSRFToken': '{{ csrf_token() }}',
+
+            },
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.text();
+            }
+        })
+        .then(html => {
+            if (html) {
+                document.body.innerHTML = html;
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting form:', error);
+            showAlert('Error submitting order. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Payment';
+        });
+    }
+
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.innerHTML = `
+            <div class="alert-content">
+                <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                <span>${message}</span>
+                <button type="button" class="alert-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        alertContainer.appendChild(alertDiv);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // Make functions globally available
+    window.removeFile = removeFile;
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TunedEssays &nbsp;| &nbsp; Admin Portal</title>
+    <meta name="description"
+        content="Admin dashboard for managing academic writing services, users, orders, and content.">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-light: #81c784;
+            --primary-dark: #388e3c;
+            --primary-subtle: rgba(76, 175, 80, 0.1);
+            --secondary: #2196f3;
+            --success: #4caf50;
+            --info: #00bcd4;
+            --warning: #ffc107;
+            --danger: #f44336;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --top-nav-height: 60px;
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .admin-dashboard-page {
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar styles */
+        #admin-sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            border-right: 1px solid var(--gray-light);
+        }
+
+        #admin-sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .logo-container {
+            background-color: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .logo-icon {
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu .nav-link {
+            padding: 0.8rem 1.5rem;
+            color: var(--dark);
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-menu .nav-link:hover,
+        .sidebar-menu .nav-link.active {
+            color: var(--primary);
+            background-color: var(--primary-subtle);
+        }
+
+        .sidebar-menu .nav-link.active {
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        /* Top navbar */
+        .top-navbar {
+            background-color: white;
+            height: var(--top-nav-height);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        #sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.2rem;
+        }
+
+        .search-box .input-group {
+            background-color: var(--light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            border-color: var(--light);
+            background-color: var(--light);
+        }
+
+        .search-box input:focus {
+            box-shadow: none;
+            border-color: var(--light);
+            background-color: var(--light);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-profile-btn {
+            border: none;
+            background: none;
+            color: var(--dark);
+        }
+
+        .avatar-container {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.25rem;
+        }
+
+        .card-footer {
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.25rem;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .icon-blue {
+            background-color: rgba(33, 150, 243, 0.1) !important;
+            color: #2196f3 !important;
+        }
+
+        .icon-purple {
+            background-color: rgba(156, 39, 176, 0.1) !important;
+            color: #9c27b0 !important;
+        }
+
+        .icon-orange {
+            background-color: rgba(255, 152, 0, 0.1) !important;
+            color: #ff9800 !important;
+        }
+
+        /* Tables */
+        .table> :not(:first-child) {
+            border-top: 1px solid currentColor;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+        }
+
+        /* Insight cards */
+        .insight-card {
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Chart */
+        .chart-container {
+            position: relative;
+            margin: auto;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) {
+            #admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            #admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* Toast notifications */
+        .toast {
+            background-color: white;
+            border: none;
+        }
+
+        /* Helper classes */
+        .btn-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .btn-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+
+<body class="admin-dashboard-page">
+    <!-- Page Loader -->
+    <div class="loader-container" id="pageLoader">
+        <div class="loader"></div>
+    </div>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <nav id="admin-sidebar" class="shadow-sm">
+            <div class="sidebar-header">
+                <div class="d-flex align-items-center justify-content-center mb-4">
+                    <div class="logo-container">
+                        <i class="fas fa-graduation-cap logo-icon"></i>
+                    </div>
+                    <h5 class="mb-0 ms-2">Admin Portal</h5>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <ul class="nav flex-column">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#dashboard" data-bs-toggle="tab">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#orders" data-bs-toggle="tab">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Orders</span>
+                            <span class="badge bg-primary rounded-pill ms-2">{{ orders|length }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#clients" data-bs-toggle="tab">
+                            <i class="fas fa-users"></i>
+                            <span>Clients</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#finance" data-bs-toggle="tab">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Finance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#settings" data-bs-toggle="tab">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-navbar shadow-sm">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <button id="sidebar-toggle" class="btn btn-sm">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="search-box ms-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" placeholder="Search..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <div class="dropdown notifications-dropdown me-3">
+                                <button class="btn position-relative" type="button" id="notificationDropdown"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="notification-badge">3</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                    aria-labelledby="notificationDropdown">
+                                    <li>
+                                        <h6 class="dropdown-header">Notifications</h6>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#">New order received</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#">Client sent a message</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">Payment processed</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider" />
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-center" href="#">View all</a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="dropdown">
+                                <button class="btn admin-profile-btn d-flex align-items-center" type="button"
+                                    id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="avatar-container me-2">
+                                        <span>A</span>
+                                    </div>
+                                    <span class="d-none d-md-inline">Admin</span>
+                                    <i class="fas fa-chevron-down ms-2"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="profileDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider" />
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"><i
+                                                class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="container-fluid py-4">
+                <div class="tab-content">
+                    <!-- Dashboard Tab -->
+                    <div class="tab-pane fade show active" id="dashboard">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="mb-0">Dashboard Overview</h4>
+                                <p class="text-muted">
+                                    Welcome back, Admin. Here's what's happening today.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="text-muted mb-1">Total Revenue</h6>
+                                                <h3 class="mb-0">${{ total_revenue }}</h3>
+                                                <p class="small text-success mb-0">
+                                                    <i class="fas fa-arrow-up me-1"></i>12% increase
+                                                </p>
+                                            </div>
+                                            <div class="icon-container">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="text-muted mb-1">Active Orders</h6>
+                                                <h3 class="mb-0">{{ orders|length }}</h3>
+                                                <p class="small text-success mb-0">
+                                                    <i class="fas fa-arrow-up me-1"></i>5% increase
+                                                </p>
+                                            </div>
+                                            <div class="icon-container icon-blue">
+                                                <i class="fas fa-file-alt"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="text-muted mb-1">Client Satisfaction</h6>
+                                                <h3 class="mb-0">92%</h3>
+                                                <p class="small text-success mb-0">
+                                                    <i class="fas fa-arrow-up me-1"></i>3% increase
+                                                </p>
+                                            </div>
+                                            <div class="icon-container icon-orange">
+                                                <i class="fas fa-smile"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity and Chart -->
+                        <div class="row">
+                            <!-- Recent Activity -->
+                            <div class="col-xl-8 mb-4">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Recent Orders</h6>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm" type="button" id="orderFilterDropdown"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end"
+                                                    aria-labelledby="orderFilterDropdown">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">All Orders</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">New Orders</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">In Progress</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="#">Completed</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Order ID</th>
+                                                        <th>Client</th>
+                                                        <th>Subject</th>
+                                                        <th>Status</th>
+                                                        <th>Deadline</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for order in orders %}
+                                                    <tr>
+                                                        <td>
+                                                            <span class="fw-medium">{{ order.order_number }}</span>
+                                                        </td>
+                                                        <td>{{ order.client.username }}</td>
+                                                        <td>{{ order.subject|default('General') }}</td>
+                                                        <td>
+                                                            <span
+                                                                class="badge {% if order.status == 'Completed' %}bg-success{% elif order.status == 'In Progress' %}bg-primary{% elif order.status == 'Pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                                {{ order.status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ order.deadline|default('Not set') }}</td>
+                                                        <td>
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-sm action-btn" type="button"
+                                                                    id="orderActionDropdown{{ order.id }}"
+                                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="fas fa-ellipsis-h"></i>
+                                                                </button>
+                                                                <ul class="dropdown-menu dropdown-menu-end"
+                                                                    aria-labelledby="orderActionDropdown{{ order.id }}">
+                                                                    <li>
+                                                                        <a class="dropdown-item" href="#"><i
+                                                                                class="fas fa-eye me-2"></i>View
+                                                                            Details</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a class="dropdown-item" href="#"><i
+                                                                                class="fas fa-edit me-2"></i>Edit</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a class="dropdown-item text-danger" href="#"><i
+                                                                                class="fas fa-trash-alt me-2"></i>Delete</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <a href="#" class="btn btn-link">View All Orders</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chart -->
+                            <div class="col-xl-4 mb-4">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Revenue Overview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="revenueChart" height="250"></canvas>
+                                        </div>
+                                        <div class="row mt-4">
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="indicator bg-primary"></div>
+                                                    <div class="ms-2">
+                                                        <h6 class="mb-0">$10,540</h6>
+                                                        <small class="text-muted">Current Month</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="indicator bg-success"></div>
+                                                    <div class="ms-2">
+                                                        <h6 class="mb-0">$8,923</h6>
+                                                        <small class="text-muted">Last Month</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Client Insights -->
+                        <div class="col-xl-6 mb-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Client Insights</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3 text-center">
+                                        <div class="col-6">
+                                            <div class="insight-card bg-light rounded p-3">
+                                                <div class="insight-icon mb-2">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </div>
+                                                <h3 class="mb-1">24</h3>
+                                                <p class="text-muted mb-0">New Clients</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="insight-card bg-light rounded p-3">
+                                                <div class="insight-icon mb-2">
+                                                    <i class="fas fa-redo-alt"></i>
+                                                </div>
+                                                <h3 class="mb-1">76%</h3>
+                                                <p class="text-muted mb-0">Return Rate</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="insight-card bg-light rounded p-3">
+                                                <div class="insight-icon mb-2">
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                                <h3 class="mb-1">4.8</h3>
+                                                <p class="text-muted mb-0">Avg. Rating</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="insight-card bg-light rounded p-3">
+                                                <div class="insight-icon mb-2">
+                                                    <i class="fas fa-comments"></i>
+                                                </div>
+                                                <h3 class="mb-1">18</h3>
+                                                <p class="text-muted mb-0">Support Tickets</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div class="tab-pane fade" id="orders">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0">Orders Management</h4>
+                                    <p class="text-muted">
+                                        Manage all client orders in one place
+                                    </p>
+                                </div>
+                                <button class="btn btn-success">
+                                    <i class="fas fa-plus me-2"></i>Create Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-transparent border-end-0">
+                                                    <i class="fas fa-search text-muted"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0"
+                                                    placeholder="Search orders..." />
+                                            </div>
+                                        </div>
+                                        <div class="d-flex">
+                                            <div class="dropdown me-2">
+                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                                    id="orderFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fas fa-filter me-2"></i>Filter
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="orderFilterBtn">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">All Orders</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">New Orders</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">In Progress</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">Completed</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="fas fa-download me-2"></i>Export
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="orderSelectAll" />
+                                                        </div>
+                                                    </th>
+                                                    <th>Order ID</th>
+                                                    <th>Client</th>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Status</th>
+                                                    <th>Amount</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for order in orders %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" />
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fw-medium">{{ order.order_number }}</span>
+                                                    </td>
+                                                    <td>{{ order.client.username }}</td>
+                                                    <td>
+                                                        {{ order.date_created|default('May 1, 2025') }}
+                                                    </td>
+                                                    <td>{{ order.type|default('Essay') }}</td>
+                                                    <td>
+                                                        <span
+                                                            class="badge {% if order.status == 'Completed' %}bg-success{% elif order.status == 'In Progress' %}bg-primary{% elif order.status == 'Pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                            {{ order.status }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm order-start"
+                                                            data-order-id="{{ order.id }}">
+                                                            <option value="">Accept the order</option>
+                                                            <option value="yes">Yes</option>
+                                                            <option value="no">No</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>${{ order.amount|default('149.99') }}</td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm action-btn" type="button"
+                                                                id="orderAction{{ order.id }}" data-bs-toggle="dropdown"
+                                                                aria-expanded="false">
+                                                                <i class="fas fa-ellipsis-h"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-end"
+                                                                aria-labelledby="orderAction{{ order.id }}">
+                                                                <li>
+                                                                    <a class="dropdown-item" href="#"><i
+                                                                            class="fas fa-eye me-2"></i>View
+                                                                        Details</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="#"><i
+                                                                            class="fas fa-edit me-2"></i>Edit</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="#"><i
+                                                                            class="fas fa-file-alt me-2"></i>View
+                                                                        Files</a>
+                                                                </li>
+                                                                <li>
+                                                                    <hr class="dropdown-divider" />
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item text-danger" href="#"><i
+                                                                            class="fas fa-trash-alt me-2"></i>Delete</a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <nav aria-label="Orders pagination">
+                                        <ul class="pagination justify-content-center mb-0">
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" tabindex="-1"
+                                                    aria-disabled="true">Previous</a>
+                                            </li>
+                                            <li class="page-item active">
+                                                <a class="page-link" href="#">1</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">2</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">3</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">Next</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="clients">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="mb-0">Client Management</h4>
+                            <p class="text-muted">Manage your client relationships</p>
+                        </div>
+                    </div>
+                    <!-- Clients content here -->
+                </div>
+
+                <div class="tab-pane fade" id="finance">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="mb-0">Financial Overview</h4>
+                            <p class="text-muted">
+                                Track revenue, payments and financial metrics
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Finance content here -->
+                </div>
+
+                <div class="tab-pane fade" id="settings">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="mb-0">System Settings</h4>
+                            <p class="text-muted">Configure your admin dashboard</p>
+                        </div>
+                    </div>
+                    <!-- Settings content here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize sidebar toggle
+            const sidebarToggle = document.getElementById("sidebar-toggle");
+            const adminSidebar = document.getElementById("admin-sidebar");
+            const mainContent = document.querySelector(".main-content");
+
+            sidebarToggle.addEventListener("click", function () {
+                adminSidebar.classList.toggle("collapsed");
+                mainContent.classList.toggle("expanded");
+            });
+
+            // Initialize revenue chart
+            const revenueCtx = document.getElementById("revenueChart").getContext("2d");
+            const revenueChart = new Chart(revenueCtx, {
+                type: "line",
+                data: {
+                    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                    datasets: [
+                        {
+                            label: "Current Year",
+                            data: [4500, 6000, 7500, 8200, 9500, 10540],
+                            borderColor: "#4CAF50",
+                            backgroundColor: "rgba(76, 175, 80, 0.1)",
+                            tension: 0.4,
+                            fill: true,
+                        },
+                        {
+                            label: "Previous Year",
+                            data: [3800, 5200, 6300, 7100, 8400, 8923],
+                            borderColor: "#2196F3",
+                            backgroundColor: "rgba(33, 150, 243, 0.1)",
+                            tension: 0.4,
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            mode: "index",
+                            intersect: false,
+                        },
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                            },
+                        },
+                        y: {
+                            grid: {
+                                borderDash: [2, 2],
+                            },
+                            beginAtZero: true,
+                        },
+                    },
+                },
+            });
+
+            
+            // Initialize notifications
+            const notificationDropdown = document.getElementById(
+                "notificationDropdown"
+            );
+            if (notificationDropdown) {
+                notificationDropdown.addEventListener("click", function () {
+                    // Mark notifications as read
+                    const badge = document.querySelector(".notification-badge");
+                    if (badge) {
+                        badge.style.display = "none";
+                    }
+                });
+            }
+
+            // Tab navigation for mobile
+            const tabLinks = document.querySelectorAll(
+                '.nav-link[data-bs-toggle="tab"]'
+            );
+            tabLinks.forEach((link) => {
+                link.addEventListener("click", function () {
+                    if (window.innerWidth < 992) {
+                        adminSidebar.classList.remove("show");
+                    }
+                });
+            });
+
+            // Select all checkbox for orders
+            const selectAllCheckbox = document.getElementById("orderSelectAll");
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener("change", function () {
+                    const checkboxes = document.querySelectorAll("tbody .form-check-input");
+                    checkboxes.forEach((checkbox) => {
+                        checkbox.checked = this.checked;
+                    });
+                });
+            }
+
+            // Toast notification function
+            function showToast(message) {
+                const toastContainer = document.querySelector(".toast-container");
+                const toast = document.createElement("div");
+                toast.className = "toast show";
+                toast.setAttribute("role", "alert");
+                toast.setAttribute("aria-live", "assertive");
+                toast.setAttribute("aria-atomic", "true");
+
+                toast.innerHTML = `
+        <div class="toast-header">
+          <strong class="me-auto">Notification</strong>
+          <small>Just now</small>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          ${message}
+        </div>
+      `;
+
+                toastContainer.appendChild(toast);
+
+                // Auto-remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+
+            // Mobile responsive menu
+            if (window.innerWidth < 992) {
+                document.querySelector("body").addEventListener("click", function (e) {
+                    if (
+                        !adminSidebar.contains(e.target) &&
+                        !sidebarToggle.contains(e.target)
+                    ) {
+                        adminSidebar.classList.remove("show");
+                    }
+                });
+
+                sidebarToggle.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    adminSidebar.classList.toggle("show");
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

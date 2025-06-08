@@ -1,0 +1,2096 @@
+{% extends 'base.html' %}
+    {% block title %}Order Activities - {{ order.order_number }}{% endblock %}
+    
+    
+    {% block extra_css%}
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/update-deadline.css')}}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/toggle-btns.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/floating.css')}}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #4CAF50;
+            --light-green: #E8F5E8;
+            --neutral-light: #F8F9FA;
+            --neutral-medium: #E9ECEF;
+            --neutral-dark: #6C757D;
+            --text-dark: #212529;
+            --shadow-light: 0 2px 12px rgba(0,0,0,0.08);
+            --shadow-hover: 0 6px 24px rgba(0,0,0,0.12);
+            --gradient-primary: linear-gradient(135deg, var(--primary-green), #45a049);
+            --border-radius: 16px;
+            --border-radius-small: 12px;
+            --sidebar-width: 380px;
+        }
+
+        
+
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Adjusted Header Section - Reduced Width */
+        .order-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 25px 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            margin-right: calc(var(--sidebar-width) + 30px); /* Make space for sidebar */
+            box-shadow: var(--shadow-light);
+            position: relative;
+            /* overflow: hidden; */
+        }
+
+        .order-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .order-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .order-subtitle {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        /* Enhanced Sidebar - More Prominent */
+        .main-sidebar {
+            position: absolute;
+            top: 20px;
+            /* margin-top: 80px; */
+            right: 20px;
+            width: var(--sidebar-width);
+            height: calc(100vh - 40px);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Countdown Timer - Moved to Sidebar Top */
+        .countdown-sidebar-card {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            backdrop-filter: blur(10px);
+        }
+
+        .countdown-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .countdown-timer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .countdown-item {
+            text-align: center;
+            background: rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 12px 8px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .countdown-item:hover {
+            transform: scale(1.05);
+            background: rgba(255,255,255,0.35);
+        }
+
+        .countdown-number {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        /* Collapsible Quick Actions */
+        /* .quick-actions-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .quick-actions-toggle {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 18px 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-actions-toggle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .quick-actions-toggle:hover::before {
+            left: 100%;
+        }
+
+        .quick-actions-toggle:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-1px);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .quick-actions-toggle.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .quick-actions-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        padding 0.4s ease;
+            padding: 0 20px;
+            background: white;
+        }
+
+        .quick-actions-content.expanded {
+            max-height: 500px;
+            padding: 20px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease 0.1s;
+        }
+
+        .quick-actions-content.expanded .actions-grid {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border: none;
+            border-radius: var(--border-radius-small);
+            font-size: 10px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-height: unset;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .action-btn i {
+            font-size: 10px;
+            /* margin-bottom: 2px; *
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--neutral-dark);
+            border: 2px solid var(--neutral-medium);
+        }
+
+        .btn-outline:hover {
+            background: var(--light-green);
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+        }
+
+        .file-upload-btn {
+            grid-column: span 2;
+            background: var(--light-green);
+            color: var(--primary-green);
+            border: 2px dashed var(--primary-green);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .file-upload-btn:hover {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        } */
+
+        /* Enhanced Messaging Sidebar */
+        .messaging-sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Important for flex child */
+            max-height: calc(100vh - 280px);
+        }
+
+        .messaging-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            border: 1px solid rgba(76, 175, 80, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            max-height: 100%; 
+        }
+
+        .messaging-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 18px 20px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .messaging-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .messaging-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--neutral-light);
+            min-height: 0;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: var(--neutral-light);
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--neutral-medium);
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: var(--neutral-dark);
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message-bubble.client {
+            background: var(--primary-green);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-bubble.admin {
+            background: white;
+            border-bottom-left-radius: 6px;
+            border: 1px solid var(--neutral-medium);
+        }
+
+        .message-time {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message-input-container {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid var(--neutral-medium);
+            flex-shrink: 0; /* Always visible */
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .message-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            border: 2px solid var(--neutral-medium);
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 13px;
+            resize: none;
+            max-height: 80px;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .send-btn {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #45a049;
+            transform: scale(1.1);
+        }
+
+        /* Tab Navigation - Adjusted for Sidebar */
+        .custom-tabs {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 25px;
+            margin-right: calc(var(--sidebar-width) + 30px); /* Make space for sidebar */
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--neutral-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 18px 25px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--neutral-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-green);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-green);
+        }
+
+        .tab-button.active::after {
+            transform: scaleX(1);
+        }
+
+        .tab-content {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Enhanced Timeline */
+        .timeline-container {
+            position: relative;
+            max-width: 100%;
+        }
+
+        .timeline-day {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .timeline-date-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+        }
+
+        .timeline-date-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary-green), transparent);
+            margin-left: 20px;
+        }
+
+        .timeline-date {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .timeline-activities {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow-light);
+            border-left: 4px solid var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-activities:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateX(5px);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--neutral-light);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.created { background: var(--primary-green); }
+        .activity-icon.message { background: #17a2b8; }
+        .activity-icon.file { background: #ffc107; color: var(--text-dark); }
+        .activity-icon.delivery { background: #28a745; }
+        .activity-icon.payment { background: #6f42c1; }
+        .activity-icon.comment { background: #fd7e14; }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .activity-description {
+            color: var(--neutral-dark);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--neutral-dark);
+            background: var(--neutral-light);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-light);
+            border-left: 4px solid #17a2b8;
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--neutral-light);
+        }
+
+        .comments-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .add-comment-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-comment-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-light);
+        }
+
+        .comment-form {
+            background: var(--light-green);
+            border-radius: var(--border-radius-small);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .comment-form.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comment-input {
+            width: 100%;
+            border: 2px solid var(--neutral-medium);
+            border-radius: var(--border-radius-small);
+            padding: 15px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        .comment-input:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .comment-item {
+            background: var(--neutral-light);
+            border-radius: var(--border-radius-small);
+            padding: 18px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .comment-item:hover {
+            background: white;
+            box-shadow: var(--shadow-light);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        .comment-date {
+            font-size: 12px;
+            color: var(--neutral-dark);
+        }
+
+        .comment-text {
+            color: var(--text-dark);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, var(--light-green), #a8e6cf);
+            color: #2d5a2d;
+        }
+
+        .status-completed {
+            background: linear-gradient(135deg, #d4edda, #55efc4);
+            color: #155724;
+        }
+
+        /* File Items */
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: white;
+            border-radius: var(--border-radius-small);
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .file-icon {
+            color: var(--primary-green);
+            font-size: 18px;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .file-size {
+            font-size: 11px;
+            color: var(--neutral-dark);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .main-sidebar {
+                position: relative;
+                width: 100%;
+                height: fit-content;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+                gap: 20px;
+            }
+
+            .order-header,
+            .custom-tabs {
+                margin-right: 0;
+            }
+
+            .messaging-sidebar {
+                height: 450px;
+            }
+
+            .countdown-timer {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 15px;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .countdown-timer {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+
+            .countdown-item {
+                padding: 10px 8px;
+            }
+
+            .tab-button {
+                padding: 15px 18px;
+                font-size: 14px;
+            }
+
+            .activity-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .main-sidebar {
+                gap: 15px;
+            }
+            .messaging-sidebar {
+                height: 450px;
+            }
+
+            /* --sidebar-width: 100%; */
+        }
+
+        /* Loading States */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: var(--neutral-dark);
+        }
+
+        .spinner {
+            border: 3px solid var(--neutral-medium);
+            border-top: 3px solid var(--primary-green);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        </style>
+    {% endblock %}
+    {% block content %}
+</head>
+<body>
+    <div class="container mt-4">
+    <div class="main-container">
+        <!-- Reduced Header Section -->
+        <div class="order-header fade-in">
+            <h1 class="order-title">{{ order.title }}</h1>
+            <p class="order-subtitle">
+                Order #{{ order.order_number }} • 
+                Status: <span class="status-badge status-{{ order.status.replace(' ', '-') }}">{{ order.status }}</span> • 
+                {{ order.page_count }} pages • 
+                Due: {{ order.due_date.strftime('%B %d, %Y at %I:%M %p') }}
+            </p>
+        </div>
+
+        <!-- Enhanced Sidebar -->
+        <div class="main-sidebar">
+            <!-- Countdown Timer Card -->
+            <div class="countdown-sidebar-card bounce-in">
+                <div class="countdown-title">
+                    <i class="fas fa-clock"></i> Time Remaining
+                </div>
+                <div class="countdown-timer" id="countdown">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="minutes">00</span>
+                        <span class="countdown-label">Minutes</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="seconds">00</span>
+                        <span class="countdown-label">Seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Quick Actions -->
+            <div class="quick-actions-container bounce-in">
+                <!-- <button class="quick-actions-toggle" id="quickActionsToggle" onclick="toggleQuickActions()">
+                    <span><i class="fas fa-bolt"></i> Quick Actions</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </button>
+                <div class="quick-actions-content" id="quickActionsContent"> -->
+                    <div class="actions-grid">
+                        {% if not order.paid %}
+                        <a href="{{ url_for('payment.checkout', order_id=order.id) }}" class="action-btn btn-payment">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Pay Now</span>
+                        </a>
+                        {% endif %}
+                        
+                        <button class="action-btn btn-deadline" data-order-id="{{order.id}}" data-current-deadline="{{ order.due_date.isoformat() if order.due_date else ''}}"onclick="updateDeadline()">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Update Deadline</span>
+                        </button>
+                        
+                        {% if order.is_delivered %}
+                        <button class="action-btn btn-complete" onclick="markCompleted()">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Mark Complete</span>
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.deadline_requested %}
+                            <button class="action-btn btn-revision btn-sm" 
+                                    onclick="openRevisionModal('{{ order.id }}', '{{ order.order_number }}')">
+                                <i class="fas fa-edit me-1"></i>Request Revision
+                            </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'refund' %}
+                        <button class="action-btn btn-refund" onclick="requestRefund()">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Request Refund</span>
+                        </button>
+                        {% endif %}
+                        {% if order.delivery %}
+                            <a href="{{ url_for('results_services.download_all_delivery_files', order_id=order.id) }}" class="action-btn btn-download">
+                            <i class="fas fa-download"></i>
+                            <span>Download Files</span>
+                        </a>
+                        {% endif %}
+
+                        <!-- File Upload Button -->
+                        <div class="action-btn btn-upload" onclick="document.getElementById('file-input').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Upload Files</span>
+                            <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleFileUpload(this)">
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </div>
+
+            <!-- Enhanced Messaging Sidebar -->
+            <div class="messaging-sidebar">
+                <div class="messaging-card">
+                    <div class="messaging-header">
+                        <h6 class="messaging-title">
+                            <i class="fas fa-comments"></i> 
+                            Live Chat
+                        </h6>
+                    </div>
+                    <div class="chat-container" id="chat-messages">
+                        <!-- Chat messages will be loaded here -->
+                    </div>
+                    <div class="message-input-container">
+                        <form id="chat-form" class="message-input-group">
+                            <textarea class="message-input" id="message-input" placeholder="Type your message..." rows="1" required></textarea>
+                            <button type="submit" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="custom-tabs">
+            <div class="tab-nav">
+                <button class="tab-button active" onclick="switchTab('activities')">
+                    <i class="fas fa-list-ul"></i> Activities
+                </button>
+                <button class="tab-button" onclick="switchTab('details')">
+                    <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+
+            <!-- Activities Tab -->
+            <div class="tab-content">
+                <div id="activities-tab" class="tab-pane active">
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <div class="comments-header">
+                            <h5 class="comments-title">
+                                <i class="fas fa-sticky-note"></i> Order Notes & Comments
+                            </h5>
+                            <button class="add-comment-btn" onclick="toggleCommentForm()">
+                                <i class="fas fa-plus"></i> Add Note
+                            </button>
+                        </div>
+                        
+                        <div class="comment-form" id="commentForm">
+                            <textarea class="comment-input" id="commentInput" placeholder="Add your notes or comments about this order..."></textarea>
+                            <div class="comment-actions">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleCommentForm()">
+                                    Cancel
+                                </button>
+                                <button type="button" class="comment-btn btn btn-primary btn-sm" onclick="submitComment()">
+                                    <i class="fas fa-save"></i> Save Note
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="comments-list">
+                            <!-- Comments will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="timeline-container">
+                        <h5 class="mb-4">
+                            <i class="fas fa-history"></i> Order Timeline
+                        </h5>
+                        <div id="order-timeline">
+                            <!-- Timeline items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Tab -->
+                <div id="details-tab" class="tab-pane">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-info-circle"></i> Order Information
+                                    </h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Order Number:</strong></div>
+                                        <div class="col-8">{{ order.order_number }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Service:</strong></div>
+                                        <div class="col-8">{{ order.service.name if order.service else 'N/A' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Level:</strong></div>
+                                        <div class="col-8">{{ order.academic_level.name if order.academic_level else 'N/A' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Pages:</strong></div>
+                                        <div class="col-8">{{ order.page_count }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Words:</strong></div>
+                                        <div class="col-8">{{ order.word_count }}</div>
+                                    </div>
+                                    {% if order.report_type %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Report Type:</strong></div>
+                                        <div class="col-8">{{ order.report_type }}</div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Format:</strong></div>
+                                        <div class="col-8">{{ order.format_style or 'Not specified' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Created:</strong></div>
+                                        <div class="col-8">{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-credit-card"></i> Payment Information
+                                    </h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Total Price:</strong></div>
+                                        <div class="col-8">${{ "%.2f"|format(order.total_price) }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Payment Status:</strong></div>
+                                        <div class="col-8">
+                                            <span class="status-badge {{ 'status-completed' if order.paid else 'status-pending' }}">
+                                                {{ 'Paid' if order.paid else 'Pending' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if order.payments %}
+                                    {% for payment in order.payments %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Payment Date:</strong></div>
+                                        <div class="col-8">{{ payment.created_at.strftime('%B %d, %Y') }}</div>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-file-alt"></i> Assignment Description
+                                    </h6>
+                                </div>
+                                <div class="card-content">
+                                    <p>{{ order.description }}</p>
+                                </div>
+                            </div>
+
+                            {% if order.files %}
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-paperclip"></i> Uploaded Files
+                                    </h6>
+                                </div>
+                                <div class="file-list">
+                                    {% for file in order.files %}
+                                    <div class="file-item">
+                                        <i class="fas fa-file file-icon"></i>
+                                        <div class="file-details">
+                                            <div class="file-name">{{ file.filename }}</div>
+                                            <div class="file-size">{{ (file.file_size / 1024 / 1024)|round(2) }}MB</div>
+                                        </div>
+                                        <a href="{{ url_for('orders.download_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-tasks"></i> Order Status
+                                    </h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Status:</strong></div>
+                                        <div class="col-8">
+                                            <span class="status-badge status-{{ order.status.replace(' ', '-') }}">{{ order.status }}</span>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="row mb-2">
+                                        <div class="col-4"><strong>Writer Assigned:</strong></div>
+                                        <div class="col-8">{{ 'Yes' if order.writer_is_assigned else 'No' }}</div>
+                                    </div> -->
+                                    {% if order.writer_assigned_at %}
+                                    <!-- <div class="row mb-2">
+                                        <div class="col-4"><strong>Assigned At:</strong></div>
+                                        <div class="col-8">{{ order.writer_assigned_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div> -->
+                                    {% endif %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Last Updated:</strong></div>
+                                        <div class="col-8">{{ order.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Revision Modal-->
+     <div class="modal fade" id="revisionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Request Revision</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="revisionForm">
+                    <div class="modal-body">
+                        <p>Request a revision for order <strong id="revisionOrderNumber"></strong></p>
+                        <div class="form-group">
+                            <label class="form-label">Revision Details</label>
+                            <textarea class="form-control" id="rev_det" name="revision_details" rows="4" 
+                                    placeholder="Please describe what needs to be revised..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-edit me-1"></i>Request Revision
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+        <!-- Deadline Update Modal -->
+    <div class="modal fade" id="deadlineModal" tabindex="-1" aria-labelledby="deadlineModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deadlineModalLabel">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Update Order Deadline
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <form id="deadlineForm">
+                    <div class="modal-body">
+                        <!-- Alert container for messages -->
+                        <div id="alertContainer"></div>
+                        
+                        <!-- Current Deadline Display -->
+                        <div class="mb-3">
+                            <label class="form-label">Current Deadline:</label>
+                            <div class="current-deadline" id="currentDeadlineDisplay">
+                                <!-- Current deadline will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- New Deadline Input -->
+                        <div class="mb-3">
+                            <label for="newDeadline" class="form-label">New Deadline: <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="newDeadline" 
+                                   name="newDeadline" 
+                                   placeholder="Select new deadline date and time"
+                                   required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i>
+                                Click to select date and time using the calendar picker
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden field to store order ID -->
+                        <input type="hidden" id="orderId" value="" name="orderId">
+                        <input type="hidden" id="csrf_token" value="{{csrf_token()}}" name="csrf_token">
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveDeadlineBtn">
+                            <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">
+                                <i class="fas fa-save me-1"></i>
+                                Update Deadline
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Loading...
+    </div>   
+    <!-- Add your existing content here -->
+</div>
+
+<!-- Floating Extension Request Icon (only shows when extension is requested) -->
+<div id="floatingExtensionIcon" class="floating-extension-icon" style="display: none;">
+    <i class="fas fa-clock"></i>
+    <div class="notification-badge">!</div>
+</div>
+
+<!-- Popup Backdrop -->
+<div id="popupBackdrop" class="popup-backdrop"></div>
+
+<!-- Floating Extension Request Popup -->
+<div id="extensionPopup" class="floating-popup">
+    <div class="popup-header">
+        <h6><i class="fas fa-clock me-2"></i>Deadline Extension Request</h6>
+        <button class="popup-close" id="closePopupBtn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="popup-content">
+        <div class="extension-info">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-warning me-2"></i>
+                <strong>Writer has requested a deadline extension</strong>
+            </div>
+            <small class="text-muted">
+                <i class="fas fa-calendar-alt me-1"></i>
+                Requested on: <span id="extensionRequestDate">--</span>
+            </small>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Reason for Extension:</label>
+            <div id="extensionReason" class="extension-reason">
+                Loading reason...
+            </div>
+        </div>
+    </div>
+    <div style="display:none;" class="popup-footer">
+        <button class="btn btn-outline-primary btn-sm-custom flex-fill" id="viewFullTicketBtn">
+            <i class="fas fa-ticket-alt me-1"></i>View Full Ticket
+        </button>
+        <button class="btn btn-primary btn-sm-custom" id="acknowledgeBtn">
+            <i class="fas fa-check me-1"></i>Got it
+        </button>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>     -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script> -->
+<script src="{{url_for('static', filename='js/update-deadline.js')}}"></script>
+<script src="{{url_for('static', filename='js/deadline.js')}}"></script>
+    <!-- Scripts -->
+     <script>
+    // Global variables
+    const orderId = {{ order.id }};
+    const dueDate = new Date('{{ order.due_date.isoformat() }}');
+    let chatPollingInterval;
+    let commentsPollingInterval;
+    let chatExists = false; 
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCountdown();
+        loadTimeline();
+        loadChatMessages();
+        loadComments();
+        
+        // Start polling for updates every 30 seconds
+        chatPollingInterval = setInterval(loadChatMessages, 30000);
+        commentsPollingInterval = setInterval(loadComments, 30000);
+    });
+    async function checkChatStatus() {
+        try {
+            const response = await fetch(`/order-activities/order/${orderId}/chat_status`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Chat status:', data); // Debug log
+            
+            chatExists = data.chat_exists;
+            
+            // Load messages if chat exists
+            if (chatExists) {
+                loadChatMessages();
+            } else {
+                displayNoChatMessage();
+            }
+            
+        } catch (error) {
+            console.error('Error checking chat status:', error);
+            displayNoChatMessage();
+        }
+    }
+    function openRevisionModal(orderId, orderNumber) {
+        document.getElementById('revisionOrderNumber').textContent = '#' + orderNumber;
+        document.getElementById('revisionForm').dataset.orderId = orderId;
+        new bootstrap.Modal(document.getElementById('revisionModal')).show();
+    }
+    function displayNoChatMessage() {
+        const chatContainer = document.getElementById('chat-messages');
+        chatContainer.innerHTML = `
+            <div class="no-chat-message text-center p-4">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No conversation started yet.</p>
+                <p class="small text-muted">Send a message below to start chatting with admin!</p>
+            </div>
+        `;
+        }
+
+    // Countdown Timer
+    function initializeCountdown() {
+        function updateCountdown() {
+            const now = new Date();
+            const timeRemaining = dueDate - now;
+
+            if (timeRemaining <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                return;
+            }
+
+            const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+
+    // Toggle Quick Actions
+    // function toggleQuickActions() {
+    //     const toggle = document.getElementById('quickActionsToggle');
+    //     const content = document.getElementById('quickActionsContent');
+        
+    //     toggle.classList.toggle('expanded');
+    //     content.classList.toggle('expanded');
+    // }
+
+    // Tab Switching
+    function switchTab(tabName) {
+        // Remove active class from all tabs and buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding pane
+        event.target.classList.add('active');
+        document.getElementById(tabName + '-tab').classList.add('active');
+    }
+
+    // Load Timeline Data
+    async function loadTimeline() {
+        try {
+            showLoading(true);
+            const response = await fetch(`/order-activities/order/${orderId}/timeline`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Timeline data received:', data); // Debug log
+            
+            // Check if data and timeline exist
+            if (!data || !data.timeline) {
+                console.warn('No timeline data received');
+                document.getElementById('order-timeline').innerHTML = '<p class="text-muted">No activities found.</p>';
+                return;
+            }
+            
+
+            const timelineContainer = document.getElementById('order-timeline');
+            let timelineHTML = '';
+
+            data.timeline.forEach(day => {
+                if (!day.activities || day.activities.length === 0) {
+                    return; // Skip days with no activities
+                }
+
+                timelineHTML += `
+                    <div class="timeline-day">
+                        <div class="timeline-date-header">
+                            <div class="timeline-date">${day.date}</div>
+                            <div class="timeline-date-line"></div>
+                        </div>
+                        <div class="timeline-activities">
+                `;
+
+                day.activities.forEach(activity => {
+                    const iconClass = getActivityIconClass(activity.type);
+                    timelineHTML += `
+                        <div class="activity-item">
+                            <div class="activity-icon ${activity.type}">
+                                <i class="${activity.icon || iconClass}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">${activity.title}</div>
+                                <div class="activity-description">${activity.description}</div>
+                                <div class="activity-time">${activity.time}</div>
+                                ${activity.files ? renderActivityFiles(activity.files) : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                timelineHTML += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (timelineHTML === '') {
+                timelineHTML = '<p class="text-muted">No activities found.</p>';
+            }
+
+            timelineContainer.innerHTML = timelineHTML;
+            
+        } catch (error) {
+            console.error('Error loading timeline:', error);
+            document.getElementById('order-timeline').innerHTML = 
+                '<p class="text-danger">Error loading timeline. Please refresh the page.</p>';
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Get activity icon class
+    function getActivityIconClass(type) {
+        const iconMap = {
+            'created': 'fas fa-plus-circle',
+            'comment': 'fas fa-comment',
+            'message': 'fas fa-envelope',
+            'file': 'fas fa-file-upload',
+            'delivery': 'fas fa-check-circle',
+            'payment': 'fas fa-credit-card'
+        };
+        return iconMap[type] || 'fas fa-circle';
+    }
+
+    function renderActivityFiles(files) {
+        if (!files || files.length === 0) return '';
+        
+        let filesHTML = '<div class="activity-files mt-2">';
+        files.forEach(file => {
+            filesHTML += `
+                <div class="file-item small">
+                    <i class="fas fa-file file-icon"></i>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${file.size}</div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="${file.download_url}" class="file-action-btn download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+        filesHTML += '</div>';
+        return filesHTML;
+    }
+
+    async function submitComment() {
+        const commentInput = document.getElementById('commentInput');
+        const message = commentInput.value.trim();
+        
+        // Validate input
+        if (!message) {
+            alert('Please enter a comment before saving.');
+            return;
+        }
+        
+        // Get order ID from URL or a hidden field/data attribute
+        // Assuming order ID is available in the URL or as a data attribute
+        // const orderId = getOrderId(); // You'll need to implement this helper function
+        
+        if (!orderId) {
+            alert('Order ID not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Disable the save button to prevent double submission
+        const saveBtn = document.querySelector('.comment-btn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        try {
+            const response = await fetch('/order-activities/order/comment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{csrf_token()}}'
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    message: message
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Clear the input and hide the form
+                commentInput.value = '';
+                toggleCommentForm();
+                
+                // Refresh the comments list
+                await loadComments(); // You'll need to implement this function
+                
+                // Show success message (optional)
+                showMessageFeedback('Comment added successfully!', 'success');
+            } else {
+                // Handle error from server
+                alert('Error: ' + (result.error || 'Failed to save comment'));
+            }
+            
+        } catch (error) {
+            console.error('Error submitting comment:', error);
+            alert('Network error. Please check your connection and try again.');
+        } finally {
+            // Re-enable the save button
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+        }
+    }
+
+    // Load Chat Messages
+    async function loadChatMessages() {
+        try {
+            const response = await fetch(`/order-activities/order/${orderId}/chat`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Chat data received:', data); // Debug log
+            
+            const chatContainer = document.getElementById('chat-messages');
+            let chatHTML = '';
+
+            if (data.messages && data.messages.length > 0) {
+                chatExists = true;
+                data.messages.forEach(message => {
+                    const messageClass = message.is_admin ? 'admin' : 'client';
+                    const messageTime = new Date(message.created_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    chatHTML += `
+                        <div class="chat-message">
+                            <div class="message-bubble ${messageClass}">
+                                ${message.content}
+                                <div class="message-time">${messageTime}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                // chatHTML = '<p class="text-muted text-center">No messages yet. Start a conversation!</p>';
+                chatExists = false; // Update chat status
+                displayNoChatMessage();
+                return;
+            }
+
+            chatContainer.innerHTML = chatHTML;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+        } catch (error) {
+            console.error('Error loading chat messages:', error);
+            document.getElementById('chat-messages').innerHTML = 
+                '<p class="text-danger text-center">Error loading messages.</p>';
+        }
+    }
+
+    // Send Chat Message
+    async function sendMessage(event) {
+        event.preventDefault();
+        
+        const messageInput = document.getElementById('message-input');
+        const content = messageInput.value.trim();
+        const sendBtn = document.querySelector('.send-btn');
+
+        
+        if (!content) return;
+        
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const response = await fetch(`/order-activities/order/${orderId}/send_message_or_create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{csrf_token()}}'
+                },
+                body: JSON.stringify({ content: content })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                messageInput.value = '';
+                if (!chatExists) {
+                    chatExists = true;
+                    console.log('Chat created with first message');
+                }
+
+                await loadChatMessages(); // Reload messages
+                await loadTimeline();
+
+                console.log('Message sent successfully');
+                showMessageFeedback('Message sent successfully!', 'success');
+            } else {
+                alert('Error sending message: ' + (data.error || 'Unknown error'));
+            }
+            
+        } catch (error) {
+            console.error('Error sending message:', error);
+            showMessageFeedback('Error sending message: ' + error.message, 'error');
+            alert('Error sending message. Please try again.');
+        }finally {
+            // Re-enable input and button
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            messageInput.focus();
+        }
+    }
+    function showMessageFeedback(message, type) {
+        // Create or update feedback element
+        let feedback = document.getElementById('message-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.id = 'message-feedback';
+            feedback.style.cssText = `
+                position: absolute;
+                top: -40px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 500;
+                z-index: 1000;
+                transition: all 0.3s ease;
+                opacity: 0;
+            `;
+            document.querySelector('.message-input-container').appendChild(feedback);
+        }
+        // Set message and style based on type
+        feedback.textContent = message;
+        if (type === 'success') {
+            feedback.style.backgroundColor = '#d4edda';
+            feedback.style.color = '#155724';
+            feedback.style.border = '1px solid #c3e6cb';
+        } else {
+            feedback.style.backgroundColor = '#f8d7da';
+            feedback.style.color = '#721c24';
+            feedback.style.border = '1px solid #f5c6cb';
+        }
+        // Show feedback
+        feedback.style.opacity = '1';
+        // Hide after 3 seconds
+        setTimeout(() => {
+            feedback.style.opacity = '0';
+        }, 3000);
+    }
+
+
+    // Load Comments
+    async function loadComments() {
+        try {
+            const response = await fetch(`/order-activities/order/${orderId}/comments`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Comments data received:', data); // Debug log
+            
+            const commentsContainer = document.getElementById('comments-list');
+            let commentsHTML = '';
+
+            if (data.comments && data.comments.length > 0) {
+                data.comments.forEach(comment => {
+                    const commentDate = new Date(comment.created_at).toLocaleDateString([], {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    commentsHTML += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-author">${comment.username}</span>
+                                <span class="comment-date">${commentDate}</span>
+                            </div>
+                            <div class="comment-text">${comment.message}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                commentsHTML = '<p class="text-muted">No comments yet.</p>';
+            }
+
+            commentsContainer.innerHTML = commentsHTML;
+            
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            document.getElementById('comments-list').innerHTML = 
+                '<p class="text-danger">Error loading comments.</p>';
+        }
+    }
+
+    // Toggle Comment Form
+    function toggleCommentForm() {
+        const form = document.getElementById('commentForm');
+        form.classList.toggle('active');
+        
+        if (form.classList.contains('active')) {
+            document.getElementById('comment-input').focus();
+        }
+    }
+
+    // Add Comment
+    async function addComment(event) {
+        event.preventDefault();
+        
+        const commentInput = document.getElementById('comment-input');
+        const message = commentInput.value.trim();
+        
+        if (!message) return;
+
+        try {
+            const response = await fetch(`/order-activities/order/${orderId}/add_comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{csrf_token()}}'
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                commentInput.value = '';
+                toggleCommentForm(); // Hide form
+                loadComments(); // Reload comments
+                loadTimeline(); // Reload timeline to show new comment
+            } else {
+                alert('Error adding comment: ' + (data.error || 'Unknown error'));
+            }
+            
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            alert('Error adding comment. Please try again.');
+        }
+    }
+
+    // Cancel Comment
+    function cancelComment() {
+        document.getElementById('comment-input').value = '';
+        toggleCommentForm();
+    }
+
+    // File Upload Handler
+    function handleFileUpload(input) {
+        const files = input.files;
+        if (files.length === 0) return;
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+
+        formData.append('order_id', orderId);
+        // Show upload progress (you can implement a progress bar here)
+        console.log('Uploading files...', files);
+
+        fetch(`/order-activities/order/upload`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{csrf_token()}}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Files uploaded successfully!');
+                loadTimeline(); // Reload timeline to show new files
+                input.value = ''; // Clear input
+            } else {
+                alert('Error uploading files: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading files:', error);
+            alert('Error uploading files. Please try again.');
+        });
+    }
+
+    // Action Functions
+    // function updateDeadline() {
+    //     // Implement deadline update modal/form
+    //     alert('Update deadline functionality to be implemented');
+    // }
+
+    function markCompleted() {
+        // if (!confirm('Are you sure you want to mark this order as completed?')) return;
+        if (!confirm('Are you sure you want to mark this order as completed?')) return;
+
+            fetch(`/order-activities/order/${orderId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showNotification('Order marked as completed', 'success');
+                    loadTimeline();
+                } else {
+                    showNotification('Error marking order as completed', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking order as completed:', error);
+                showNotification('Error marking order as completed', 'error');
+            });
+    }
+
+    function requestRevision(orderId, revisionDetails) {
+        // Implement revision request modal/form
+        // alert('Request revision functionality to be implemented');
+        fetch(`/order-activities/order/${orderId}/revision`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{csrf_token()}}'  //document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                revision_details: revisionDetails
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('revisionModal')).hide();
+                showAlert('Revision request submitted successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Failed to submit revision request', 'error');
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error:', error);
+            showAlert('An error occurred while submitting the revision request', 'error');
+        });
+    }
+
+    function requestRefund() {
+        if (confirm('Are you sure you want to request a refund?')) {
+            // Implement refund request functionality
+            alert('Request refund functionality to be implemented');
+        }
+    }
+
+    // Loading indicator
+    function showLoading(show) {
+        const loadingElement = document.getElementById('loading');
+        if (loadingElement) {
+            loadingElement.style.display = show ? 'block' : 'none';
+        }
+    }
+    document.getElementById('revisionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const orderId = this.dataset.orderId;
+        const revisionDetails = this.getElementById('textarea[name="revision_details"]').value;
+        
+        showLoading(true);
+        requestRevision(orderId, revisionDetails)
+        
+    });
+
+    // Event Listeners
+    document.getElementById('chat-form').addEventListener('submit', sendMessage);
+    document.getElementById('commentForm').addEventListener('submit', addComment);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (chatPollingInterval) clearInterval(chatPollingInterval);
+        if (commentsPollingInterval) clearInterval(commentsPollingInterval);
+    });
+    </script>
+    {% endblock %}

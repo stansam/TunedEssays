@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Client Testimonials{% endblock %}
+
+{% block meta_description %}Read what our clients say about our academic writing services. Genuine testimonials and reviews from students who have used our professional writing assistance.{% endblock %}
+
+{% block body_class %}testimonials-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4 fw-bold">Client Testimonials</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">Testimonials</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section py-5">
+        <div class="container">
+            <h2 class="section-title text-center mb-2 fw-bold">What Our Clients Say</h2>
+            <p class="section-description text-center mb-5">Read testimonials from our satisfied clients. These are genuine reviews from students who have experienced our services.</p>
+            
+            <!-- Testimonials Grid -->
+            <div class="testimonials-grid">
+                {% for testimonial in testimonials %}
+                    <div class="testimonial-card">
+                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                            <div class="card-header bg-light py-3 px-4 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="testimonial-avatar me-3">
+                                            <div class="avatar-placeholder bg-success text-white rounded-circle">
+                                                {{ testimonial.author.first_name[0] | upper }}
+                                            </div>
+                                        </div>
+                                        <div class="testimonial-info">
+                                            <h5 class="testimonial-name mb-0 fw-bold">{{ testimonial.author.first_name }}</h5>
+                                            <p class="testimonial-location small mb-0 text-muted">{{ testimonial.service.name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="verified-badge">
+                                        <span class="badge bg-success rounded-pill">
+                                            <i class="fas fa-check-circle me-1"></i> Verified
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="testimonial-rating mb-3">
+                                    {% for i in range(5) %}
+                                        {% if i < testimonial.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p class="testimonial-text mb-0">"{{ testimonial.content }}"</p>
+                            </div>
+                            <div class="card-footer bg-white p-4 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Order #{{ range(10000000, 99999999) | random }}</small>
+                                    <small class="text-muted">{{ testimonial.created_at.strftime('%d %B, %Y') if testimonial.created_at else '17 September, 2022' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <p>No testimonials available at the moment. Please check back later.</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Submit Testimonial Button -->
+            <!-- <div class="text-center mt-5">
+                <a href="{{ url_for('main.submit_testimonial') }}" class="btn btn-success btn-lg rounded-pill px-4 py-2 shadow-sm">
+                    <i class="fas fa-pen-alt me-2"></i>Submit Your Testimonial
+                </a>
+            </div> -->
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-2 fw-bold">Client Satisfaction</h2>
+            <p class="section-description text-center mb-5">We take pride in maintaining high levels of client satisfaction throughout our services.</p>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card text-center bg-white p-4 rounded-3 shadow-sm h-100 border-top border-4 border-success">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-thumbs-up fa-3x text-success"></i>
+                        </div>
+                        <h3 class="stat-number h2 mb-2 fw-bold">98%</h3>
+                        <p class="stat-text mb-0">Satisfaction Rate</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card text-center bg-white p-4 rounded-3 shadow-sm h-100 border-top border-4 border-success">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-user-graduate fa-3x text-success"></i>
+                        </div>
+                        <h3 class="stat-number h2 mb-2 fw-bold">10k+</h3>
+                        <p class="stat-text mb-0">Happy Clients</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card text-center bg-white p-4 rounded-3 shadow-sm h-100 border-top border-4 border-success">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-clock fa-3x text-success"></i>
+                        </div>
+                        <h3 class="stat-number h2 mb-2 fw-bold">99%</h3>
+                        <p class="stat-text mb-0">On-Time Delivery</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card text-center bg-white p-4 rounded-3 shadow-sm h-100 border-top border-4 border-success">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-sync-alt fa-3x text-success"></i>
+                        </div>
+                        <h3 class="stat-number h2 mb-2 fw-bold">2.1%</h3>
+                        <p class="stat-text mb-0">Revision Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2 fw-bold">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Join thousands of satisfied students and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg rounded-pill shadow-sm">
+                        <i class="fas fa-pencil-alt me-2"></i>Order Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #2E7D32;
+        --primary-light: #A5D6A7;
+        --gradient-primary: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    }
+
+    .bg-success {
+        background-color: var(--primary-color) !important;
+    }
+    
+    .text-success {
+        color: var(--primary-color) !important;
+    }
+    
+    .border-success {
+        border-color: var(--primary-color) !important;
+    }
+    
+    .btn-success {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    
+    .btn-success:hover {
+        background-color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .testimonial-card {
+        transition: all 0.3s ease;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .testimonial-text {
+        font-style: italic;
+        line-height: 1.6;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    @media (max-width: 767px) {
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

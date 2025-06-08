@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block meta_description %}{{ post.excerpt }}{% endblock %}
+
+{% block body_class %}blog-post-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: var(--primary-color);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4">{{ post.title }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('blog.index') }}" class="text-white">Blog</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">{{ post.title | truncate(30, true) }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Post Section -->
+    <section class="section py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Post Header -->
+                    <div class="post-header mb-4">
+                        <div class="post-meta mb-3">
+                            <a href="{{ url_for('blog.category', slug=post.category.slug) }}" class="badge bg-success me-2">{{ post.category.name }}</a>
+                            <span class="text-muted me-3"><i class="far fa-calendar-alt me-1"></i> {{ post.published_at.strftime('%B %d, %Y') }}</span>
+                            <span class="text-muted"><i class="far fa-user me-1"></i> {{ post.author.first_name }} {{ post.author.last_name }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Featured Image -->
+                    {% if post.featured_image %}
+                        <div class="post-featured-image mb-4">
+                            <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid rounded">
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Post Content -->
+                    <div class="post-content bg-white p-4 rounded shadow-sm mb-4">
+                        <div class="content-body">
+                            {{ post.content | safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Post Footer -->
+                    <div class="post-footer mb-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <!-- Post Tags -->
+                                <div class="post-tags">
+                                    <strong>Category:</strong>
+                                    <a href="{{ url_for('blog.category', slug=post.category.slug) }}" class="badge bg-light text-dark me-1">{{ post.category.name }}</a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <!-- Social Share -->
+                                <div class="post-share">
+                                    <span class="me-2">Share:</span>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank" class="btn btn-sm btn-outline-success me-1" aria-label="Share on Facebook">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ post.title }}" target="_blank" class="btn btn-sm btn-outline-info me-1" aria-label="Share on Twitter">
+                                        <i class="fab fa-twitter"></i>
+                                    </a>
+                                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.url }}&title={{ post.title }}" target="_blank" class="btn btn-sm btn-outline-secondary" aria-label="Share on LinkedIn">
+                                        <i class="fab fa-linkedin-in"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Author Bio -->
+                    <div class="author-bio p-4 bg-light rounded mb-5">
+                        <div class="row">
+                            <div class="col-md-2 mb-3 mb-md-0 text-center">
+                                <div class="author-avatar mx-auto">
+                                    <div class="avatar-placeholder bg-success text-white rounded-circle" style="width: 70px; height: 70px; font-size: 1.8rem;">
+                                        {{ post.author.first_name[0] | upper }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-10">
+                                <h4 class="author-name h5 mb-2">{{ post.author.first_name }} {{ post.author.last_name }}</h4>
+                                <p class="author-description mb-0">Academic writer and researcher with expertise in multiple fields. Dedicated to helping students achieve their academic goals through quality content and guidance.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Related Posts -->
+                    <div class="related-posts">
+                        <h3 class="section-title h4 mb-4">Related Posts</h3>
+                        <div class="row">
+                            {% for related_post in related_posts %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        {% if related_post.featured_image %}
+                                            <img src="{{ related_post.featured_image }}" class="card-img-top" alt="{{ related_post.title }}">
+                                        {% else %}
+                                            <div class="card-img-top bg-light py-4 text-center">
+                                                <svg width="150" height="100" viewBox="0 0 150 100" class="img-fluid">
+                                                    <rect width="150" height="100" fill="#e6f0ff" rx="5" ry="5"/>
+                                                    <path d="M60,50 L90,50 M75,35 L75,65" stroke="#0056b3" stroke-width="6" stroke-linecap="round"/>
+                                                    <circle cx="75" cy="50" r="30" fill="none" stroke="#0056b3" stroke-width="2"/>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <div class="post-meta mb-2">
+                                                <span class="badge bg-success me-2">{{ related_post.category.name }}</span>
+                                                <span class="text-muted small">{{ related_post.published_at.strftime('%b %d, %Y') }}</span>
+                                            </div>
+                                            <h3 class="card-title h6 mb-2">{{ related_post.title }}</h3>
+                                            <a href="{{ url_for('blog.post', slug=related_post.slug) }}" class="btn btn-link text-success p-0">Read More <i class="fas fa-arrow-right ms-1"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="col-12">
+                                    <p>No related posts available.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Blog Categories -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="widget-title h5 mb-0">Categories</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="category-list list-unstyled mb-0">
+                                    {% for category in categories %}
+                                        <li class="category-item">
+                                            <a href="{{ url_for('blog.category', slug=category.slug) }}" class="d-flex justify-content-between align-items-center py-2 border-bottom {% if category.id == post.category_id %}text-success fw-bold{% endif %}">
+                                                <span>{{ category.name }}</span>
+                                                <span class="badge bg-success rounded-pill">{{ category.posts | length }}</span>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Posts -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="widget-title h5 mb-0">Recent Posts</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="recent-posts-list list-unstyled mb-0">
+                                    {% for recent_post in recent_posts %}
+                                        <li class="recent-post-item mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                                            <a href="{{ url_for('blog.post', slug=recent_post.slug) }}" class="d-flex align-items-center text-decoration-none">
+                                                <div class="flex-shrink-0">
+                                                    {% if recent_post.featured_image %}
+                                                        <img src="{{ url_for('static', filename=recent_post.featured_image.replace('\\', '/')) }}" alt="{{ recent_post.title }}" class="recent-post-thumb" width="60" height="60">
+                                                    {% else %}
+                                                        <div class="recent-post-thumb bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                            <i class="fas fa-newspaper text-success"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <h4 class="recent-post-title h6 mb-1 text-dark {% if recent_post.id == post.id %}fw-bold{% endif %}">{{ recent_post.title | truncate(50) }}</h4>
+                                                    <p class="recent-post-date small text-muted mb-0">{{ recent_post.published_at.strftime('%b %d, %Y') }}</p>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Now CTA -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm bg-success text-white">
+                            <div class="card-body p-4 text-center">
+                                <h3 class="h4 mb-3">Need Academic Writing Help?</h3>
+                                <p class="mb-4">Get professional help with your papers, essays, and other academic assignments.</p>
+                                <a href="{{ url_for('orders.create_order') }}" class="btn btn-light">Order Now</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Newsletter Signup -->
+                    <div class="sidebar-widget">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="widget-title h5 mb-0">Newsletter</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Subscribe to our newsletter for the latest academic writing tips and guides.</p>
+                                <form action="{{ url_for('main.newsletter_subscribe') }}" method="POST">
+                                    <div class="mb-3">
+                                        <input type="email" class="form-control" placeholder="Your email address" name="email" required>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success">Subscribe</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white" style="background: var(--primary-color);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg">Order Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-content {
+        line-height: 1.8;
+    }
+    
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 1.5rem 0;
+    }
+    
+    .post-content h2, 
+    .post-content h3, 
+    .post-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .post-content blockquote {
+        border-left: 4px solid #0d6efd;
+        padding: 0.5rem 0 0.5rem 1rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .author-avatar .avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        font-weight: bold;
+        font-size: 1.8rem;
+    }
+    
+    .recent-post-thumb {
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .category-item:last-child a {
+        border-bottom: none !important;
+    }
+</style>
+{% endblock %}

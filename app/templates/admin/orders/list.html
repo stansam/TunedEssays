@@ -1,0 +1,722 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Orders Management - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .order-card {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .order-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    
+    .status-badge {
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 50rem;
+    }
+    
+    .status-Pending {
+        background-color: #ffecb3;
+        color: #856404;
+    }
+    
+    .status-In-Progress {
+        background-color: #b3e5fc;
+        color: #0c5460;
+    }
+    
+    .status-Completed {
+        background-color: #c8e6c9;
+        color: #155724;
+    }
+    
+    .status-Revision {
+        background-color: #ffccbc;
+        color: #721c24;
+    }
+    
+    .status-Cancelled {
+        background-color: #e0e0e0;
+        color: #383d41;
+    }
+    
+    .filter-card {
+        border-left: 4px solid var(--primary);
+    }
+    
+    .filter-section {
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .filter-section:last-child {
+        border-bottom: none;
+    }
+    
+    .stat-item {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-item:hover, .stat-item.active {
+        background-color: var(--primary-subtle);
+    }
+    
+    .search-container {
+        position: relative;
+    }
+    
+    .clear-search {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--gray);
+        display: none;
+    }
+    
+    .search-input:not(:placeholder-shown) + .clear-search {
+        display: block;
+    }
+    
+    .order-table th {
+        font-weight: 600;
+        color: var(--gray);
+    }
+    
+    .animated-progress {
+        transition: width 1s ease-out;
+    }
+    
+    .order-actions .dropdown-menu {
+        min-width: 220px;
+    }
+    
+    .pagination-container .page-item.active .page-link {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .pagination-container .page-link {
+        color: var(--primary);
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    @media (max-width: 768px) {
+        .order-filters {
+            flex-direction: column;
+        }
+        
+        .filter-item {
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        
+        .actions-column {
+            position: sticky;
+            right: 0;
+            background: white;
+            box-shadow: -5px 0 5px -5px rgba(0,0,0,0.1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h4 class="mb-1 fw-bold">Order Management</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Orders</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.create_order') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Order
+            </a>
+            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Stats -->
+        <div class="col-lg-3 col-md-12 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Order Status</h5>
+                </div>
+                <div class="card-body p-0">
+                    <a href="{{ url_for('admin.list_orders') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if not status_filter %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">All Orders</h6>
+                                <p class="mb-0 text-muted">{{ pending_count + in_progress_count + completed_count + revision_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ url_for('admin.list_orders', status='pending') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if status_filter == 'Pending' %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Pending</h6>
+                                <p class="mb-0 text-muted">{{ pending_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ url_for('admin.list_orders', status='active') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if status_filter == 'In Progress' %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-info bg-opacity-10 text-info rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-spinner"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">In Progress</h6>
+                                <p class="mb-0 text-muted">{{ in_progress_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ url_for('admin.list_orders', status='completed') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if status_filter == 'Completed' %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-success bg-opacity-10 text-success rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Completed</h6>
+                                <p class="mb-0 text-muted">{{ completed_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ url_for('admin.list_orders', status='overdue') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if status_filter == 'Revision' %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Under Review</h6>
+                                <p class="mb-0 text-muted">{{ under_review_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('admin.list_orders', status='revision') }}" class="text-decoration-none">
+                        <div class="stat-item d-flex align-items-center px-3 py-3 {% if status_filter == 'Revision' %}active{% endif %}">
+                            <div class="me-3">
+                                <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Revision</h6>
+                                <p class="mb-0 text-muted">{{ revision_count }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Table Panel -->
+        <div class="col-lg-9 col-md-12 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-8 mb-3 mb-md-0">
+                            <div class="search-container">
+                                <form action="{{ url_for('admin.list_orders') }}" method="GET" id="searchForm">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="status" value="{{ status_filter }}">
+                                    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                                    <input type="hidden" name="sort_order" value="{{ sort_order }}">
+                                    
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-search text-muted"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-start-0 ps-0 search-input" 
+                                            name="search" placeholder="Search orders..." value="{{ search_query }}"
+                                            aria-label="Search orders">
+                                        <span class="clear-search" id="clearSearch">
+                                            <i class="fas fa-times-circle"></i>
+                                        </span>
+                                        <button class="btn btn-primary" type="submit">Search</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-md-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                    <div class="dropdown-menu p-3 shadow-sm" style="width: 300px;">
+                                        <form action="{{ url_for('admin.list_orders') }}" method="GET">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                                            <input type="hidden" name="sort_order" value="{{ sort_order }}">
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Status</label>
+                                                <select class="form-select form-select-sm" name="status">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                                                    <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                    <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                                                    <option value="Revision" {% if status_filter == 'Revision' %}selected{% endif %}>Revision</option>
+                                                    <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Date Range</label>
+                                                <div class="input-group input-group-sm mb-2">
+                                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                                    <input type="text" class="form-control date-picker" name="start_date" placeholder="Start Date">
+                                                </div>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                                    <input type="text" class="form-control date-picker" name="end_date" placeholder="End Date">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-sort me-1"></i> Sort
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="sortDropdown">
+                                        <li><h6 class="dropdown-header">Sort By</h6></li>
+                                        <li>
+                                            <a class="dropdown-item {% if sort_by == 'created_at' and sort_order == 'desc' %}active{% endif %}" 
+                                               href="{{ url_for('admin.list_orders', status=status_filter, search=search_query, sort_by='created_at', sort_order='desc') }}">
+                                               <i class="fas fa-sort-amount-down me-2"></i>Newest First
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item {% if sort_by == 'created_at' and sort_order == 'asc' %}active{% endif %}" 
+                                               href="{{ url_for('admin.list_orders', status=status_filter, search=search_query, sort_by='created_at', sort_order='asc') }}">
+                                               <i class="fas fa-sort-amount-up me-2"></i>Oldest First
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item {% if sort_by == 'due_date' and sort_order == 'asc' %}active{% endif %}" 
+                                               href="{{ url_for('admin.list_orders', status=status_filter, search=search_query, sort_by='due_date', sort_order='asc') }}">
+                                               <i class="fas fa-calendar-day me-2"></i>Due Date (Earliest)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item {% if sort_by == 'total_price' and sort_order == 'desc' %}active{% endif %}" 
+                                               href="{{ url_for('admin.list_orders', status=status_filter, search=search_query, sort_by='total_price', sort_order='desc') }}">
+                                               <i class="fas fa-dollar-sign me-2"></i>Price (Highest)
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover order-table align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Subject</th>
+                                    <th>Topic</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Price</th>
+                                    <th class="actions-column">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if orders %}
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('admin.view_order', order_id=order.id) }}" class="fw-bold text-decoration-none">
+                                                {{ order.order_number }}
+                                            </a>
+                                        </td>
+                                        <td>{{ order.subject }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;">
+                                                {{ order.topic }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="{% if order.due_date < now %}text-danger{% endif %}">
+                                                {{ order.due_date.strftime('%b %d, %Y') }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ order.status }}">
+                                                {{ order.status }}
+                                            </span>
+                                        </td>
+                                        <td>${{ "%.2f"|format(order.total_price) }}</td>
+                                        <td>
+                                            <div class="dropdown order-actions">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Actions
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ url_for('admin.view_order', order_id=order.id) }}">
+                                                            <i class="fas fa-eye text-primary me-2"></i> View Details
+                                                        </a>
+                                                    </li>
+                                                    <!-- <li>
+                                                        <a class="dropdown-item" href="{{ url_for('admin.edit_order', order_id=order.id) }}">
+                                                            <i class="fas fa-edit text-info me-2"></i> Request Deadline Extension
+                                                        </a>
+                                                    </li> -->
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <!-- <li>
+                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#statusModal{{ order.id }}">
+                                                            <i class="fas fa-exchange-alt text-warning me-2"></i> Change Status
+                                                        </a>
+                                                    </li> -->
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal{{ order.id }}">
+                                                            <i class="fas fa-comment-alt text-success me-2"></i> Add Comment
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ order.id }}">
+                                                            <i class="fas fa-trash-alt me-2"></i> Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            
+                                            <!-- Status Change Modal -->
+                                            <div class="modal fade" id="statusModal{{ order.id }}" tabindex="-1" aria-labelledby="statusModalLabel{{ order.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <form action="{{ url_for('admin.update_status', order_id=order.id) }}" method="post">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="statusModalLabel{{ order.id }}">Update Order Status</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="status{{ order.id }}" class="form-label">New Status</label>
+                                                                    <select class="form-select" id="status{{ order.id }}" name="status" required>
+                                                                        <option value="pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                                        <option value="active" {% if order.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                                        <option value="completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                                        <option value="revision" {% if order.status == 'Revision' %}selected{% endif %}>Revision</option>
+                                                                        <option value="cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary">Update Status</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Comment Modal -->
+                                            <div class="modal fade" id="commentModal{{ order.id }}" tabindex="-1" aria-labelledby="commentModalLabel{{ order.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <form action="{{ url_for('admin.add_comment', order_id=order.id) }}" method="post">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="commentModalLabel{{ order.id }}">Add Comment</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="comment{{ order.id }}" class="form-label">Comment</label>
+                                                                    <textarea class="form-control" id="comment{{ order.id }}" name="message" rows="3" required></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-success">Add Comment</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Delete Modal -->
+                                            <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ order.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="deleteModalLabel{{ order.id }}">Confirm Delete</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete order <strong>{{ order.order_number }}</strong>?</p>
+                                                            <p class="text-danger"><small>This action cannot be undone.</small></p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="#" method="post" style="display: inline;">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="py-5">
+                                                <i class="fas fa-folder-open text-muted" style="font-size: 3rem;"></i>
+                                                <h5 class="mt-3">No orders found</h5>
+                                                <p class="text-muted">No orders match your search criteria</p>
+                                                <a href="{{ url_for('admin.list_orders') }}" class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="fas fa-sync-alt me-1"></i> Reset Filters
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-0"><small>Showing {{ orders|length }} out of {{ orders|length }} orders</small></p>
+                        </div>
+                        <div class="pagination-container">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Export Orders</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Export Format</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="exportFormat" id="exportCsv" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="exportCsv">CSV</label>
+                        
+                        <input type="radio" class="btn-check" name="exportFormat" id="exportExcel" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="exportExcel">Excel</label>
+                        
+                        <input type="radio" class="btn-check" name="exportFormat" id="exportPdf" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="exportPdf">PDF</label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Date Range</label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="text" class="form-control date-picker" placeholder="Start Date">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="text" class="form-control date-picker" placeholder="End Date">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Include</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="includeAll" checked>
+                        <label class="form-check-label" for="includeAll">
+                            All order details
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="includeComments" checked>
+                        <label class="form-check-label" for="includeComments">
+                            Comments
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="includeFiles" checked>
+                        <label class="form-check-label" for="includeFiles">
+                            Attached files
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date pickers
+        flatpickr(".date-picker", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+        
+        // Clear search functionality
+        document.getElementById('clearSearch').addEventListener('click', function() {
+            document.querySelector('.search-input').value = '';
+            document.getElementById('searchForm').submit();
+        });
+        
+        // Tooltips initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Handle order row click
+        document.querySelectorAll('.order-row').forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                if (!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('.dropdown-menu')) {
+                    window.location.href = this.getAttribute('data-url');
+                }
+            });
+        });
+        
+        // Bootstrap dropdown behavior fix
+        document.querySelectorAll('.dropdown-menu').forEach(function(dropdown) {
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+        
+        // Order status change - confirm before submitting
+        document.querySelectorAll('.status-update-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                var statusSelect = this.querySelector('select[name="status"]');
+                var newStatus = statusSelect.options[statusSelect.selectedIndex].value;
+                var oldStatus = statusSelect.getAttribute('data-original');
+                
+                if (newStatus !== oldStatus && (newStatus === 'Cancelled' || oldStatus === 'Completed' && newStatus !== 'Completed')) {
+                    if (!confirm('Are you sure you want to change the status from ' + oldStatus + ' to ' + newStatus + '?')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+        
+        // Bulk action handling
+        document.getElementById('bulkActionButton')?.addEventListener('click', function() {
+            var action = document.getElementById('bulkAction').value;
+            var selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                alert('Please select at least one order');
+                return;
+            }
+            
+            if (action === '') {
+                alert('Please select an action');
+                return;
+            }
+            
+            if (action === 'delete' && !confirm('Are you sure you want to delete ' + selectedOrders.length + ' orders? This action cannot be undone.')) {
+                return;
+            }
+            
+            // Submit form for bulk actions
+            document.getElementById('orderIds').value = selectedOrders.join(',');
+            document.getElementById('bulkActionForm').submit();
+        });
+        
+        // "Select All" checkbox functionality
+        document.getElementById('selectAll')?.addEventListener('change', function() {
+            document.querySelectorAll('.order-checkbox').forEach(function(checkbox) {
+                checkbox.checked = this.checked;
+            }, this);
+        });
+    });
+</script>
+{% endblock %}

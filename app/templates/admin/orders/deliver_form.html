@@ -1,0 +1,1126 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Deliver Order #{{ order.order_number }} - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .delivery-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: calc(100vh - 60px);
+        padding: 2rem 0;
+    }
+
+    .delivery-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        transform: translate(-20px, 20px);
+    }
+
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .info-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 1rem;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .form-section {
+        padding: 2rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+    }
+
+    .section-title {
+        color: var(--primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        width: 30px;
+        height: 30px;
+        background: var(--primary-subtle);
+        color: var(--primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .form-floating {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.15);
+        background-color: white;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .file-upload-area {
+        border: 2px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary);
+        background: var(--primary-subtle);
+    }
+
+    .file-upload-area.dragover {
+        border-color: var(--primary);
+        background: var(--primary-subtle);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-subtext {
+        font-size: 0.875rem;
+        color: var(--gray);
+    }
+
+    #file-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-list {
+        margin-top: 1.5rem;
+    }
+
+    .file-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .file-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-subtle);
+        color: var(--primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .file-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+        word-break: break-all;
+    }
+
+    .file-size {
+        font-size: 0.875rem;
+        color: var(--gray);
+    }
+
+    .file-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+
+    .notification-toggle {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px solid #dee2e6;
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .notification-toggle.active {
+        background: linear-gradient(135deg, var(--primary-subtle) 0%, rgba(76, 175, 80, 0.05) 100%);
+        border-color: var(--primary);
+    }
+
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .custom-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary-custom:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .existing-delivery-alert {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .progress-bar-custom {
+        height: 6px;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 3px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .delivery-container {
+            padding: 1rem;
+        }
+
+        .card-header-custom {
+            padding: 1.5rem;
+        }
+
+        .form-section {
+            padding: 1.5rem;
+        }
+
+        .order-info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .file-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .file-actions {
+            align-self: flex-end;
+        }
+
+        .btn-primary-custom,
+        .btn-secondary-custom {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .section-title {
+            font-size: 1.1rem;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delivery-container">
+    <div class="container-fluid">
+        <!-- Header Card -->
+        <div class="delivery-card animate-fade-in">
+            <div class="card-header-custom">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div>
+                        <h1 class="h3 mb-2">
+                            <i class="fas fa-truck me-2"></i>
+                            Deliver Order #{{ order.order_number }}
+                        </h1>
+                        <p class="mb-0 opacity-90">
+                            {% if existing_delivery %}
+                                Update delivery for this order
+                            {% else %}
+                                Create new delivery for this order
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-light text-dark fs-6 px-3 py-2">
+                            Status: {{ order.status|title }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Information Grid -->
+                <div class="order-info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Client</div>
+                        <div class="info-value">{{ order.client.get_name() }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Service</div>
+                        <div class="info-value">{{ order.service.name if order.service else 'N/A' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Deadline</div>
+                        <div class="info-value">{{ order.due_date.strftime('%b %d, %Y at %I:%M %p') if order.due_date else 'N/A' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Order Date</div>
+                        <div class="info-value">{{ order.created_at.strftime('%b %d, %Y') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Delivery Alert -->
+        {% if existing_delivery %}
+        <div class="existing-delivery-alert animate-fade-in">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 text-warning fs-4"></i>
+                <div>
+                    <h6 class="mb-1">Previous Delivery Exists</h6>
+                    <p class="mb-0">
+                        This order was previously delivered on {{ existing_delivery.delivered_at.strftime('%b %d, %Y at %I:%M %p') }}.
+                        Creating a new delivery will mark this as a redelivery.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Delivery Form -->
+        <div class="delivery-card animate-fade-in">
+            <form method="POST" enctype="multipart/form-data" id="delivery-form">
+                <input type="hidden" value="{{ csrf_token() }}" name="csrf_token" id="csrf_token">
+                
+                <!-- File Upload Section -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Upload Delivery Files
+                    </h3>
+                    
+                    <div class="file-upload-area" id="file-upload-area">
+                        <input type="file" id="file-input" name="delivery_files" multiple accept=".pdf,.doc,.docx,.txt,.zip,.rar">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <p class="upload-text">Drop files here or click to browse</p>
+                            <p class="upload-subtext">Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR</p>
+                        </div>
+                    </div>
+                    
+                    <div class="file-list" id="file-list"></div>
+                </div>
+
+                <!-- File Details Section -->
+                <div class="form-section" id="file-details-section" style="display: none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        File Details
+                    </h3>
+                    <div id="file-details-container"></div>
+                </div>
+
+                <!-- Notification Section -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-bell"></i>
+                        Client Notification
+                    </h3>
+                    
+                    <div class="notification-toggle" id="notification-toggle">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="mb-1">Notify Client</h6>
+                                <p class="mb-0 text-muted">Send an email notification to the client about this delivery</p>
+                            </div>
+                            <label class="custom-switch">
+                                <input type="checkbox" name="notify_client" id="notify-checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-section">
+                    <div class="d-flex gap-3 justify-content-end flex-wrap">
+                        <a href="{{ url_for('admin_delivery.delivery_dashboard') }}" 
+                           class="btn btn-secondary-custom">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary-custom pulse" id="submit-btn">
+                            <i class="fas fa-check me-2"></i>
+                            {% if existing_delivery %}Update Delivery{% else %}Create Delivery{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loading-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Processing Delivery...</h5>
+                <p class="text-muted mb-0">Please wait while we process your delivery files.</p>
+                <div class="progress mt-3">
+                    <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 0%" id="upload-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class DeliveryForm {
+    constructor() {
+        this.fileInput = document.getElementById('file-input');
+        this.fileUploadArea = document.getElementById('file-upload-area');
+        this.fileList = document.getElementById('file-list');
+        this.fileDetailsSection = document.getElementById('file-details-section');
+        this.fileDetailsContainer = document.getElementById('file-details-container');
+        this.deliveryForm = document.getElementById('delivery-form');
+        this.notificationToggle = document.getElementById('notification-toggle');
+        this.notifyCheckbox = document.getElementById('notify-checkbox');
+        this.submitBtn = document.getElementById('submit-btn');
+        this.loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'));
+        this.progressBar = document.getElementById('upload-progress');
+        
+        this.selectedFiles = [];
+        this.fileCounter = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+        this.setupDragAndDrop();
+    }
+    
+    bindEvents() {
+        // File input change
+        this.fileInput.addEventListener('change', (e) => {
+            this.handleFiles(e.target.files);
+        });
+        
+        // Form submission
+        this.deliveryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitForm();
+        });
+        
+        // Notification toggle
+        this.notifyCheckbox.addEventListener('change', () => {
+            this.toggleNotificationStyle();
+        });
+        
+        // Click to open file dialog
+        this.fileUploadArea.addEventListener('click', () => {
+            this.fileInput.click();
+        });
+    }
+    
+    setupDragAndDrop() {
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            this.fileUploadArea.addEventListener(eventName, this.preventDefaults, false);
+            document.body.addEventListener(eventName, this.preventDefaults, false);
+        });
+        
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            this.fileUploadArea.addEventListener(eventName, () => {
+                this.fileUploadArea.classList.add('dragover');
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            this.fileUploadArea.addEventListener(eventName, () => {
+                this.fileUploadArea.classList.remove('dragover');
+            }, false);
+        });
+        
+        // Handle dropped files
+        this.fileUploadArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            this.handleFiles(files);
+        }, false);
+    }
+    
+    preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    handleFiles(files) {
+        const fileArray = Array.from(files);
+        
+        fileArray.forEach(file => {
+            if (this.isValidFile(file)) {
+                const fileId = `file_${this.fileCounter++}`;
+                const fileObj = {
+                    id: fileId,
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: this.getFileType(file.name)
+                };
+                
+                this.selectedFiles.push(fileObj);
+                this.displayFile(fileObj);
+                this.createFileDetails(fileObj);
+            } else {
+                this.showError(`Invalid file: ${file.name}. Please upload PDF, DOC, DOCX, TXT, ZIP, or RAR files.`);
+            }
+        });
+        
+        this.updateFileDetailsVisibility();
+    }
+    
+    isValidFile(file) {
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain',
+            'application/zip',
+            'application/x-rar-compressed'
+        ];
+        
+        const allowedExtensions = ['.pdf', '.doc', '.docx', '.txt', '.zip', '.rar'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        return allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+    }
+    
+    getFileType(filename) {
+        const extension = filename.split('.').pop().toLowerCase();
+        const typeMap = {
+            'pdf': 'PDF Document',
+            'doc': 'Word Document',
+            'docx': 'Word Document',
+            'txt': 'Text File',
+            'zip': 'Archive',
+            'rar': 'Archive'
+        };
+        return typeMap[extension] || 'Document';
+    }
+    
+    getFileIcon(filename) {
+        const extension = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+            'pdf': 'fa-file-pdf',
+            'doc': 'fa-file-word',
+            'docx': 'fa-file-word',
+            'txt': 'fa-file-alt',
+            'zip': 'fa-file-archive',
+            'rar': 'fa-file-archive'
+        };
+        return iconMap[extension] || 'fa-file';
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    displayFile(fileObj) {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item animate-fade-in';
+        fileItem.id = `display_${fileObj.id}`;
+        
+        fileItem.innerHTML = `
+            <div class="file-icon">
+                <i class="fas ${this.getFileIcon(fileObj.name)}"></i>
+            </div>
+            <div class="file-info">
+                <div class="file-name">${fileObj.name}</div>
+                <div class="file-size">${this.formatFileSize(fileObj.size)} • ${fileObj.type}</div>
+            </div>
+            <div class="file-actions">
+                <button type="button" class="btn-remove" onclick="deliveryForm.removeFile('${fileObj.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        this.fileList.appendChild(fileItem);
+    }
+    
+    createFileDetails(fileObj) {
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'row mb-3 animate-fade-in';
+        detailsDiv.id = `details_${fileObj.id}`;
+        
+        detailsDiv.innerHTML = `
+            <div class="col-md-6 mb-3">
+                <label class="form-label">File Type for "${fileObj.name}"</label>
+                <select class="form-select" name="file_types">
+                    <option value="delivery">Main Delivery</option>
+                    <option value="plagiarism-report">Plagiarism Report</option>
+                    </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" class="form-control" name="file_descriptions" 
+                        placeholder="Brief description of this file...">
+            </div>
+        `;
+        
+        this.fileDetailsContainer.appendChild(detailsDiv);
+    }
+    // <option value="reference">Reference Material</option>
+    // <option value="draft">Draft Version</option>
+    // <option value="final">Final Version</option>
+    
+    removeFile(fileId) {
+        // Remove from selected files array
+        this.selectedFiles = this.selectedFiles.filter(file => file.id !== fileId);
+        
+        // Remove from display
+        const displayElement = document.getElementById(`display_${fileId}`);
+        const detailsElement = document.getElementById(`details_${fileId}`);
+        
+        if (displayElement) displayElement.remove();
+        if (detailsElement) detailsElement.remove();
+        
+        this.updateFileDetailsVisibility();
+        this.updateFileInput();
+    }
+    
+    updateFileDetailsVisibility() {
+        if (this.selectedFiles.length > 0) {
+            this.fileDetailsSection.style.display = 'block';
+        } else {
+            this.fileDetailsSection.style.display = 'none';
+        }
+    }
+    
+    updateFileInput() {
+        // Create a new DataTransfer object to update the file input
+        const dt = new DataTransfer();
+        this.selectedFiles.forEach(fileObj => {
+            dt.items.add(fileObj.file);
+        });
+        this.fileInput.files = dt.files;
+    }
+    
+    toggleNotificationStyle() {
+        if (this.notifyCheckbox.checked) {
+            this.notificationToggle.classList.add('active');
+        } else {
+            this.notificationToggle.classList.remove('active');
+        }
+    }
+    
+    async submitForm() {
+        if (this.selectedFiles.length === 0) {
+            this.showError('Please select at least one file to upload.');
+            return;
+        }
+        
+        // Show loading modal
+        this.loadingModal.show();
+        this.updateProgress(0);
+        
+        // Prepare form data
+        const formData = new FormData(this.deliveryForm);
+        
+        try {
+            // Simulate progress for better UX
+            this.simulateProgress();
+            
+            const response = await fetch(this.deliveryForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken' : document.querySelector("input[name=csrf_token]")
+                },
+                body: formData
+            });
+            
+            this.updateProgress(100);
+            
+            if (response.ok) {
+                setTimeout(() => {
+                    window.location.href = response.url;
+                }, 1000);
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (error) {
+            this.loadingModal.hide();
+            this.showError('An error occurred while processing the delivery. Please try again.');
+        }
+    }
+    
+    simulateProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 90) {
+                clearInterval(interval);
+                progress = 90;
+            }
+            this.updateProgress(progress);
+        }, 200);
+    }
+    
+    updateProgress(percentage) {
+        this.progressBar.style.width = `${percentage}%`;
+    }
+    
+    showError(message) {
+        // Create toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast show align-items-center text-white bg-danger border-0';
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+    
+    showSuccess(message) {
+        // Create success toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast show align-items-center text-white bg-success border-0';
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+}
+
+// Initialize the delivery form when the page loads
+let deliveryForm;
+document.addEventListener('DOMContentLoaded', function() {
+    deliveryForm = new DeliveryForm();
+    
+    // Initialize notification toggle state
+    const notifyCheckbox = document.getElementById('notify-checkbox');
+    const notificationToggle = document.getElementById('notification-toggle');
+    
+    if (notifyCheckbox && notifyCheckbox.checked) {
+        notificationToggle.classList.add('active');
+    }
+    
+    // Add smooth scrolling for better UX
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Add form validation feedback
+    const form = document.getElementById('delivery-form');
+    if (form) {
+        form.addEventListener('input', function(e) {
+            if (e.target.checkValidity()) {
+                e.target.classList.remove('is-invalid');
+                e.target.classList.add('is-valid');
+            } else {
+                e.target.classList.remove('is-valid');
+                e.target.classList.add('is-invalid');
+            }
+        });
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Enter to submit form
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.click();
+            }
+        }
+        
+        // Escape to cancel/close modals
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal.show');
+            if (activeModal && activeModal.id !== 'loading-modal') {
+                const modal = bootstrap.Modal.getInstance(activeModal);
+                if (modal) modal.hide();
+            }
+        }
+    });
+    
+    // Add auto-save functionality for form data
+    const formInputs = form.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Save form data to sessionStorage for recovery
+            const formData = new FormData(form);
+            const formObject = {};
+            formData.forEach((value, key) => {
+                if (formObject[key]) {
+                    if (Array.isArray(formObject[key])) {
+                        formObject[key].push(value);
+                    } else {
+                        formObject[key] = [formObject[key], value];
+                    }
+                } else {
+                    formObject[key] = value;
+                }
+            });
+            
+            try {
+                sessionStorage.setItem('delivery_form_backup', JSON.stringify(formObject));
+            } catch (e) {
+                // Handle storage quota exceeded or other errors silently
+                console.warn('Could not save form backup:', e);
+            }
+        });
+    });
+    
+    // Restore form data if available
+    try {
+        const savedData = sessionStorage.getItem('delivery_form_backup');
+        if (savedData) {
+            const formObject = JSON.parse(savedData);
+            Object.keys(formObject).forEach(key => {
+                const input = form.querySelector(`[name="${key}"]`);
+                if (input && input.type !== 'file') {
+                    if (input.type === 'checkbox') {
+                        input.checked = formObject[key] === 'on';
+                    } else {
+                        input.value = formObject[key];
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        // Handle JSON parse errors silently
+        console.warn('Could not restore form backup:', e);
+    }
+    
+    // Clear backup on successful submission
+    form.addEventListener('submit', function() {
+        try {
+            sessionStorage.removeItem('delivery_form_backup');
+        } catch (e) {
+            console.warn('Could not clear form backup:', e);
+        }
+    });
+});
+
+// Add window beforeunload event to warn about unsaved changes
+window.addEventListener('beforeunload', function(e) {
+    const form = document.getElementById('delivery-form');
+    if (form && deliveryForm && deliveryForm.selectedFiles.length > 0) {
+        const message = 'You have unsaved changes. Are you sure you want to leave?';
+        e.returnValue = message;
+        return message;
+    }
+});
+
+// Add utility functions for file handling
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function getMimeTypeFromExtension(filename) {
+    const extension = filename.split('.').pop().toLowerCase();
+    const mimeTypes = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'txt': 'text/plain',
+        'zip': 'application/zip',
+        'rar': 'application/x-rar-compressed'
+    };
+    return mimeTypes[extension] || 'application/octet-stream';
+}
+
+// Add error handling for network issues
+window.addEventListener('online', function() {
+    deliveryForm.showSuccess('Connection restored. You can continue uploading files.');
+});
+
+window.addEventListener('offline', function() {
+    deliveryForm.showError('Connection lost. Please check your internet connection.');
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}

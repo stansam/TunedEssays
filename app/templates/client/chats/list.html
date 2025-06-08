@@ -1,0 +1,163 @@
+{% extends "/base.html" %}
+
+{% block title %}My Conversations - TunedEssays{% endblock %}
+{% block meta_description %}View and manage your conversations with our academic writing team.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid #4CAF50;
+        margin-bottom: 1rem;
+    }
+    
+    .chat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chat-card.closed {
+        border-left-color: #6c757d;
+        opacity: 0.8;
+    }
+    
+    .chat-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-active {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+    }
+    
+    .status-closed {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .filter-btn {
+        border: 1px solid #dee2e6;
+        background-color: white;
+        color: #495057;
+    }
+    
+    .filter-btn.active {
+        background-color: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">My Conversations</h1>
+                <a href="{{ url_for('client.create_chat') }}" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-2"></i>New Conversation
+                </a>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Filter Conversations</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group w-100">
+                        <a href="{{ url_for('client.list_chats') }}" 
+                           class="btn filter-btn {% if not status_filter %}active{% endif %}">
+                            All
+                        </a>
+                        <a href="{{ url_for('client.list_chats', status='active') }}" 
+                           class="btn filter-btn {% if status_filter == 'active' %}active{% endif %}">
+                            Active
+                        </a>
+                        <a href="{{ url_for('client.list_chats', status='closed') }}" 
+                           class="btn filter-btn {% if status_filter == 'closed' %}active{% endif %}">
+                            Closed
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if chats %}
+                {% for chat in chats %}
+                <div class="card chat-card {% if chat.status == 'closed' %}closed{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-1">
+                                    {% if chat.order %}
+                                        Conversation about Order #{{ chat.order.id }}
+                                    {% else %}
+                                        General Support Conversation
+                                    {% endif %}
+                                </h5>
+                                <p class="text-muted small mb-0">
+                                    Started {{ chat.created_at.strftime('%B %d, %Y') }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="chat-status {% if chat.status == 'active' %}status-active{% else %}status-closed{% endif %}">
+                                    {{ chat.status|capitalize }}
+                                </span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small">
+                                    <i class="fas fa-comment-alt me-1"></i>
+                                    {{ chat.messages.count() }} message{{ 's' if chat.messages.count() != 1 }}
+                                </span>
+                                {% if chat.order %}
+                                <span class="text-muted small ms-3">
+                                    <i class="fas fa-clipboard-list me-1"></i>
+                                    Order #{{ chat.order.id }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{{ url_for('client.view_chat', chat_id=chat.id) }}" class="btn btn-sm btn-outline-success">
+                                    View Chat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>No conversations yet</h3>
+                    <p class="text-muted">Start a new conversation with our support team.</p>
+                    <a href="{{ url_for('client.create_chat') }}" class="btn btn-success mt-2">
+                        <i class="fas fa-plus-circle me-2"></i>New Conversation
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

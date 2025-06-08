@@ -1,0 +1,52 @@
+<nav id="admin-sidebar" class="shadow-sm">
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center justify-content-center mb-4">
+            <div class="logo-container">
+                <i class="fas fa-graduation-cap logo-icon"></i>
+            </div>
+            <h5 class="mb-0 ms-2">Admin Portal</h5>
+        </div>
+    </div>
+
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item active">
+                <a class="nav-link" href="#dashboard" data-bs-toggle="tab">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#orders" data-bs-toggle="tab">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Orders</span>
+                    <span class="badge bg-primary rounded-pill ms-2">{{ orders|length }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#writers" data-bs-toggle="tab">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Writers</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#clients" data-bs-toggle="tab">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#finance" data-bs-toggle="tab">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Finance</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#settings" data-bs-toggle="tab">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

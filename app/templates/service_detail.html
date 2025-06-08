@@ -1,0 +1,1746 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.name }} | TunedEssays{% endblock %}
+
+{% block meta_description %}{{ service.description[:150]|safe }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Service Detail Specific Styles */
+    .service-hero {
+        background-color: rgba(48, 54, 87, 0.5);;
+        background-image: url('');
+        background-repeat: no-repeat;
+        background-size: cover;
+        color: #333;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .service-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("{{url_for('static', filename='assets/work.jpeg')}}") repeat;
+        opacity: 0.4;
+        z-index: 1;
+    }
+    
+    .hero-row {
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+    }
+    /* .service-hero::after {
+        content: '';
+        background: url("{{url_for('static', filename='assets/work3.jpeg')}}");
+        background-position: cover;
+        background-repeat: no-repeat;
+        background-size: contain;
+        right: 54px;
+        top: 0;
+        z-index: 9;
+        position: absolute;
+        height: 80%;
+        width: 80%;
+        opacity: 0.5;
+    }
+     */
+    .service-hero-content {
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .service-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .service-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: darkgreen;
+    }
+
+    .service-subtitle {
+        font-size: 1.25rem;
+        font-weight: 300;
+        margin-bottom: 1.5rem;
+        max-width: 80%;
+    }
+
+    .service-cta {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.3s, background-color 0.3s;
+        margin-top: 1.5rem;
+    }
+
+    .service-cta:hover {
+        background-color: #3d8b40;
+        transform: translateY(-3px);
+        color: white;
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .service-price {
+        background-color: rgba(255, 255, 255, 0.15);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 15px;
+    }
+
+    .service-tag {
+        display: inline-block;
+        background-color: rgba(44, 107, 46, 0.2);
+        color: darkgreen;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        margin-right: 8px;
+        font-weight: 600;
+    }
+
+    .service-template {
+        background-color: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .service-template:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+    /* .service-template::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+    } */
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(76, 175, 80, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--secondary-color);
+        font-weight: 600;
+    }
+
+    .service-detail-content {
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .service-detail-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    .service-detail-content h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: var(--secondary-color);
+    }
+
+    .benefit-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 2rem;
+    }
+
+    .benefit-list li {
+        padding: 12px 0;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        align-items: center;
+    }
+
+    .benefit-list li:last-child {
+        border-bottom: none;
+    }
+
+    .benefit-list li i {
+        color: var(--primary-color);
+        margin-right: 15px;
+        font-size: 1.1rem;
+    }
+
+    .testimonial-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .testimonial-card::before {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        font-size: 4rem;
+        color: rgba(76, 175, 80, 0.1);
+        font-family: serif;
+        line-height: 1;
+    }
+
+    .testimonial-content {
+        position: relative;
+        z-index: 1;
+        padding-left: 1rem;
+        font-style: italic;
+        margin-bottom: 1rem;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+    }
+
+    .testimonial-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        margin-right: 15px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #777;
+    }
+
+    .testimonial-name {
+        font-weight: 600;
+        color: var(--secondary-color);
+    }
+
+    .testimonial-meta {
+        font-size: 0.85rem;
+        color: #777;
+    }
+
+    .process-step {
+        display: flex;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .process-number {
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .process-content {
+        padding-top: 0.5rem;
+    }
+
+    .process-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--secondary-color);
+    }
+
+    /* Timeline connector */
+    .process-steps::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 25px;
+        width: 2px;
+        height: 100%;
+        background-color: #e5e5e5;
+        z-index: 1;
+    }
+
+    .process-steps {
+        position: relative;
+        padding-bottom: 1rem;
+    }
+
+    .faq-item {
+        margin-bottom: 1rem;
+        border: 1px solid #eaeaea;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 1.2rem;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        position: relative;
+        padding-right: 2.5rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        transition: background-color 0.3s;
+    }
+
+    .faq-question:hover {
+        background-color: #f0f0f0;
+    }
+
+    .faq-question::after {
+        content: '\f078';
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: transform 0.3s;
+    }
+
+    .faq-item.active .faq-question::after {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .faq-answer {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s, padding 0.5s;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 1.2rem;
+        max-height: 1000px; /* Large value to ensure content shows */
+    }
+
+    .cta-section {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 3rem 0;
+    }
+
+    .cta-title {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: var(--secondary-color);
+    }
+
+    .cta-text {
+        margin-bottom: 2rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Animated features section */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    /* Related services slider */
+    .related-services {
+        margin-top: 4rem;
+    }
+
+    .related-services-title {
+        margin-bottom: 2rem;
+        text-align: center;
+        color: var(--secondary-color);
+    }
+
+    .service-slider {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .service-slider::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    .service-slider::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+
+    .service-slider::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .service-slide {
+        flex: 0 0 300px;
+        scroll-snap-align: start;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        background-color: white;
+        transition: transform 0.3s;
+    }
+
+    .service-slide:hover {
+        transform: translateY(-5px);
+    }
+
+    .slide-image {
+        height: 150px;
+        background-color: #f1f1f1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #777;
+    }
+
+    .slide-content {
+        padding: 1.5rem;
+    }
+
+    .slide-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+    }
+
+    .slide-description {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .slide-link {
+        font-size: 0.9rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .slide-link i {
+        margin-left: 5px;
+        transition: transform 0.3s;
+    }
+
+    .slide-link:hover i {
+        transform: translateX(3px);
+    }
+
+    /* Counter animation */
+    .counter-box {
+        text-align: center;
+        padding: 2rem 1rem;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+    }
+
+    .counter-box:hover {
+        transform: translateY(-5px);
+    }
+
+    .counter-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .counter-label {
+        color: #666;
+        font-size: 1rem;
+    }
+
+    /* Statistics row */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+    }
+
+    /* Custom datetime picker styles */
+    .datetime-picker-container {
+        position: relative;
+    }
+
+    .datetime-input {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .datetime-input:focus {
+        /* color: #212529; */
+        /* background-color: #fff; */
+        /* border-color: #86b7fe; */
+        /* outline: 0; */
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .deadline-info {
+        /* display: none; */
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+    }
+
+    .deadline-info.urgent {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .deadline-info.very-urgent {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .price-breakdown {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .price-row.total {
+        border-top: 1px solid #dee2e6;
+        padding-top: 0.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 992px) {
+        .service-header {
+            font-size: 2rem;
+        }
+        
+        .service-subtitle {
+            max-width: 100%;
+        }
+        
+        .features-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .service-hero {
+            padding: 3rem 0;
+        }
+        
+        .service-header {
+            font-size: 1.75rem;
+        }
+        
+        .service-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .service-hero {
+            padding: 2rem 0;
+        }
+        
+        .service-header {
+            font-size: 1.5rem;
+        }
+        
+        .service-price {
+            display: block;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Animation for fade-in */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    .fade-in-delay-1 {
+        animation-delay: 0.2s;
+        opacity: 0;
+    }
+
+    .fade-in-delay-2 {
+        animation-delay: 0.4s;
+        opacity: 0;
+    }
+
+    .fade-in-delay-3 {
+        animation-delay: 0.6s;
+        opacity: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Service Hero Section -->
+<section class="service-hero">
+    <div class="container service-hero-content">
+        <div class="row hero-row">
+            <div class="col-lg-8 fade-in">
+                <h1 class="service-header">{{ service.name }}</h1>
+                <!-- <p class="service-subtitle">{{ service.description[:200] }}{% if service.description|length > 200 %}...{% endif %}</p> -->
+                <div class="mb-4">
+                    {% if service.featured %}
+                    <span class="service-tag">Featured</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('orders.create_order', service_id=service.id) }}" class="service-cta">Order Now <i class="fas fa-arrow-right ms-2"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        <!-- Service Details -->
+        <div class="col-lg-8">
+            <div class="service-template fade-in">
+                <h2 class="mb-4">About {{ service.name }}</h2>
+                <div class="service-detail-content">
+                    <p>{{ service.description|safe }}</p>
+                    
+                    <h3>Why Choose Our {{ service.name }} Service?</h3>
+                    <ul class="benefit-list">
+                        <li><i class="fas fa-check-circle"></i> Professional writers with expertise in {{ service.name }}</li>
+                        <li><i class="fas fa-check-circle"></i> 100% original and plagiarism-free content</li>
+                        <li><i class="fas fa-check-circle"></i> On-time delivery guaranteed</li>
+                        <li><i class="fas fa-check-circle"></i> Free revisions within the specified period</li>
+                        <li><i class="fas fa-check-circle"></i> 24/7 customer support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Process Steps -->
+            <div class="service-template fade-in fade-in-delay-1">
+                <h2 class="mb-4">How It Works</h2>
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="process-number">1</div>
+                        <div class="process-content">
+                            <h4 class="process-title">Place Your Order</h4>
+                            <p>Fill out the order form with your requirements, including the topic, number of pages, deadline, and other specifications.</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-number">2</div>
+                        <div class="process-content">
+                            <h4 class="process-title">Make Payment</h4>
+                            <p>Complete the payment process through our secure payment gateway to confirm your order.</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-number">3</div>
+                        <div class="process-content">
+                            <h4 class="process-title">Writer Assignment</h4>
+                            <p>We'll assign an expert writer who specializes in your subject area to work on your order.</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-number">4</div>
+                        <div class="process-content">
+                            <h4 class="process-title">Quality Check</h4>
+                            <p>The completed work goes through our rigorous quality control process to ensure it meets all requirements.</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-number">5</div>
+                        <div class="process-content">
+                            <h4 class="process-title">Delivery</h4>
+                            <p>Your completed work will be delivered to your account by the deadline you specified.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="stats-row fade-in fade-in-delay-2">
+                <div class="counter-box">
+                    <div class="counter-number" data-count="98">0</div>
+                    <div class="counter-label">% Customer Satisfaction</div>
+                </div>
+                <div class="counter-box">
+                    <div class="counter-number" data-count="5000">0</div>
+                    <div class="counter-label">+ Papers Delivered</div>
+                </div>
+                <div class="counter-box">
+                    <div class="counter-number" data-count="100">0</div>
+                    <div class="counter-label">% Original Content</div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="service-template fade-in fade-in-delay-2">
+                <h2 class="mb-4">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card service-template">
+                        <div class="card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="card-title">On-time Delivery</h3>
+                        <p>We strictly adhere to deadlines to ensure you receive your work on time, every time.</p>
+                    </div>
+                    <div class="feature-card service-template">
+                        <div class="card-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3 class="card-title">Confidentiality</h3>
+                        <p>Your personal information and order details are kept strictly confidential.</p>
+                    </div>
+                    <div class="feature-card service-template">
+                        <div class="card-icon">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <h3 class="card-title">Plagiarism-Free</h3>
+                        <p>Every paper is written from scratch and checked for plagiarism before delivery.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="service-template fade-in fade-in-delay-3">
+                <h2 class="mb-4">Frequently Asked Questions</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">How do I place an order for {{ service.name }}?</div>
+                        <div class="faq-answer">
+                            <p>To place an order, simply click on the "Order Now" button, fill in your requirements in the order form, and proceed with the payment. Once your payment is confirmed, our team will start working on your order.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">What if I'm not satisfied with the work?</div>
+                        <div class="faq-answer">
+                            <p>We offer free revisions within the specified period after delivery. If you're not satisfied with the work, you can request revisions and provide specific instructions for improvement.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">How can I communicate with my writer?</div>
+                        <div class="faq-answer">
+                            <p>Once your order is assigned to a writer, you can communicate directly with them through our messaging system. You can also contact our customer support team 24/7 if you have any questions or concerns.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Is my personal information secure?</div>
+                        <div class="faq-answer">
+                            <p>Yes, we take data privacy very seriously. Your personal information is kept strictly confidential and is never shared with third parties. We use secure payment gateways to ensure your financial information is protected.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Order Widget -->
+            <div class="service-template fade-in">
+                <h3 class="mb-3">Quick Order</h3>
+                <form id="priceCalculatorForm">
+                    <input type="hidden" name="service_id" value="{{ service.id }}">
+                    
+                    <div class="mb-3">
+                        <label for="word_count" class="form-label">Word Count</label>
+                        <input type="number" class="form-control" id="word_count" name="word_count" value="275" min="1" step="1">
+                        <small class="text-muted">Estimated pages: <span id="pageCount">1</span></small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="academic_level" class="form-label">Project Level</label>
+                        <select class="form-select" id="academic_level" name="academic_level_id" required>
+                            <option value="">Select Project Level</option>
+                            {% if academic_levels %}
+                                {% for level in academic_levels %}
+                                    <option value="{{ level.id }}">{{ level.name }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="1">High School</option>
+                                <option value="2">Undergraduate</option>
+                                <option value="3">Master's</option>
+                                <option value="4">PhD</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <!-- <div class="mb-3">
+                        <label for="deadline" class="form-label">Deadline</label>
+                        <div class="datetime-picker-container">
+                            <input type="datetime-local" class="form-control datetime-input" id="deadline" name="deadline" required>
+                            <div id="deadlineInfo" class="deadline-info" style="display: none;"></div>
+                        </div>
+                    </div> -->
+
+                    <div class="mb-3">
+                        <label for="deadline" class="form-label">Deadline</label>
+                        <div class="datetime-picker-container">
+                            <div class=" form-control">
+                                <input type="text" class="datetime-input form-control" id="deadline_picker" name="deadline_picker" required readonly>
+                                <div class="deadline-info" id="deadlineInfo" style="display: none;"></div>
+                            </div>
+                            
+                            <!-- <div class="deadline-info" id="deadlineInfo">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="deadlineText"></span> -->
+                                <!-- <div class="deadline-info" id="deadlineInfo" style="display: none;"></div> -->
+                            <!-- </div> -->
+                            <input type="hidden" id="deadline" name="deadline" value="{{ selected_deadline.id if selected_deadline else ''  }}">
+                            <input type="hidden" id="dateDue" name="due_date" value="">
+                        </div>
+                  </div>
+                    
+                    <div class="mb-3">
+                        <div class="price-breakdown" id="priceBreakdown" style="display: none;">
+                            <div class="price-row">
+                                <span>Price per page:</span>
+                                <span id="pricePerPage">$0.00</span>
+                            </div>
+                            <div class="price-row">
+                                <span>Pages:</span>
+                                <span id="totalPages">0</span>
+                            </div>
+                            <div class="price-row">
+                                <span>Due date:</span>
+                                <span id="dueDate">-</span>
+                            </div>
+                            <div class="price-row total">
+                                <span>Total Price:</span>
+                                <span id="totalPrice">$0.00</span>
+                            </div>
+                        </div>
+                        <div class="loading-spinner" id="loadingSpinner"></div>
+                    </div>
+                    
+                    <button type="button" id="proceedToOrder" class="btn btn-success w-100" disabled>
+                        Proceed to Order
+                    </button>
+                </form>
+            </div>
+
+            <!-- Testimonials -->
+            <div class="service-template fade-in fade-in-delay-1">
+                <h3 class="mb-3">What Our Clients Say</h3>
+                {% if service.testimonials %}
+                    {% for testimonial in service.testimonials[:3] %}
+                        <div class="testimonial-card">
+                            <div class="testimonial-content">
+                                {{ testimonial.content }}
+                            </div>
+                            <div class="testimonial-author">
+                                <div class="testimonial-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="testimonial-name">{{ testimonial.client_name }}</div>
+                                    <div class="testimonial-meta">{{ testimonial.service_type }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Default testimonials if none exist -->
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            "Excellent service! The paper was delivered on time and exceeded my expectations. Highly recommended!"
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="testimonial-name">Sarah M.</div>
+                                <div class="testimonial-meta">Research Paper</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            "Professional writers and great customer support. Will definitely use this service again."
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="testimonial-name">John D.</div>
+                                <div class="testimonial-meta">Essay Writing</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Service Features -->
+            <div class="service-template fade-in fade-in-delay-2">
+                <h3 class="mb-3">Service Highlights</h3>
+                <ul class="benefit-list">
+                    <li><i class="fas fa-graduation-cap"></i> Expert Writers</li>
+                    <li><i class="fas fa-shield-alt"></i> Money Back Guarantee</li>
+                    <li><i class="fas fa-headset"></i> 24/7 Support</li>
+                    <li><i class="fas fa-sync"></i> Free Revisions</li>
+                    <li><i class="fas fa-user-shield"></i> 100% Confidential</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="cta-section fade-in">
+    <div class="container">
+        <h2 class="cta-title">Ready to Get Started?</h2>
+        <p class="cta-text">Join thousands of satisfied individuals who have trusted us with their paper success. Place your order today and experience the difference quality writing makes.</p>
+        <a href="{{ url_for('orders.create_order', service_id=service.id) }}" class="service-cta">Get Started Now <i class="fas fa-arrow-right ms-2"></i></a>
+    </div>
+</div>
+
+<!-- Related Services Section -->
+{% if related_services %}
+<div class="container related-services fade-in">
+    <h2 class="related-services-title">Related Services</h2>
+    <div class="service-slider">
+        {% for related_service in related_services %}
+        <div class="service-slide">
+            <div class="slide-image">
+                <i class="fas fa-file-alt fa-3x"></i>
+            </div>
+            <div class="slide-content">
+                <h3 class="slide-title">{{ related_service.name }}</h3>
+                <p class="slide-description">{{ related_service.description[:120]|safe }}{% if related_service.description|length > 120 %}...{% endif %}</p>
+                <a href="{{ url_for('services.service_detail', id=related_service.id) }}" class="slide-link">
+                    Learn More <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('priceCalculatorForm');
+    const wordCountInput = document.getElementById('word_count');
+    const academicLevelSelect = document.getElementById('academic_level');
+    const deadlineInput = document.getElementById('deadline');
+    const proceedBtn = document.getElementById('proceedToOrder');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const priceBreakdown = document.getElementById('priceBreakdown');
+    
+    const pageCountSpan = document.getElementById('pageCount');
+    const pricePerPageSpan = document.getElementById('pricePerPage');
+    const totalPagesSpan = document.getElementById('totalPages');
+    const dueDateSpan = document.getElementById('dueDate');
+    const totalPriceSpan = document.getElementById('totalPrice');
+    const deadlineInfo = document.getElementById('deadlineInfo');
+    
+    let deadlines = [];
+    let isCalculatingPrice = false;
+    let lastCalculationParams = null;
+    
+    const WORDS_PER_PAGE = 275;
+    const PRICE_CALCULATION_DEBOUNCE = 500; // ms
+    
+    function getElement(id, required = true) {
+        const element = document.getElementById(id);
+        if (!element && required) {
+            console.error(`Required element with ID '${id}' not found`);
+        }
+        return element;
+    }
+    
+    function validateRequiredElements() {
+        const requiredElements = [
+            'priceCalculatorForm', 'word_count', 'academic_level', 'deadline',
+            'proceedToOrder', 'loadingSpinner', 'priceBreakdown', 'pageCount',
+            'pricePerPage', 'totalPages', 'dueDate', 'totalPrice', 'deadlineInfo'
+        ];
+        
+        const missing = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missing.length > 0) {
+            console.error('Missing required elements:', missing);
+            return false;
+        }
+        return true;
+    }
+    
+    function init() {
+        if (!validateRequiredElements()) {
+            console.error('Cannot initialize: missing required elements');
+            return;
+        }
+        
+        setupEventListeners();
+        initializePageCount();
+        initializeFlatpickr();
+    }
+    
+    function initializeFlatpickr() {
+        const deadlinePicker = document.getElementById('deadline_picker');
+        // const today =  
+        
+        flatpickrInstance = flatpickr(deadlinePicker, {
+            enableTime: true,
+            dateFormat: "Y-m-d, H:i",
+            plugins: [new confirmDatePlugin({})],
+            altFormat: "h:i K, M d",
+            altInput: true,
+            time_24hr: true,
+            minDate: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours from now
+            maxDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+            minuteIncrement: 30,
+            defaultDate: new Date(Date.now() + 3 * 60 * 60 * 1000),
+            defaultHour: 23,
+            defaultMinute: 59,
+            confirmIcon: "<i class='fa fa-check'></i>", // your icon's html, if you wish to override
+            confirmText: "OK ",
+            showAlways: false,
+            theme: "dark",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const selectedDate = selectedDates[0];
+                    const now = new Date();
+                    const timeDiff = selectedDate - now;
+                    const hoursUntilDeadline = timeDiff / (1000 * 60 * 60);
+                    
+                    
+                    updateDeadlineInfo();
+
+                    
+
+                    document.getElementById('deadline').value = hoursUntilDeadline;
+                    document.getElementById('dateDue').value = dateStr;
+                    calculatePrice();
+                }
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                addCustomTimeButtons(instance);
+            }
+        });
+    }
+
+    function addCustomTimeButtons(instance) {
+        const calendarContainer = instance.calendarContainer;
+        
+        const timeButtonsContainer = document.createElement('div');
+        timeButtonsContainer.className = 'flatpickr-time-buttons';
+        timeButtonsContainer.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        `;
+
+        // Time options
+        const timeOptions = [
+            { label: '3 hours', hours: 3 },
+            { label: '6 hours', hours: 6 },
+            { label: '12 hours', hours: 12 },
+            { label: '24 hours', hours: 24 },
+            { label: '2 days', hours: 48 },
+            { label: '3 days', hours: 72 },
+            { label: '7 days', hours: 168 },
+            { label: '14 days', hours: 336 }
+        ];
+
+        timeOptions.forEach(option => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = option.label;
+            btn.className = 'flatpickr-time-btn';
+            btn.style.cssText = `
+                padding: 4px 8px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            
+            btn.addEventListener('click', function() {
+                const futureDate = new Date(Date.now() + option.hours * 60 * 60 * 1000);
+                instance.setDate(futureDate, true);
+                // calculatePrice();
+                 const now = new Date();
+                 const timeDiff = futureDate - now;
+                 const hoursUntilDeadline = timeDiff / (1000 * 60 * 60);
+
+                 updateDeadlineInfo()
+
+                 const formattedDate = instance.formatDate(futureDate, "Y-m-d, H:i");
+                 document.getElementById('deadline').value = hoursUntilDeadline;
+                 document.getElementById('dateDue').value = formattedDate
+            });
+            
+            timeButtonsContainer.appendChild(btn);
+        });
+
+        calendarContainer.appendChild(timeButtonsContainer);
+    }
+    
+    function setupEventListeners() {
+        let wordCountTimeout;
+        wordCountInput.addEventListener('input', function() {
+            clearTimeout(wordCountTimeout);
+            updatePageCount();
+            
+            wordCountTimeout = setTimeout(() => {
+                calculatePrice();
+            }, PRICE_CALCULATION_DEBOUNCE);
+        });
+        
+        academicLevelSelect.addEventListener('change', calculatePrice);
+        deadlineInput.addEventListener('change', function() {
+            const hoursUntilDeadline = deadlineInput.value;
+            updateDeadlineInfo();
+            calculatePrice();
+        });
+        
+        proceedBtn.addEventListener('click', handleProceedToOrder);
+        
+        [wordCountInput, academicLevelSelect, deadlineInput].forEach(input => {
+            input.addEventListener('blur', validateInput);
+        });
+    }
+    
+    
+    function getsummaryDeadlineDisplayInfo(hours_until_deadline) {
+        const days = Math.floor(hours_until_deadline / 24);
+        const hours = Math.round(hours_until_deadline % 24);
+        const mins = Math.round((hours_until_deadline % 1)* 60);
+        let info = '';
+        if (days > 0) {
+            info = `${days} Day${days > 1 ? 's' : ''}`;
+            if (hours > 0) info += ` : ${hours} hour${hours > 1 ? 's' : ''} from now.`;
+            // if (mins > 0) info += ` : ${mins} min${mins > 1 ? 's' : ''}`;
+        } else if (hours > 0) {
+            info = `${hours} hour${hours > 1 ? 's' : ''} from now.`;
+            // if (mins > 0) info += ` : ${mins} min${mins > 1 ? 's' : ''}`;
+        } else {
+            // info = `${mins} min${mins > 1 ? 's' : ''}`;
+            info = "⚠️ Minimum deadline allowed 3HRS!"
+        }
+        
+        return info;
+    }
+    function initializePageCount() {
+        const initialWordCount = parseInt(wordCountInput.value) || WORDS_PER_PAGE;
+        updatePageCount();
+    }
+    
+    function updatePageCount() {
+        const wordCount = parseInt(wordCountInput.value) || 0;
+        const pageCount = Math.max(1, Math.round(wordCount / WORDS_PER_PAGE * 100) / 100);
+        
+        if (pageCountSpan) {
+            pageCountSpan.textContent = pageCount;
+        }
+    }
+    
+    function validateInput(event) {
+        const input = event.target;
+        const value = input.value.trim();
+        
+        input.classList.remove('is-valid', 'is-invalid');
+        
+        let isValid = true;
+        
+        switch (input.id) {
+            case 'word_count':
+                const wordCount = parseInt(value);
+                isValid = wordCount && wordCount > 0 && wordCount <= 50000;
+                if (!isValid) {
+                    showInputError(input, 'Word count must be between 1 and 50,000');
+                }
+                break;
+                
+            case 'academic_level':
+                isValid = value !== '';
+                if (!isValid) {
+                    showInputError(input, 'Please select a project level');
+                }
+                break;
+                
+            case 'deadline':
+                // const selectedDate = new Date(value);
+                // const now = new Date();
+                isValid = value > 3;
+                if (!isValid) {
+                    showInputError(input, 'Deadline must be in the future');
+                }
+                break;
+        }
+        
+        input.classList.add(isValid ? 'is-valid' : 'is-invalid');
+        return isValid;
+    }
+    
+    function showInputError(input, message) {
+        const existingError = input.parentNode.querySelector('.invalid-feedback');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = message;
+        input.parentNode.appendChild(errorDiv);
+    }
+    
+    function updateDeadlineInfo() {
+        if (!deadlineInfo || !deadlineInput.value) return;
+        
+        
+        const hoursDiff = deadlineInput.value;
+        
+        deadlineInfo.style.display = 'block';
+        
+        if (hoursDiff < 0) {
+            deadlineInfo.className = 'deadline-info very-urgent';
+            deadlineInfo.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Deadline is in the past - Please select a future date';
+        } else if (hoursDiff < 6) {
+            deadlineInfo.className = 'deadline-info very-urgent';
+            deadlineInfo.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Extremely urgent deadline - High rush charges apply';
+        } else if (hoursDiff < 12) {
+            deadlineInfo.className = 'deadline-info very-urgent';
+            deadlineInfo.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Very urgent deadline - Rush charges apply';
+        } else if (hoursDiff < 24) {
+            deadlineInfo.className = 'deadline-info urgent';
+            deadlineInfo.innerHTML = '<i class="fas fa-clock"></i> Urgent deadline - Moderate rush charges apply';
+        } else {
+            deadlineInfo.className = 'deadline-info';
+            deadlineInfo.innerHTML = '<i class="fas fa-check-circle"></i> Standard deadline - No rush charges';
+        }
+    }
+
+    async function calculatePrice() {
+        const wordCount = parseInt(wordCountInput.value) || 0;
+        const academicLevelId = academicLevelSelect.value;
+        const deadline = deadlineInput.value;
+        
+        if (!wordCount || !academicLevelId || !deadline) {
+            hidePriceBreakdown();
+            return;
+        }
+        
+        if (wordCount < 1 || wordCount > 50000) {
+            showNotification('Word count must be between 1 and 50,000', 'error');
+            hidePriceBreakdown();
+            return;
+        }
+        
+        if (deadline <= 0) {
+            hidePriceBreakdown();
+            return;
+        }
+        
+        const calculationParams = {
+            service_id: parseInt('{{ service.id }}'),
+            academic_level_id: parseInt(academicLevelId),
+            deadline_data: deadline,
+            word_count: wordCount
+        };
+        
+        if (isCalculatingPrice && 
+            JSON.stringify(lastCalculationParams) === JSON.stringify(calculationParams)) {
+            return;
+        }
+        
+        lastCalculationParams = calculationParams;
+        isCalculatingPrice = true;
+        
+        showLoadingState();
+        
+        try {
+            const response = await fetch('/api/calculate-price', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(calculationParams)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (!validatePriceData(data)) {
+                throw new Error('Invalid price data received');
+            }
+            
+            updatePriceDisplay(data);
+            showPriceBreakdown();
+            
+        } catch (error) {
+            console.error('Price calculation error:', error);
+            showNotification('Failed to calculate price. Please try again.', 'error');
+            hidePriceBreakdown();
+        } finally {
+            hideLoadingState();
+            isCalculatingPrice = false;
+        }
+    }
+    
+    function getCSRFToken() {
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        const formToken = document.querySelector('input[name="csrf_token"]');
+        if (formToken) {
+            return formToken.value;
+        }
+        
+        try {
+            return '{{ csrf_token() }}';
+        } catch (e) {
+            console.warn('No CSRF token found');
+            return '';
+        }
+    }
+    
+    function validatePriceData(data) {
+        return (
+            data &&
+            typeof data.price_per_page === 'number' &&
+            typeof data.total_price === 'number' &&
+            typeof data.page_count === 'number' &&
+            data.price_per_page >= 0 &&
+            data.total_price >= 0 &&
+            data.page_count > 0
+        );
+    }
+    
+    function updatePriceDisplay(data) {
+        if (pricePerPageSpan) {
+            pricePerPageSpan.textContent = '$' + data.price_per_page.toFixed(2);
+        }
+        
+        if (totalPagesSpan) {
+            totalPagesSpan.textContent = data.page_count.toString();
+        }
+        
+        if (totalPriceSpan) {
+            totalPriceSpan.textContent = '$' + data.total_price.toFixed(2);
+        }
+        
+        if (dueDateSpan && data.hours_until_deadline) {
+            try {
+                const dateDue = document.getElementById('dateDue').value;
+
+                // const pad = n => n.toString().padStart(2, '0');
+                // const formattedDate = [
+                //         dateDue.getFullYear(),
+                //         pad(dateDue.getMonth() + 1),
+                //         pad(dateDue.getDate())
+                //     ].join('-') + 'T' + [
+                //         pad(dateDue.getHours()),
+                //         pad(dateDue.getMinutes()),
+                //         pad(dateDue.getSeconds())
+                //     ].join(':');
+                const info = getsummaryDeadlineDisplayInfo(data.hours_until_deadline);
+                dueDateSpan.dataset.isoDate = dateDue;
+                dueDateSpan.textContent = info;
+            } catch (e) {
+                dueDateSpan.textContent = 'Invalid date';
+                dueDateSpan.dataset.isoDate = '';
+            }
+        }
+    }
+    
+    function showLoadingState() {
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'inline-block';
+        }
+        if (proceedBtn) {
+            proceedBtn.disabled = true;
+        }
+    }
+    
+    function hideLoadingState() {
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'none';
+        }
+    }
+    
+    function showPriceBreakdown() {
+        if (priceBreakdown) {
+            priceBreakdown.style.display = 'block';
+        }
+        if (proceedBtn) {
+            proceedBtn.disabled = false;
+        }
+    }
+    
+    function hidePriceBreakdown() {
+        if (priceBreakdown) {
+            priceBreakdown.style.display = 'none';
+        }
+        if (proceedBtn) {
+            proceedBtn.disabled = true;
+        }
+    }
+    
+    /**
+     * Handle proceed to order button click
+     */
+    function handleProceedToOrder() {
+        // Validate form before proceeding
+        const isValid = [wordCountInput, academicLevelSelect, deadlineInput]
+            .every(input => validateInput({ target: input }));
+        
+        if (!isValid) {
+            showNotification('Please correct the form errors before proceeding', 'error');
+            return;
+        }
+        
+        try {
+            const dateDue = document.getElementById("dateDue").value
+            const selectedDeadline = new Date(dateDue);
+            const now = new Date();
+            const hoursDiff = deadlineInput.value;
+            // const deadlineId = getDeadlineId(deadlineInput.value);
+
+            // Get calculated values from DOM
+            const pageCount = parseFloat(pageCountSpan.textContent) || 1;
+            const totalPrice = totalPriceSpan.textContent.replace('$', '');
+            const dueDate = dueDateSpan.dataset.isoDate; // Store ISO date in data attribute
+            if (!dueDate || !Date.parse(dueDate)) {
+                showNotification('Invalid due date calculation', 'error');
+                return;
+            }
+            // Construct the order URL with parameters
+            const baseUrl = "{{ url_for('orders.create_order') }}";
+            const orderUrl = new URL(baseUrl, window.location.origin);
+            
+            // Add required parameters
+            orderUrl.searchParams.append('service_id', '{{ service.id }}');
+            orderUrl.searchParams.append('word_count', wordCountInput.value);
+            orderUrl.searchParams.append('academic_level_id', academicLevelSelect.value);
+            orderUrl.searchParams.append('deadline', hoursDiff);
+            orderUrl.searchParams.append('pages', pageCount);
+            // orderUrl.searchParams.append('total_price', totalPrice);
+            orderUrl.searchParams.append('due_date', dueDate);
+            
+            window.location.href = orderUrl.toString();
+            
+        } catch (error) {
+            console.error('Error creating order URL:', error);
+            showNotification('Failed to proceed to order. Please try again.', 'error');
+        }
+    }
+    
+    /**
+     * Show notification to user
+     */
+    function showNotification(message, type = 'info') {
+        // Create notification element if it doesn't exist
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 4px;
+                z-index: 9999;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+                font-weight: 500;
+            `;
+            document.body.appendChild(notification);
+        }
+        
+        // Set notification style based on type
+        const styles = {
+            info: { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' },
+            warning: { bg: '#fff3cd', color: '#856404', border: '#ffeaa7' },
+            error: { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
+            success: { bg: '#d4edda', color: '#155724', border: '#c3e6cb' }
+        };
+        
+        const style = styles[type] || styles.info;
+        notification.style.backgroundColor = style.bg;
+        notification.style.color = style.color;
+        notification.style.border = `1px solid ${style.border}`;
+        
+        notification.textContent = message;
+        notification.style.display = 'block';
+        notification.style.opacity = '1';
+        
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            if (notification) {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification && notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
+    
+    /**
+     * FAQ accordion functionality
+     */
+    function initializeFAQ() {
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            if (question) {
+                question.addEventListener('click', function() {
+                    const isActive = item.classList.contains('active');
+                    
+                    // Close all FAQ items
+                    faqItems.forEach(faqItem => {
+                        faqItem.classList.remove('active');
+                    });
+                    
+                    // Open clicked item if it wasn't active
+                    if (!isActive) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+    
+    /**
+     * Counter animation with intersection observer
+     */
+    function initializeCounters() {
+        const counters = document.querySelectorAll('.counter-number');
+        if (counters.length === 0) return;
+        
+        const animateCounter = (counter) => {
+            const target = parseInt(counter.getAttribute('data-count'));
+            if (isNaN(target)) return;
+            
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    counter.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 16);
+        };
+        
+        // Use intersection observer to trigger animation
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target.querySelector('.counter-number');
+                    if (counter && !counter.classList.contains('animated')) {
+                        counter.classList.add('animated');
+                        animateCounter(counter);
+                    }
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        // Observe counter containers
+        document.querySelectorAll('.counter-box').forEach(box => {
+            counterObserver.observe(box);
+        });
+    }
+    
+    /**
+     * Initialize fade-in animations
+     */
+    function initializeFadeInAnimations() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    fadeObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all fade-in elements
+        document.querySelectorAll('.fade-in, .fade-in-delay-1, .fade-in-delay-2, .fade-in-delay-3').forEach(el => {
+            // Set initial state
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+            
+            fadeObserver.observe(el);
+        });
+    }
+    
+    // Initialize everything when DOM is ready
+    init();
+    initializeFAQ();
+    initializeCounters();
+    initializeFadeInAnimations();
+    
+    // Handle page visibility change to pause/resume animations
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // Page is hidden, pause any ongoing animations
+            isCalculatingPrice = false;
+        }
+    });
+    
+    // Handle window beforeunload to cancel any pending requests
+    window.addEventListener('beforeunload', function() {
+        isCalculatingPrice = false;
+    });
+});
+</script>
+{% endblock %}

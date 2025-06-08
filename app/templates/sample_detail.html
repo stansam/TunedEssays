@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ sample.title }}{% endblock %}
+
+{% block meta_description %}Read our sample {{ sample.service.name | lower }} on "{{ sample.title }}". {{ sample.excerpt }}{% endblock %}
+
+{% block body_class %}sample-detail-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: var(--primary-color);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4">{{ sample.title }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.samples') }}" class="text-white">Sample Papers</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">{{ sample.title | truncate(30, true) }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sample Content -->
+    <section class="section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Sample Info -->
+                    <div class="sample-info bg-light p-4 rounded mb-4">
+                        <div class="row">
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <div class="sample-meta-item">
+                                    <i class="fas fa-tag text-success me-2"></i> 
+                                    <strong>Paper Type:</strong> {{ sample.service.name }}
+                                </div>
+                            </div>
+                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                <div class="sample-meta-item">
+                                    <i class="fas fa-file-alt text-success me-2"></i> 
+                                    <strong>Word Count:</strong> {{ sample.word_count }} words
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample Content -->
+                    <div class="sample-content bg-white p-4 rounded shadow-sm mb-4">
+                        <div class="content-body">
+                            {{ sample.content | safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Disclaimer -->
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>Note:</strong> This is a sample paper provided to showcase our writing quality. Using this paper as your own work may constitute plagiarism. Always ensure your academic submissions are original.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Order Similar Paper -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h3 class="h5 mb-0">Order Similar Paper</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Need a custom-written paper like this one?</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('orders.create_order') }}" class="btn btn-success">Order Now</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Why Choose Us -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light">
+                            <h3 class="h5 mb-0">Why Choose Our Service</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item px-0 border-0">
+                                    <i class="fas fa-check-circle text-success me-2"></i> Original, plagiarism-free papers
+                                </li>
+                                <li class="list-group-item px-0 border-0">
+                                    <i class="fas fa-check-circle text-success me-2"></i> Qualified, expert writers
+                                </li>
+                                <li class="list-group-item px-0 border-0">
+                                    <i class="fas fa-check-circle text-success me-2"></i> On-time delivery guarantee
+                                </li>
+                                <li class="list-group-item px-0 border-0">
+                                    <i class="fas fa-check-circle text-success me-2"></i> Free revisions within 14 days
+                                </li>
+                                <li class="list-group-item px-0 border-0">
+                                    <i class="fas fa-check-circle text-success me-2"></i> 24/7 customer support
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Samples -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-4">Related Samples</h2>
+            
+            <div class="related-samples-grid">
+                {% for related_sample in sample.service.samples[:3] if related_sample.id != sample.id %}
+                    <div class="sample-card">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h3 class="card-title h5 mb-3">{{ related_sample.title }}</h3>
+                                <div class="sample-meta mb-3">
+                                    <span class="badge bg-success me-2">{{ related_sample.service.name }}</span>
+                                    <span class="text-muted small">{{ related_sample.word_count }} words</span>
+                                </div>
+                                <p class="card-text mb-4">{{ related_sample.excerpt }}</p>
+                                <a href="{{ url_for('main.sample_detail', sample_id=related_sample.id) }}" class="btn btn-outline-success stretched-link">Read Full Sample</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-center py-4">No related samples available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 bg-success text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg">Order Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sample-content {
+        line-height: 1.8;
+    }
+    
+    .related-samples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .sample-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .sample-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    @media (max-width: 767px) {
+        .related-samples-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

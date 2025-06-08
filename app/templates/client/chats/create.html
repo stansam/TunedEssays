@@ -1,0 +1,175 @@
+{% extends "/base.html" %}
+
+{% block title %}Start New Conversation - TunedEssays{% endblock %}
+{% block meta_description %}Begin a new conversation with our academic writing support team.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        border-top: 4px solid #4CAF50;
+    }
+    
+    .order-selector {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .order-selector:hover {
+        border-color: #4CAF50;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .order-selector.selected {
+        background-color: rgba(76, 175, 80, 0.1);
+        border-color: #4CAF50;
+    }
+    
+    .order-selector .order-radio {
+        display: none;
+    }
+    
+    .help-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    textarea.form-control {
+        min-height: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Start New Conversation</h1>
+                <a href="{{ url_for('client.list_chats') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Conversations
+                </a>
+            </div>
+            
+            <div class="card shadow-sm form-card">
+                <div class="card-body">
+                    <form action="{{ url_for('client.create_chat') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-4">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-control" name="subject" placeholder="General Inquiry" required>
+                            <div class="help-text">
+                                Provide a brief subject for your conversation
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" name="initial_message" placeholder="Describe your question or concern in detail..." required></textarea>
+                            <div class="help-text">
+                                Please be as specific as possible so we can assist you better
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Related to an Order? (Optional)</label>
+                            
+                            <div class="order-selector mb-2">
+                                <input type="radio" name="order_id" value="none" id="no-order" class="order-radio" checked>
+                                <label for="no-order" class="mb-0 w-100">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">General Inquiry</h6>
+                                            <p class="text-muted small mb-0">Not related to a specific order</p>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-check-circle text-success order-check" style="display: none;"></i>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            {% if orders %}
+                                {% for order in orders %}
+                                <div class="order-selector mb-2">
+                                    <input type="radio" name="order_id" value="{{ order.id }}" id="order-{{ order.id }}" class="order-radio">
+                                    <label for="order-{{ order.id }}" class="mb-0 w-100">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Order #{{ order.id }}</h6>
+                                                <p class="text-muted small mb-0">
+                                                    {{ order.paper_type }} | 
+                                                    Due: {{ order.deadline.name }} | 
+                                                    Status: {{ order.status }}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-check-circle text-success order-check" style="display: none;"></i>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    You don't have any orders yet. If you'd like to place an order, <a href="{{ url_for('orders.create_order') }}">click here</a>.
+                                </div>
+                            {% endif %}
+                            
+                            <div class="help-text">
+                                Linking your conversation to an order helps us provide better assistance
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-comment-dots me-2"></i>Start Conversation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle order selection UI
+        const orderSelectors = document.querySelectorAll('.order-selector');
+        
+        orderSelectors.forEach(selector => {
+            const radio = selector.querySelector('.order-radio');
+            const checkIcon = selector.querySelector('.order-check');
+            
+            // Set initial state
+            if (radio.checked) {
+                selector.classList.add('selected');
+                checkIcon.style.display = 'block';
+            }
+            
+            // Add click handler
+            selector.addEventListener('click', function() {
+                // Deselect all
+                orderSelectors.forEach(s => {
+                    s.classList.remove('selected');
+                    s.querySelector('.order-check').style.display = 'none';
+                });
+                
+                // Select current
+                radio.checked = true;
+                selector.classList.add('selected');
+                checkIcon.style.display = 'block';
+            });
+        });
+    });
+</script>
+{% endblock %}

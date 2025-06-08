@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+
+{% block title %}Frequently Asked Questions{% endblock %}
+
+{% block meta_description %}Find answers to common questions about our academic writing services, ordering process, pricing, revisions, and delivery. Everything you need to know about our services.{% endblock %}
+
+{% block body_class %}faq-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4 fw-bold">Frequently Asked Questions</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">FAQ</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section py-5">
+        <div class="container">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <div class="section-icon mb-3">
+                        <span class="icon-circle bg-success-light text-success">
+                            <i class="fas fa-question-circle fa-3x"></i>
+                        </span>
+                    </div>
+                    <h2 class="section-title mb-3">How Can We Help You?</h2>
+                    <p class="section-description">Find answers to our most commonly asked questions. If you can't find what you're looking for, please <a href="{{ url_for('main.contact') }}" class="text-success fw-medium">contact us</a>.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Categories Navigation -->
+            <div class="faq-navigation mb-5">
+                <ul class="nav nav-pills justify-content-center flex-wrap" id="faq-tabs" role="tablist">
+                    <li class="nav-item m-1" role="presentation">
+                        <button class="nav-link active px-4 py-2" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                            <i class="fas fa-th-list me-2" ></i>All Questions
+                        </button>
+                    </li>
+                    {% for category_name in faq_categories.keys() %}
+                        <li class="nav-item m-1" role="presentation">
+                            <button class="nav-link px-4 py-2" id="{{ category_name.lower() }}-tab" data-bs-toggle="tab" data-bs-target="#{{ category_name.lower() }}" type="button" role="tab" aria-controls="{{ category_name.lower() }}" aria-selected="false">
+                                {% if category_name == 'Services' %}
+                                    <i class="fas fa-clipboard-check me-2" ></i>
+                                {% elif category_name == 'Ordering' %}
+                                    <i class="fas fa-shopping-cart me-2" ></i>
+                                {% elif category_name == 'Pricing' %}
+                                    <i class="fas fa-tag me-2" ></i>
+                                {% elif category_name == 'Delivery' %}
+                                    <i class="fas fa-truck me-2" ></i>
+                                {% elif category_name == 'Revisions' %}
+                                    <i class="fas fa-sync-alt me-2" ></i>
+                                {% elif category_name == 'Payment' %}
+                                    <i class="fas fa-credit-card me-2" ></i>
+                                {% else %}
+                                    <i class="fas fa-folder me-2" ></i>
+                                {% endif %}
+                                <span >{{ category_name }}</span>
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- FAQ Content -->
+            <div class="tab-content" id="faq-tab-content">
+                <!-- All FAQs Tab -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <div class="accordion custom-accordion" id="accordionAllFAQs">
+                                {% set counter = namespace(value=0) %}
+                                {% for category, faqs in faq_categories.items() %}
+                                    <div class="category-divider mb-4">
+                                        <h3 class="category-title h5 mb-3">
+                                            {% if category == 'Services' %}
+                                                <i class="fas fa-clipboard-check text-success me-2"></i>
+                                            {% elif category == 'Ordering' %}
+                                                <i class="fas fa-shopping-cart text-success me-2"></i>
+                                            {% elif category == 'Pricing' %}
+                                                <i class="fas fa-tag text-success me-2"></i>
+                                            {% elif category == 'Delivery' %}
+                                                <i class="fas fa-truck text-success me-2"></i>
+                                            {% elif category == 'Revisions' %}
+                                                <i class="fas fa-sync-alt text-success me-2"></i>
+                                            {% elif category == 'Payment' %}
+                                                <i class="fas fa-credit-card text-success me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-folder text-success me-2"></i>
+                                            {% endif %}
+                                            {{ category }}
+                                        </h3>
+                                    </div>
+                                    {% for faq in faqs %}
+                                        {% set counter.value = counter.value + 1 %}
+                                        <div class="accordion-item custom-accordion-item mb-3">
+                                            <h2 class="accordion-header" id="heading-all-{{ counter.value }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-all-{{ counter.value }}" aria-expanded="false" aria-controls="collapse-all-{{ counter.value }}">
+                                                    <span class="question-number me-3">{{ '%02d' % counter.value }}</span>
+                                                    {{ faq.question }}
+                                                </button>
+                                            </h2>
+                                            <div id="collapse-all-{{ counter.value }}" class="accordion-collapse collapse" aria-labelledby="heading-all-{{ counter.value }}" data-bs-parent="#accordionAllFAQs">
+                                                <div class="accordion-body">
+                                                    <!-- <div class="answer-content"> -->
+                                                        {{ faq.answer | safe }}
+                                                    <!-- </div> -->
+                                                    <div class="answer-footer mt-3">
+                                                        <div class="d-flex flex-wrap justify-content-between align-items-center">
+                                                            <div class="helpful-text small">
+                                                                <span class="text-muted">Was this answer helpful?</span>
+                                                                <a href="#" class="text-success ms-2"><i class="far fa-thumbs-up"></i> Yes</a>
+                                                                <a href="#" class="text-danger ms-2"><i class="far fa-thumbs-down"></i> No</a>
+                                                            </div>
+                                                            <div class="question-category">
+                                                                <span class="badge bg-success-light text-success">{{ category }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category Tabs -->
+                {% for category_name, faqs in faq_categories.items() %}
+                    <div class="tab-pane fade" id="{{ category_name.lower() }}" role="tabpanel" aria-labelledby="{{ category_name.lower() }}-tab">
+                        <div class="row">
+                            <div class="col-lg-10 mx-auto">
+                                <div class="accordion custom-accordion" id="accordion{{ category_name | replace(' ', '') }}">
+                                    {% for faq in faqs %}
+                                        <div class="accordion-item custom-accordion-item mb-3">
+                                            <h2 class="accordion-header" id="heading-{{ category_name.lower() }}-{{ loop.index }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ category_name.lower() }}-{{ loop.index }}" aria-expanded="false" aria-controls="collapse-{{ category_name.lower() }}-{{ loop.index }}">
+                                                    <span class="question-number me-3">{{ '%02d' % loop.index }}</span>
+                                                    {{ faq.question }}
+                                                </button>
+                                            </h2>
+                                            <div id="collapse-{{ category_name.lower() }}-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ category_name.lower() }}-{{ loop.index }}" data-bs-parent="#accordion{{ category_name | replace(' ', '') }}">
+                                                <div class="accordion-body">
+                                                    <!-- <div class="answer-content"> -->
+                                                        {{ faq.answer | safe }}
+                                                    <!-- </div> -->
+                                                    <div class="answer-footer mt-3">
+                                                        <div class="d-flex flex-wrap justify-content-between align-items-center">
+                                                            <div class="helpful-text small">
+                                                                <span class="text-muted">Was this answer helpful?</span>
+                                                                <a href="#" class="text-success ms-2"><i class="far fa-thumbs-up"></i> Yes</a>
+                                                                <a href="#" class="text-danger ms-2"><i class="far fa-thumbs-down"></i> No</a>
+                                                            </div>
+                                                            <div class="question-category">
+                                                                <span class="badge bg-success-light text-success">{{ category_name }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="quick-links mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="quick-link-card text-center h-100">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body p-4">
+                                            <div class="icon-box mb-3">
+                                                <span class="icon-circle bg-success-light">
+                                                    <i class="fas fa-book-open text-success"></i>
+                                                </span>
+                                            </div>
+                                            <h3 class="h5 mb-3">Knowledge Base</h3>
+                                            <p class="mb-3">Access our detailed guides and tutorials on academic writing.</p>
+                                            <a href="#" class="btn btn-outline-success btn-sm">Browse Articles</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="quick-link-card text-center h-100">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body p-4">
+                                            <div class="icon-box mb-3">
+                                                <span class="icon-circle bg-success-light">
+                                                    <i class="fas fa-video text-success"></i>
+                                                </span>
+                                            </div>
+                                            <h3 class="h5 mb-3">Video Tutorials</h3>
+                                            <p class="mb-3">Watch our video guides on how to use our services effectively.</p>
+                                            <a href="#" class="btn btn-outline-success btn-sm">Watch Videos</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="quick-link-card text-center h-100">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body p-4">
+                                            <div class="icon-box mb-3">
+                                                <span class="icon-circle bg-success-light">
+                                                    <i class="fas fa-headset text-success"></i>
+                                                </span>
+                                            </div>
+                                            <h3 class="h5 mb-3">Live Support</h3>
+                                            <p class="mb-3">Get immediate help from our customer support specialists.</p>
+                                            <a href="#" class="btn btn-outline-success btn-sm">Start Chat</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Still Have Questions Section -->
+    <section class="section py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="contact-card bg-white rounded-lg shadow-sm p-5 text-center">
+                        <div class="section-icon mb-3">
+                            <span class="icon-circle bg-success-light text-success">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                        </div>
+                        <h2 class="section-title mb-3">Still Have Questions?</h2>
+                        <p class="section-description mb-4">If you couldn't find the answer to your question, please feel free to contact our customer support team. We're here to help 24/7.</p>
+                        <div class="contact-options d-flex justify-content-center flex-wrap gap-3">
+                            <a href="{{ url_for('main.contact') }}" class="btn btn-success">
+                                <i class="fas fa-envelope me-2"></i> Contact Us
+                            </a>
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="fas fa-comments me-2"></i> Live Chat
+                            </a>
+                            <a href="tel:+11234567890" class="btn btn-outline-success">
+                                <i class="fas fa-phone-alt me-2"></i> Call Us
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2 fw-bold">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-pencil-alt me-2"></i>Order Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #2E7D32;
+        --primary-light: #A5D6A7;
+        --primary-bg: #e8f5e9;
+    }
+    
+    .faq-page {
+        background-color: #f9f9f9;
+    }
+    
+    /* Header */
+    .page-header {
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Section Icon */
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .bg-success-light {
+        background-color: rgba(76, 175, 80, 0.15);
+    }
+    
+    /* Navigation Pills */
+    .nav-pills .nav-link {
+        border-radius: 30px;
+        color:#333; 
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid #333;
+        background-color: transparent;
+    }
+    
+    .nav-pills .nav-link:hover {
+        color: var(--primary-color);
+        background-color: rgba(76, 175, 80, 0.05);
+        border-color: var(--primary-color);
+    }
+    
+    .nav-pills .nav-link.active,
+    .nav-pills .show > .nav-link {
+        background-color: #4CAF50 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Accordion Styling */
+    .custom-accordion-item {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .custom-accordion-item:hover {
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.15);
+    }
+    
+    .accordion-button {
+        padding: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        background-color: #fff;
+        border: none;
+        position: relative;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: #fff;
+        color: var(--primary-color);
+        box-shadow: none;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(76, 175, 80, 0.25);
+    }
+    
+    .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234CAF50'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        transition: all 0.3s ease;
+    }
+    
+    .accordion-button:not(.collapsed)::after {
+        transform: rotate(-180deg);
+    }
+    
+    .question-number {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        text-align: center;
+        background-color: var(--primary-bg);
+        color: var(--primary-color);
+        border-radius: 50%;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    
+    .accordion-body {
+        padding: 1.5rem;
+        background-color: #fff;
+    }
+    
+    .answer-content {
+        line-height: 1.7;
+    }
+    
+    .answer-content p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .answer-footer {
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    /* Category Styling */
+    .category-divider {
+        padding-left: 1rem;
+        border-left: 3px solid var(--primary-color);
+    }
+    
+    /* Quick Links */
+    .quick-link-card {
+        transition: all 0.3s ease;
+    }
+    
+    .quick-link-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .quick-link-card .icon-box .icon-circle {
+        width: 70px;
+        height: 70px;
+        font-size: 1.5rem;
+    }
+    
+    /* Contact Card */
+    .contact-card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .contact-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        z-index: 0;
+    }
+    
+    .cta-section .container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Responsive */
+    @media (max-width: 767px) {
+        .faq-navigation .nav {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .faq-navigation .nav-link {
+            white-space: nowrap;
+            padding: 0.5rem 1rem;
+        }
+        
+        .contact-options {
+            flex-direction: column;
+        }
+        
+        .contact-options .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .accordion-button {
+            padding: 1rem;
+        }
+        
+        .question-number {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

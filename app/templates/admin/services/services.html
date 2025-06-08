@@ -1,0 +1,1505 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Services Management - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    .service-card {
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+    
+    .service-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.08);
+        border-left: 3px solid var(--primary);
+    }
+    
+    .category-header {
+        background-color: var(--primary-subtle);
+        border-left: 3px solid var(--primary);
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+    
+    .service-badge {
+        font-size: 0.8rem;
+        padding: 0.25em 0.6em;
+    }
+    
+    .featured-tag {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: var(--warning);
+        color: white;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        border-radius: 0 0.25rem 0 0.25rem;
+    }
+    
+    .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .drag-handle {
+        cursor: move;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+    
+    .drag-handle:hover {
+        opacity: 1;
+    }
+    
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: var(--light);
+    }
+    
+    .empty-state {
+        padding: 40px 20px;
+        text-align: center;
+        background-color: var(--light);
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray);
+        margin-bottom: 15px;
+    }
+
+    /* Rich Text Editor Styles */
+    .ql-editor {
+        min-height: 150px;
+        max-height: 300px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .ql-toolbar {
+        border-top: 1px solid #ccc;
+        border-left: 1px solid #ccc;
+        border-right: 1px solid #ccc;
+        border-bottom: none;
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+
+    .ql-container {
+        border-bottom: 1px solid #ccc;
+        border-left: 1px solid #ccc;
+        border-right: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+
+    .editor-container.is-invalid .ql-toolbar,
+    .editor-container.is-invalid .ql-container {
+        border-color: #dc3545;
+    }
+
+    .editor-counter {
+        text-align: right;
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .editor-counter.text-danger {
+        color: #dc3545 !important;
+    }
+
+    /* Tab Styles */
+    .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background-color: transparent;
+    }
+
+    .tab-content {
+        padding-top: 1.5rem;
+    }
+
+    /* Enhanced form styles */
+    .form-section {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section h6 {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tag-input-container {
+        position: relative;
+    }
+
+    .tag-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .tag-suggestion {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .tag-suggestion:hover {
+        background-color: #f8f9fa;
+    }
+
+    .tag-suggestion:last-child {
+        border-bottom: none;
+    }
+
+    /* Preview mode styles */
+    .service-preview {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        background-color: white;
+    }
+
+    .preview-card {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .preview-description {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+    }
+
+    /* Enhanced loading state */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        border-radius: 0.5rem;
+    }
+
+    .service-description-preview {
+        max-height: 100px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .service-description-preview::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: linear-gradient(transparent, white);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">Services Management</h1>
+                    <p class="text-muted">Manage your academic writing services and categories</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                        <i class="fas fa-folder-plus me-1"></i> Add Category
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal">
+                        <i class="fas fa-plus me-1"></i> Add Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-container me-3">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Categories</h6>
+                            <h3 class="mb-0">{{ categories|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-container icon-blue me-3">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Services</h6>
+                            <h3 class="mb-0">{{ services|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-container icon-orange me-3">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Featured Services</h6>
+                            <h3 class="mb-0">{{ featured_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="searchServices" class="form-label">Search Services</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="searchServices" placeholder="Search by name...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="filterCategory" class="form-label">Filter by Category</label>
+                                <select class="form-select" id="filterCategory">
+                                    <option value="">All Categories</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="filterFeatured" class="form-label">Featured Status</label>
+                                <select class="form-select" id="filterFeatured">
+                                    <option value="">All Services</option>
+                                    <option value="featured">Featured Only</option>
+                                    <option value="not-featured">Not Featured</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories and Services -->
+    <div class="services-container mb-4">
+        {% if categories %}
+            {% for category in categories|sort(attribute='order') %}
+            <div class="category-block mb-4" data-category-id="{{ category.id }}">
+                <div class="category-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-grip-vertical drag-handle me-2"></i>
+                        <h5 class="mb-0">{{ category.name }}</h5>
+                        <span class="badge bg-primary ms-2">{{ category.services|length }} services</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-link edit-category" data-id="{{ category.id }}" data-name="{{ category.name }}" data-description="{{ category.description }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger delete-category" data-id="{{ category.id }}" data-name="{{ category.name }}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row services-list">
+                    {% if category.services %}
+                        {% for service in category.services|sort(attribute='name') %}
+                        <div class="col-md-6 col-lg-4 mb-3 service-item" 
+                             data-service-id="{{ service.id }}"
+                             data-service-name="{{ service.name }}" 
+                             data-category-id="{{ service.category_id }}">
+                            <div class="card service-card shadow-sm h-100 position-relative">
+                                {% if service.featured %}
+                                <div class="featured-tag mb-5">
+                                    <i class="fas fa-star me-1"></i> Featured
+                                </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">{{ service.name }}</h5>
+                                    </div>
+                                    <div class="service-description-preview">
+                                        {% if service.description %}
+                                            {{ service.description|safe }}
+                                        {% else %}
+                                            <p class="text-muted small">No description provided</p>
+                                        {% endif %}
+                                    </div>
+                                    {% if service.tags %}
+                                    <div class="mt-2">
+                                        {% for tag in service.get_tags() %}
+                                        <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                                        {% endfor %}
+                                        {% if service.get_tags()|length > 3 %}
+                                        <span class="badge bg-secondary">+{{ service.tags|length - 3 }} more</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-link edit-service" 
+                                                data-id="{{ service.id }}"
+                                                data-name="{{ service.name }}"
+                                                data-description="{{ service.description|e }}"
+                                                data-category="{{ service.category_id }}"
+                                                data-featured="{{ '1' if service.featured else '0' }}"
+                                                data-tags="{{ service.get_tags()|join(',') if service.tags else '' }}"
+                                                data-pricing-category="{{ service.pricing_category_id or '' }}">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-link text-danger delete-service" 
+                                                data-id="{{ service.id }}"
+                                                data-name="{{ service.name }}">
+                                            <i class="fas fa-trash-alt"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="fas fa-folder-open"></i>
+                                <h5>No services in this category</h5>
+                                <p class="text-muted">Add a service to get started</p>
+                                <button class="btn btn-outline-primary btn-sm add-service-to-category" data-category-id="{{ category.id }}">
+                                    <i class="fas fa-plus me-1"></i> Add Service
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h5>No categories found</h5>
+                <p class="text-muted">Start by creating a category for your services</p>
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                    <i class="fas fa-folder-plus me-1"></i> Add Category
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Enhanced Service Modal -->
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serviceModalLabel">Add New Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs" id="serviceModalTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-info-tab" data-bs-toggle="tab" data-bs-target="#basic-info" type="button" role="tab">
+                            <i class="fas fa-info-circle me-1"></i> Basic Information
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                            <i class="fas fa-align-left me-1"></i> Description
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab">
+                            <i class="fas fa-eye me-1"></i> Preview
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="serviceModalTabContent">
+                    <!-- Basic Information Tab -->
+                    <div class="tab-pane fade show active" id="basic-info" role="tabpanel">
+                        <form id="serviceForm">
+                            <!-- <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> -->
+                            <input type="hidden" name="service_id" id="serviceId" value="">
+                            
+                            <div class="form-section">
+                                <h6><i class="fas fa-info-circle"></i> Service Details</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label for="serviceName" class="form-label">Service Name *</label>
+                                            <input type="text" class="form-control" id="serviceName" name="name" required placeholder="Enter service name...">
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="serviceCategory" class="form-label">Category *</label>
+                                            <div class="select2-wrapper">
+                                            <select class="form-select select2-init" id="serviceCategory" name="category_id" required>
+                                                <option value="">Select Category</option>
+                                                {% for category in categories %}
+                                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                                {% endfor %}
+                                            </select></div>
+                                            <div class="invalid-feedback select2-error"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h6><i class="fas fa-tags"></i> Tags & Categorization</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="serviceTags" class="form-label">Tags</label>
+                                            <div class="tag-input-container">
+                                                <input type="text" class="form-control" id="serviceTags" name="tags" placeholder="Type tags and press Enter or comma...">
+                                                <div class="tag-suggestions" id="tagSuggestions"></div>
+                                            </div>
+                                            <div class="form-text">Press Enter or use commas to add tags. Common tags will be suggested.</div>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div id="tagDisplay" class="mt-2"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="servicePricingCategory" class="form-label">Pricing Category</label>
+                                            <div class="select2-wrapper">
+                                            <select class="form-select select2-init" id="servicePricingCategory" name="pricing_category_id">
+                                                <option value="">Select Pricing Category</option>
+                                                {% for pricing_cat in pricing_categories %}
+                                                <option value="{{ pricing_cat.id }}">{{ pricing_cat.name }}</option>
+                                                {% endfor %}
+                                            </select></div>
+                                            <div class="invalid-feedback select2-error"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h6><i class="fas fa-cog"></i> Settings</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="serviceFeatured" name="featured" value="1">
+                                                <label class="form-check-label" for="serviceFeatured">
+                                                    <strong>Featured Service</strong>
+                                                </label>
+                                            </div>
+                                            <div class="form-text">Featured services appear prominently on the website and get priority placement.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade" id="description" role="tabpanel">
+                        <div class="form-section">
+                            <h6><i class="fas fa-align-left"></i> Service Description</h6>
+                            <div class="form-group mb-3">
+                                <label for="serviceDescriptionEditor" class="form-label">Description</label>
+                                <div class="editor-container" id="editorContainer">
+                                    <div id="serviceDescriptionEditor"></div>
+                                </div>
+                                <div class="editor-counter">
+                                    <span id="charCount">0</span> / 2000 characters
+                                </div>
+                                <div class="invalid-feedback"></div>
+                                <div class="form-text mt-2">
+                                    Use the rich text editor to format your service description. You can add bold text, lists, links, and more.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Editor Toolbar Explanation -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-1"></i> Editor Features</h6>
+                            <small>
+                                <strong>Formatting:</strong> Bold, italic, underline, strikethrough<br>
+                                <strong>Lists:</strong> Bullet points and numbered lists<br>
+                                <strong>Links:</strong> Add clickable links to external resources<br>
+                                <strong>Headers:</strong> Structure your content with different heading levels
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Preview Tab -->
+                    <div class="tab-pane fade" id="preview" role="tabpanel">
+                        <div class="service-preview">
+                            <h6><i class="fas fa-eye me-1"></i> Service Preview</h6>
+                            <div class="preview-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h5 class="card-title" id="previewName">Service Name</h5>
+                                            <span class="badge bg-warning" id="previewFeatured" style="display: none;">
+                                                <i class="fas fa-star me-1"></i> Featured
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">Category: </small>
+                                            <span class="badge bg-primary" id="previewCategory">Category</span>
+                                        </div>
+                                        
+                                        <div class="preview-description mb-3" id="previewDescription">
+                                            <em class="text-muted">No description provided</em>
+                                        </div>
+                                        
+                                        <div id="previewTags"></div>
+                                        
+                                        <div class="mt-3" id="previewPricing"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div id="serviceFormLoading" class="loading-overlay" style="display: none;">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-lg text-primary" role="status"></div>
+                        <div class="mt-2">Saving service...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-primary" id="previewServiceBtn">
+                    <i class="fas fa-eye me-1"></i> Preview
+                </button>
+                <button type="submit" class="btn btn-primary" id="saveServiceBtn" form="serviceForm">Save Service</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="categoryForm" action="{{ url_for('admin.save_category') }}" method="POST">
+                <!-- <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> -->
+                <input type="hidden" name="category_id" id="categoryId" value="">
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="categoryName" class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="categoryDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    <!-- <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> -->
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+// Global variables
+let quillEditor;
+let currentTags = [];
+let tagSuggestions = ['essay', 'research', 'assignment', 'thesis', 'dissertation', 'case-study', 'analysis', 'review', 'report', 'proposal', 'presentation', 'coursework', 'homework', 'term-paper', 'book-review', 'article-review', 'literature-review', 'annotated-bibliography', 'lab-report', 'business-plan', 'marketing', 'finance', 'economics', 'psychology', 'sociology', 'history', 'english', 'literature', 'science', 'nursing', 'medicine', 'law', 'philosophy', 'education', 'engineering', 'computer-science', 'mathematics', 'statistics', 'urgent', 'standard', 'premium', 'academic', 'professional', 'college', 'university', 'graduate', 'undergraduate', 'phd', 'masters', 'high-school'];
+
+// Initialize when DOM is loaded
+$(document).ready(function() {
+    initializeComponents();
+    bindEvents();
+    initializeSortable();
+});
+
+function initializeComponents() {
+    // Initialize Select2
+    // $('#serviceCategory, #servicePricingCategory, #filterCategory').select2({
+    //     theme: 'default',
+    //     width: '100%'
+    // });
+    setTimeout(() => {
+        // Destroy existing Select2 instances if they exist (for re-initialization)
+        if ($('#serviceCategory').hasClass('select2-hidden-accessible')) {
+            $('#serviceCategory').select2('destroy');
+        }
+        if ($('#servicePricingCategory').hasClass('select2-hidden-accessible')) {
+            $('#servicePricingCategory').select2('destroy');
+        }
+        if ($('#filterCategory').hasClass('select2-hidden-accessible')) {
+            $('#filterCategory').select2('destroy');
+        }
+
+        // Initialize Select2 with proper error handling
+        try {
+            $('#serviceCategory').select2({
+                theme: 'default',
+                width: '100%',
+                placeholder: 'Select Category',
+                allowClear: false,
+                dropdownParent: $('#serviceModal'),
+                escapeMarkup: function(markup) { return markup; }, // Allow HTML
+                templateResult: function(data) { return data.text; },
+                templateSelection: function(data) { return data.text; }
+            });
+            
+            $('#servicePricingCategory').select2({
+                theme: 'default',
+                width: '100%',
+                placeholder: 'Select Pricing Category',
+                allowClear: true,
+                dropdownParent: $('#serviceModal'),
+                escapeMarkup: function(markup) { return markup; },
+                templateResult: function(data) { return data.text; },
+                templateSelection: function(data) { return data.text; }
+            });
+            
+            $('#filterCategory').select2({
+                theme: 'default',
+                width: '100%',
+                placeholder: 'All Categories',
+                allowClear: true,
+                escapeMarkup: function(markup) { return markup; },
+                templateResult: function(data) { return data.text; },
+                templateSelection: function(data) { return data.text; }
+            });
+
+            console.log('Select2 initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Select2:', error);
+        }
+    }, 100);
+    // Initialize Quill editor
+    initializeQuillEditor();
+    
+    // Initialize tag input
+    initializeTagInput();
+    
+    // Set up search and filters
+    setupSearchAndFilters();
+}
+
+function initializeQuillEditor() {
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['link'],
+        ['clean']
+    ];
+
+    quillEditor = new Quill('#serviceDescriptionEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: toolbarOptions
+        },
+        placeholder: 'Enter a detailed description of your service...'
+    });
+
+    // Character count
+    quillEditor.on('text-change', function() {
+        const text = quillEditor.getText();
+        const length = text.length - 1; // Subtract 1 for the trailing newline
+        const counter = document.getElementById('charCount');
+        const container = document.getElementById('editorContainer');
+        
+        counter.textContent = length;
+        
+        if (length > 2000) {
+            counter.classList.add('text-danger');
+            container.classList.add('is-invalid');
+        } else {
+            counter.classList.remove('text-danger');
+            container.classList.remove('is-invalid');
+        }
+
+        // Update preview
+        updatePreview();
+    });
+}
+
+function initializeTagInput() {
+    const tagInput = document.getElementById('serviceTags');
+    const tagSuggestionsDiv = document.getElementById('tagSuggestions');
+    const tagDisplay = document.getElementById('tagDisplay');
+
+    tagInput.addEventListener('input', function(e) {
+        const value = e.target.value;
+        const lastComma = value.lastIndexOf(',');
+        const currentTag = (lastComma > -1 ? value.substring(lastComma + 1) : value).trim().toLowerCase();
+
+        if (currentTag.length > 0) {
+            const suggestions = tagSuggestions.filter(tag => 
+                tag.includes(currentTag) && !currentTags.includes(tag)
+            ).slice(0, 10);
+
+            if (suggestions.length > 0) {
+                tagSuggestionsDiv.innerHTML = suggestions.map(tag => 
+                    `<div class="tag-suggestion" data-tag="${tag}">${tag}</div>`
+                ).join('');
+                tagSuggestionsDiv.style.display = 'block';
+            } else {
+                tagSuggestionsDiv.style.display = 'none';
+            }
+        } else {
+            tagSuggestionsDiv.style.display = 'none';
+        }
+    });
+
+    tagInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTagFromInput();
+        }
+    });
+
+    tagInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            tagSuggestionsDiv.style.display = 'none';
+            addTagFromInput();
+        }, 200);
+    });
+
+    // Handle suggestion clicks
+    tagSuggestionsDiv.addEventListener('click', function(e) {
+        if (e.target.classList.contains('tag-suggestion')) {
+            const tag = e.target.getAttribute('data-tag');
+            addTag(tag);
+            tagInput.value = '';
+            tagSuggestionsDiv.style.display = 'none';
+        }
+    });
+
+    function addTagFromInput() {
+        const value = tagInput.value.trim();
+        if (value) {
+            const tags = value.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag);
+            tags.forEach(tag => addTag(tag));
+            tagInput.value = '';
+        }
+    }
+
+    function addTag(tag) {
+        if (tag && !currentTags.includes(tag)) {
+            currentTags.push(tag);
+            updateTagDisplay();
+            updatePreview();
+        }
+    }
+
+    function updateTagDisplay() {
+        // tagDisplay.innerHTML = currentTags.map(tag => 
+        //     `<span class="badge bg-secondary me-1 mb-1">
+        //         ${tag}
+        //         <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6em;" onclick="removeTag('${tag}')"></button>
+        //     </span>`
+        // ).join('');
+        const tagDisplay = document.getElementById('tagDisplay');
+        if (currentTags.length > 0) {
+            tagDisplay.innerHTML = currentTags.map(tag => 
+                `<span class="badge bg-secondary me-1 mb-1">
+                    ${tag}
+                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6em;" onclick="removeTag('${tag}')"></button>
+                </span>`
+            ).join('');
+        } else {
+            tagDisplay.innerHTML = '';
+        }
+    }
+
+    // Global function to remove tags
+    window.removeTag = function(tag) {
+        currentTags = currentTags.filter(t => t !== tag);
+        updateTagDisplay();
+        updatePreview();
+    };
+}
+
+function setupSearchAndFilters() {
+    const searchInput = document.getElementById('searchServices');
+    const categoryFilter = document.getElementById('filterCategory');
+    const featuredFilter = document.getElementById('filterFeatured');
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const featuredStatus = featuredFilter.value;
+
+        document.querySelectorAll('.service-item').forEach(item => {
+            const serviceName = item.getAttribute('data-service-name').toLowerCase();
+            const categoryId = item.getAttribute('data-category-id');
+            const isFeatured = item.querySelector('.featured-tag') !== null;
+
+            let visible = true;
+
+            // Search filter
+            if (searchTerm && !serviceName.includes(searchTerm)) {
+                visible = false;
+            }
+
+            // Category filter
+            if (selectedCategory && categoryId !== selectedCategory) {
+                visible = false;
+            }
+
+            // Featured filter
+            if (featuredStatus === 'featured' && !isFeatured) {
+                visible = false;
+            } else if (featuredStatus === 'not-featured' && isFeatured) {
+                visible = false;
+            }
+
+            item.style.display = visible ? 'block' : 'none';
+        });
+
+        // Show/hide empty categories
+        document.querySelectorAll('.category-block').forEach(categoryBlock => {
+            const visibleServices = categoryBlock.querySelectorAll('.service-item[style="display: block"], .service-item:not([style*="display: none"])').length;
+            categoryBlock.style.display = visibleServices > 0 ? 'block' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+    featuredFilter.addEventListener('change', applyFilters);
+}
+
+function initializeSortable() {
+    // Category sorting
+    new Sortable(document.querySelector('.services-container'), {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function(evt) {
+            updateCategoryOrder();
+        }
+    });
+}
+
+function bindEvents() {
+    // Service form submission
+    $('#serviceForm').on('submit', function(e) {
+        e.preventDefault();
+        saveService();
+    });
+
+    // Category form submission
+    $('#categoryForm').on('submit', function(e) {
+        e.preventDefault();
+        saveCategory();
+    });
+
+    // Edit service buttons
+    $(document).on('click', '.edit-service', function() {
+        const data = $(this).data();
+        editService(data);
+    });
+
+    // Edit category buttons
+    $(document).on('click', '.edit-category', function() {
+        const data = $(this).data();
+        editCategory(data);
+    });
+
+    // Delete service buttons
+    $(document).on('click', '.delete-service', function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        confirmDelete('service', id, name);
+    });
+
+    // Delete category buttons
+    $(document).on('click', '.delete-category', function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        confirmDelete('category', id, name);
+    });
+
+    // Add service to category buttons
+    $(document).on('click', '.add-service-to-category', function() {
+        const categoryId = $(this).data('category-id');
+        $('#serviceCategory').val(categoryId).trigger('change');
+        $('#serviceModal').modal('show');
+    });
+
+    // Preview button
+    $('#previewServiceBtn').on('click', function() {
+        $('#preview-tab').click();
+    });
+
+    // Tab change events for preview
+    $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+        if (e.target.id === 'preview-tab') {
+            updatePreview();
+        }
+    });
+
+    // Form input changes for preview
+    $('#serviceName, #serviceCategory, #serviceFeatured').on('change input', updatePreview);
+
+    // Modal events
+    $('#serviceModal').on('hidden.bs.modal', function() {
+        resetServiceForm();
+    });
+
+    $('#categoryModal').on('hidden.bs.modal', function() {
+        resetCategoryForm();
+    });
+}
+
+function saveService() {
+    const form = document.getElementById('serviceForm');
+    const formData = new FormData(form);
+    
+    // Add description from Quill editor
+    formData.set('description', quillEditor.root.innerHTML);
+    
+    // Add tags
+    formData.set('tags', currentTags.join(','));
+    
+    // Show loading
+    document.getElementById('serviceFormLoading').style.display = 'flex';
+    
+    // Determine URL based on whether we're editing or creating
+    const serviceId = document.getElementById('serviceId').value;
+    let url;
+    if(serviceId) {
+        url = `{{ url_for('admin.save_service', service_id=0) }}`.replace('0', serviceId);
+    } else{
+        url = `{{ url_for('admin.save_service') }}`;
+
+    } 
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('serviceFormLoading').style.display = 'none';
+        
+        if (data.success) {
+            $('#serviceModal').modal('hide');
+            showToast('Success', 'Service saved successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Error', data.message || 'Failed to save service', 'danger');
+            
+            // Show field errors
+            // if (data.errors) {
+            //     Object.keys(data.errors).forEach(field => {
+            //         const input = document.getElementById('service' + field.charAt(0).toUpperCase() + field.slice(1));
+            //         if (input) {
+            //             input.classList.add('is-invalid');
+            //             const feedback = input.parentNode.querySelector('.invalid-feedback');
+            //             if (feedback) {
+            //                 feedback.textContent = data.errors[field][0];
+            //             }
+            //         }
+            //     });
+            // }
+            if (data.errors) {
+                displayFormErrors(data.errors);
+            }
+        }
+    })
+    .catch(error => {
+        document.getElementById('serviceFormLoading').style.display = 'none';
+        showToast('Error', 'An error occurred while saving the service', 'danger');
+        console.error('Error:', error);
+    });
+}
+
+function saveCategory() {
+    const form = document.getElementById('categoryForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#categoryModal').modal('hide');
+            showToast('Success', 'Category saved successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Error', data.message || 'Failed to save category', 'danger');
+            if (data.errors) {
+                    displayFormErrors(data.errors);
+                }
+        }
+    })
+    .catch(error => {
+        showToast('Error', 'An error occurred while saving the category', 'danger');
+        console.error('Error:', error);
+    });
+}
+
+function editService(data) {
+    console.log('Editing service with data:', data); // Debug log
+    resetServiceForm();
+    // Set form values
+    document.getElementById('serviceId').value = data.id || '';
+    document.getElementById('serviceName').value = data.name || '';
+    document.getElementById('serviceFeatured').checked = data.featured === '1';
+
+    setTimeout (() => {
+        // const categorySelect = document.getElementById('serviceCategory');
+        if (data.category) {
+            // categorySelect.value = data.category;
+            const $categorySelect = $('#serviceCategory');
+            $categorySelect.val(data.category).trigger('change');
+
+            // Trigger Select2 update
+            // $categorySelect.trigger('change');
+        }
+        // const pricingCategorySelect = document.getElementById('servicePricingCategory');
+        if (data.pricingCategory) {
+            // pricingCategorySelect.value = data.pricingCategory;
+            const $pricingSelect = $('#servicePricingCategory');
+            // $(pricingCategorySelect).trigger('change');
+            const pricingValue = data.pricingCategory || data.pricing_category || data.pricing_category_id;
+            $pricingSelect.val(pricingValue).trigger('change');
+            // $pricingSelect.trigger('change');
+
+        }
+        // $('#serviceCategory').val(data.category_id).trigger('change');
+        // $('#servicePricingCategory').val(data.pricing_category_id).trigger('change');
+    // document.getElementById('serviceCategory').value = data.category;
+    // document.getElementById('servicePricingCategory').value = data.pricingCategory || '';
+    
+    
+}, 50);
+
+    // Set description in Quill editor
+    if (data.description && data.description !== 'None') {
+        quillEditor.root.innerHTML = data.description;
+    } else {
+        quillEditor.setText('');
+    }
+    if (data.tags && data.tags !== '') {
+        currentTags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    } else {
+        currentTags = [];
+    }   
+    // Set tags
+    currentTags = data.tags ? data.tags.split(',').filter(tag => tag.trim()) : [];
+    document.getElementById('tagDisplay').innerHTML = currentTags.map(tag => 
+        `<span class="badge bg-secondary me-1 mb-1">
+            ${tag}
+            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6em;" onclick="removeTag('${tag}')"></button>
+        </span>`
+    ).join('');
+    // updateTagDisplay();
+    // Update modal title
+    document.getElementById('serviceModalLabel').textContent = 'Edit Service';
+    
+    // Trigger Select2 change
+    // $('#serviceCategory, #servicePricingCategory').trigger('change');
+    
+    // Show modal
+    $('#serviceModal').modal('show');
+    setTimeout(updatePreview, 100);
+}
+
+function editCategory(data) {
+    document.getElementById('categoryId').value = data.id;
+    document.getElementById('categoryName').value = data.name;
+    document.getElementById('categoryDescription').value = data.description || '';
+    document.getElementById('categoryModalLabel').textContent = 'Edit Category';
+    $('#categoryModal').modal('show');
+}
+
+function confirmDelete(type, id, name) {
+    const message = `Are you sure you want to delete the ${type} "${name}"?`;
+    let url;
+    if (type === 'service'){
+        url = `{{ url_for('admin.delete_service', service_id=0) }}`.replace('0', id) ; 
+    } else {
+        url = `{{ url_for('admin.delete_category', category_id=0) }}`.replace('0', id);
+    }
+    
+    document.getElementById('deleteMessage').textContent = message;
+    document.getElementById('deleteForm').action = url;
+    document.getElementById('deleteForm').innerHTML = `
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="${type}_id" value="${id}">
+        <button type="submit" class="btn btn-danger">Delete</button>
+    `;
+    
+    $('#deleteConfirmModal').modal('show');
+}
+
+function updatePreview() {
+    const name = document.getElementById('serviceName').value || 'Service Name';
+    const categorySelect = document.getElementById('serviceCategory');
+    // const categoryText = categorySelect.options[categorySelect.selectedIndex]?.text || 'Category';
+    const categoryText = categorySelect.selectedIndex > 0 ? categorySelect.options[categorySelect.selectedIndex].text : 'Category';
+    const isFeatured = document.getElementById('serviceFeatured').checked;
+    const description = quillEditor ? quillEditor.root.innerHTML : '';
+
+    
+    // Update preview elements
+    document.getElementById('previewName').textContent = name;
+    document.getElementById('previewCategory').textContent = categoryText;
+    document.getElementById('previewFeatured').style.display = isFeatured ? 'inline' : 'none';
+    
+    // Update description
+    const previewDesc = document.getElementById('previewDescription');
+    if (description && description !== '<p><br></p>' && description.trim() !== '') {
+        previewDesc.innerHTML = description;
+    } else {
+        previewDesc.innerHTML = '<em class="text-muted">No description provided</em>';
+    }
+    
+    // Update tags
+    const previewTags = document.getElementById('previewTags');
+    if (currentTags.length > 0) {
+        previewTags.innerHTML = currentTags.map(tag => 
+            `<span class="badge bg-light text-dark me-1">#${tag}</span>`
+        ).join('');
+    } else {
+        previewTags.innerHTML = '';
+    }
+    
+    // Update pricing info
+    const pricingSelect = document.getElementById('servicePricingCategory');
+    const pricingText = pricingSelect.selectedIndex > 0 ?
+        pricingSelect.options[pricingSelect.selectedIndex].text: '';
+    const previewPricing = document.getElementById('previewPricing');
+    if (pricingText && pricingText !== 'Select Pricing Category') {
+        previewPricing.innerHTML = `<small class="text-muted">Pricing: </small><span class="badge bg-info">${pricingText}</span>`;
+    } else {
+        previewPricing.innerHTML = '';
+    }
+}
+
+function resetServiceForm() {
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceId').value = '';
+    document.getElementById('serviceModalLabel').textContent = 'Add New Service';
+    
+    // Reset Quill editor
+    // quillEditor.setText('');
+    if (quillEditor) {
+        quillEditor.setText('');
+    }
+    
+    // Reset tags
+    currentTags = [];
+    document.getElementById('tagDisplay').innerHTML = '';
+    
+    // Reset Select2
+    // $('#serviceCategory, #servicePricingCategory').val('').trigger('change');
+    $('#serviceCategory').val('').trigger('change');
+    $('#servicePricingCategory').val('').trigger('change');
+    
+    // Clear validation states
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+    
+    // Reset to first tab
+    document.getElementById('basic-info-tab').click();
+
+    // Clear CHarcount
+    const charCount = document.getElementById('charCount');
+    if (charCount) {
+        charCount.textContent = '0';
+        charCount.classList.remove('text-danger');
+    }
+    
+    const editorContainer = document.getElementById('editorContainer');
+    if (editorContainer) {
+        editorContainer.classList.remove('is-invalid');
+    }
+}
+
+function resetCategoryForm() {
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryId').value = '';
+    document.getElementById('categoryModalLabel').textContent = 'Add New Category';
+}
+
+function updateCategoryOrder() {
+    const categoryBlocks = document.querySelectorAll('.category-block');
+    const order = Array.from(categoryBlocks).map((block, index) => ({
+        id: block.getAttribute('data-category-id'),
+        order: index + 1
+    }));
+    
+    fetch('{{ url_for("admin.update_category_order") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ categories: order })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Success', 'Category order updated', 'success');
+        } else {
+            showToast('Error', 'Failed to update category order', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating category order:', error);
+        showToast('Error', 'Failed to update category order', 'danger');
+    });
+}
+
+function showToast(title, message, type = 'info') {
+    const toastContainer = document.querySelector('.toast-container');
+    const toastId = 'toast-' + Date.now();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.id = toastId;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong><br>${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: 5000
+    });
+    
+    bsToast.show();
+    
+    // Remove toast element after it's hidden
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+// Handle form errors display
+function displayFormErrors(errors) {
+    // Clear previous errors
+    document.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.textContent = '';
+    });
+    
+    // Display new errors
+    Object.keys(errors).forEach(field => {
+        // const input = document.querySelector(`[name="${field}"]`);
+        // if (input) {
+        //     input.classList.add('is-invalid');
+        //     const feedback = input.parentNode.querySelector('.invalid-feedback');
+        //     if (feedback) {
+        //         feedback.textContent = errors[field][0];
+        //     }
+        // }
+        let input;
+        
+        // Handle different field mappings
+        switch(field) {
+            case 'name':
+                input = document.getElementById('serviceName');
+                break;
+            case 'category_id':
+                input = document.getElementById('serviceCategory');
+                break;
+            case 'pricing_category_id':
+                input = document.getElementById('servicePricingCategory');
+                break;
+            case 'description':
+                input = document.getElementById('editorContainer');
+                break;
+            default:
+                input = document.querySelector(`[name="${field}"]`);
+        }
+        
+        if (input) {
+            input.classList.add('is-invalid');
+            const feedback = input.parentNode.querySelector('.invalid-feedback') || 
+                           input.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+            }
+        }
+    
+    });
+}
+
+// Auto-save draft functionality (optional)
+let autoSaveTimer;
+function enableAutoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        // Implementation for auto-saving drafts
+        console.log('Auto-saving draft...');
+    }, 30000); // Auto-save every 30 seconds
+}
+
+// Enable auto-save on form changes
+document.addEventListener('DOMContentLoaded', function() {
+    const formInputs = document.querySelectorAll('#serviceForm input, #serviceForm select, #serviceForm textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('change', enableAutoSave);
+        input.addEventListener('input', enableAutoSave);
+    });
+});
+
+function reinitializeSelect2() {
+    const selectors = ['#serviceCategory', '#servicePricingCategory', '#filterCategory'];
+    
+    selectors.forEach(selector => {
+        const $element = $(selector);
+        if ($element.length && $element.hasClass('select2-hidden-accessible')) {
+            $element.select2('destroy');
+        }
+    });
+    
+    // Re-run initialization
+    initializeComponents();
+}
+</script> 
+
+
+{% endblock %}

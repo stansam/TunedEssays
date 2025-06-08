@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block meta_description %}Browse our articles on {{ category.name | lower }} topics. Find valuable insights, tips, and academic resources in our blog.{% endblock %}
+
+{% block body_class %}blog-category-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: var(--gradient-primary);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4">{{ category.name }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.blog') }}" class="text-white">Blog</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">{{ category.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Description Section -->
+    <section class="section py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    {% if category.description %}
+                        <div class="category-description bg-light p-4 rounded mb-5">
+                            <p class="mb-0">{{ category.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section class="section py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <h2 class="section-title mb-4">{{ category.name }} Articles</h2>
+                    
+                    <!-- Blog Posts Grid -->
+                    <div class="blog-grid">
+                        {% for post in posts %}
+                            <div class="blog-card">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    {% if post.featured_image %}
+                                        <img src="{{ post.featured_image }}" class="card-img-top" alt="{{ post.title }}">
+                                    {% else %}
+                                        <div class="card-img-top bg-light py-4 text-center">
+                                            <svg width="150" height="100" viewBox="0 0 150 100" class="img-fluid">
+                                                <rect width="150" height="100" fill="#e6f0ff" rx="5" ry="5"/>
+                                                <path d="M60,50 L90,50 M75,35 L75,65" stroke="#0056b3" stroke-width="6" stroke-linecap="round"/>
+                                                <circle cx="75" cy="50" r="30" fill="none" stroke="#0056b3" stroke-width="2"/>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <div class="post-meta mb-2">
+                                            <span class="badge bg-primary me-2">{{ post.category.name }}</span>
+                                            <span class="text-muted small"><i class="far fa-calendar-alt me-1"></i> {{ post.published_at.strftime('%b %d, %Y') }}</span>
+                                        </div>
+                                        <h3 class="card-title h5 mb-3">{{ post.title }}</h3>
+                                        <p class="card-text">{{ post.excerpt | truncate(120) }}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-0 pt-0">
+                                        <a href="{{ url_for('main.blog_post', slug=post.slug) }}" class="btn btn-link text-primary p-0">Read More <i class="fas fa-arrow-right ms-1"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12 text-center py-5">
+                                <p>No blog posts available in this category at the moment. Please check back later.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if pagination.pages > 1 %}
+                        <nav aria-label="Blog pagination" class="mt-5">
+                            <ul class="pagination justify-content-center">
+                                {% if pagination.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('blog_category', slug=category.slug, page=pagination.prev_num) }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page in pagination.iter_pages(left_edge=2, right_edge=2, left_current=1, right_current=2) %}
+                                    {% if page %}
+                                        {% if page == pagination.page %}
+                                            <li class="page-item active" aria-current="page">
+                                                <span class="page-link">{{ page }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('main.blog_category', slug=category.slug, page=page) }}">{{ page }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if pagination.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('main.blog_category', slug=category.slug, page=pagination.next_num) }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Blog Categories -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header text-white" style="background: var(--gradient-primary);">
+                                <h3 class="widget-title h5 mb-0">Categories</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="category-list list-unstyled mb-0">
+                                    {% for cat in categories %}
+                                        <li class="category-item">
+                                            <a href="{{ url_for('main.blog_category', slug=cat.slug) }}" class="d-flex justify-content-between align-items-center py-2 border-bottom {% if cat.id == category.id %}text-primary fw-bold{% endif %}">
+                                                <span>{{ cat.name }}</span>
+                                                <span class="badge bg-primary rounded-pill">{{ cat.posts | length }}</span>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="widget-title h5 mb-0">Search</h3>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ url_for('main.blog') }}" method="GET">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Search posts..." name="q" value="{{ request.args.get('q', '') }}">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Posts -->
+                    <div class="sidebar-widget mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header text-white" style="background: var(--gradient-primary);">
+                                <h3 class="widget-title h5 mb-0">Recent Posts</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="recent-posts-list list-unstyled mb-0">
+                                    {% for post in recent_posts %}
+                                        <li class="recent-post-item mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                                            <a href="{{ url_for('main.blog_post', slug=post.slug) }}" class="d-flex align-items-center text-decoration-none">
+                                                <div class="flex-shrink-0">
+                                                    {% if post.featured_image %}
+                                                        <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="recent-post-thumb" width="60" height="60">
+                                                    {% else %}
+                                                        <div class="recent-post-thumb bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                            <i class="fas fa-newspaper text-primary"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <h4 class="recent-post-title h6 mb-1 text-dark">{{ post.title | truncate(50) }}</h4>
+                                                    <p class="recent-post-date small text-muted mb-0">{{ post.published_at.strftime('%b %d, %Y') }}</p>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Newsletter Signup -->
+                    <div class="sidebar-widget">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header  text-white" style="background: var(--gradient-primary);">
+                                <h3 class="widget-title h5 mb-0">Newsletter</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Subscribe to our newsletter for the latest academic writing tips and guides.</p>
+                                <form action="#" method="POST">
+                                    <div class="mb-3">
+                                        <input type="email" class="form-control" placeholder="Your email address" name="email" required>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .blog-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .recent-post-thumb {
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .category-item:last-child a {
+        border-bottom: none !important;
+    }
+    
+    @media (max-width: 767px) {
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

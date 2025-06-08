@@ -1,0 +1,1218 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Delivery Dashboard - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<style>
+    :root {
+        --delivery-primary: #4caf50;
+        --delivery-secondary: #2196f3;
+        --delivery-warning: #ff9800;
+        --delivery-danger: #f44336;
+        --delivery-success: #4caf50;
+        --delivery-info: #00bcd4;
+        --delivery-light: #f8f9fa;
+        --delivery-dark: #2c3e50;
+        --delivery-gradient: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        --delivery-shadow: 0 8px 32px rgba(76, 175, 80, 0.15);
+        --delivery-border-radius: 12px;
+    }
+    * {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .delivery-dashboard {
+        padding: 2rem;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: calc(100vh - 60px);
+    }
+
+    .delivery-header {
+        background: var(--delivery-gradient);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--delivery-border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--delivery-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .delivery-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(50px, -50px);
+    }
+
+    .delivery-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        transform: translate(-30px, 30px);
+    }
+
+    .delivery-header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--delivery-border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--delivery-gradient);
+    }
+
+    .stat-card.warning::before {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+    }
+
+    .stat-card.info::before {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+    }
+
+    .stat-card.danger::before {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+    }
+
+    .stat-card-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        background: var(--delivery-gradient);
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+    }
+
+    .stat-icon.warning {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        box-shadow: 0 4px 16px rgba(255, 152, 0, 0.3);
+    }
+
+    .stat-icon.info {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+        box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+    }
+
+    .stat-icon.danger {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+    }
+
+    .stat-info h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--delivery-dark);
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .delivery-controls {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--delivery-border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .filter-tabs {
+        border-bottom: none;
+        margin-bottom: 1rem;
+    }
+
+    .filter-tabs .nav-link {
+        border: 2px solid transparent;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        margin-right: 0.5rem;
+        color: #6c757d;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .filter-tabs .nav-link:hover {
+        color: var(--delivery-primary);
+        background: rgba(76, 175, 80, 0.1);
+    }
+
+    .filter-tabs .nav-link.active {
+        background: var(--delivery-gradient);
+        color: white;
+        border-color: var(--delivery-primary);
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+    }
+
+    .search-bar {
+        position: relative;
+    }
+
+    .search-bar input {
+        border-radius: 25px;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar input:focus {
+        border-color: var(--delivery-primary);
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .search-bar .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .orders-table-container {
+        background: white;
+        border-radius: var(--delivery-border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .orders-table {
+        margin: 0;
+    }
+
+    .orders-table thead {
+        background: var(--delivery-gradient);
+        color: white;
+    }
+
+    .orders-table thead th {
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+    }
+
+    .orders-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .orders-table tbody tr:hover {
+        background: rgba(76, 175, 80, 0.05);
+        transform: scale(1.01);
+    }
+
+    .orders-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+
+    .order-number {
+        font-weight: 600;
+        color: var(--delivery-primary);
+    }
+
+    .order-title {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+        color: white;
+    }
+
+    .status-revision {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+    }
+
+    .status-pending {
+        background: linear-gradient(135deg, #9e9e9e, #757575);
+        color: white;
+        font-size: 0.5rem;
+    }
+
+    .due-date {
+        font-weight: 500;
+    }
+
+    .due-urgent {
+        color: var(--delivery-danger);
+        font-weight: 600;
+    }
+
+    .due-soon {
+        color: var(--delivery-warning);
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-deliver {
+        background: var(--delivery-gradient);
+        color: white;
+    }
+
+    .btn-deliver:hover {
+        background: linear-gradient(135deg, #45a049, #4caf50);
+        transform: scale(1.1);
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: linear-gradient(135deg, #1976d2, #2196f3);
+        transform: scale(1.1);
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #f57c00, #ff9800);
+        transform: scale(1.1);
+    }
+
+    .recent-deliveries {
+        background: white;
+        border-radius: var(--delivery-border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .recent-deliveries h5 {
+        color: var(--delivery-dark);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .recent-deliveries h5 i {
+        margin-right: 0.5rem;
+        color: var(--delivery-primary);
+    }
+
+    .delivery-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--delivery-primary);
+    }
+
+    .delivery-item:hover {
+        background: rgba(76, 175, 80, 0.05);
+        transform: translateX(5px);
+    }
+
+    .delivery-item-info {
+        flex: 1;
+    }
+
+    .delivery-item-title {
+        font-weight: 600;
+        color: var(--delivery-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .delivery-item-meta {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .pagination {
+        background: white;
+        border-radius: 25px;
+        padding: 0.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .pagination .page-link {
+        border: none;
+        border-radius: 20px;
+        margin: 0 0.25rem;
+        color: var(--delivery-primary);
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--delivery-gradient);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--delivery-gradient);
+        border-color: var(--delivery-primary);
+        color: white;
+    }
+
+    .floating-action-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: var(--delivery-gradient);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+
+    .floating-action-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 40px rgba(76, 175, 80, 0.4);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .delivery-dashboard {
+            padding: 1rem;
+        }
+
+        .delivery-header {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+
+        .stat-card-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .orders-table-container {
+            overflow-x: auto;
+        }
+
+        .orders-table {
+            min-width: 800px;
+        }
+
+        .filter-tabs {
+            flex-wrap: wrap;
+        }
+
+        .filter-tabs .nav-link {
+            margin-bottom: 0.5rem;
+        }
+
+        .delivery-controls {
+            padding: 1rem;
+        }
+
+        .recent-deliveries {
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .delivery-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .floating-action-btn {
+            bottom: 1rem;
+            right: 1rem;
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Loading States */
+    .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .animate-delay-1 { animation-delay: 0.1s; }
+    .animate-delay-2 { animation-delay: 0.2s; }
+    .animate-delay-3 { animation-delay: 0.3s; }
+    .animate-delay-4 { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delivery-dashboard">
+    <!-- Header Section -->
+    <div class="delivery-header animate-fade-in-up">
+        <div class="delivery-header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2 fw-bold">
+                        <i class="fas fa-truck-fast me-3"></i>
+                        Delivery Dashboard
+                    </h1>
+                    <p class="mb-0 opacity-90">
+                        Manage order deliveries, track completion status, and oversee the delivery process
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex flex-column align-items-md-end">
+                        <div class="text-white-50 small">Last Updated</div>
+                        <div class="fw-semibold" id="current-time"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card animate-fade-in-up animate-delay-1">
+            <div class="stat-card-content">
+                <div class="stat-info">
+                    <h3>{{ stats.total_orders }}</h3>
+                    <p>Total Orders</p>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card warning animate-fade-in-up animate-delay-2">
+            <div class="stat-card-content">
+                <div class="stat-info">
+                    <h3>{{ stats.pending_delivery }}</h3>
+                    <p>Pending Delivery</p>
+                </div>
+                <div class="stat-icon warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card info animate-fade-in-up animate-delay-3">
+            <div class="stat-card-content">
+                <div class="stat-info">
+                    <h3>{{ stats.delivered_today }}</h3>
+                    <p>Delivered Today</p>
+                </div>
+                <div class="stat-icon info">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card danger animate-fade-in-up animate-delay-4">
+            <div class="stat-card-content">
+                <div class="stat-info">
+                    <h3>{{ stats.revisions_pending }}</h3>
+                    <p>Revisions Pending</p>
+                </div>
+                <div class="stat-icon danger">
+                    <i class="fas fa-edit"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Controls -->
+    <div class="delivery-controls animate-fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <!-- Filter Tabs -->
+                <ul class="nav nav-pills filter-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" 
+                           href="{{ url_for('admin_delivery.delivery_dashboard', status='all') }}">
+                            <i class="fas fa-list me-2"></i>All Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" 
+                           href="{{ url_for('admin_delivery.delivery_dashboard', status='pending') }}">
+                            <i class="fas fa-clock me-2"></i>Pending Delivery
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if status_filter == 'delivered' %}active{% endif %}" 
+                           href="{{ url_for('admin_delivery.delivery_dashboard', status='delivered') }}">
+                            <i class="fas fa-check me-2"></i>Delivered
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <!-- Search Bar -->
+                <form method="GET" class="search-bar">
+                    <input type="hidden" name="status" value="{{ status_filter }}">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search orders..." value="{{ search_query }}">
+                    <i class="fas fa-search search-icon"></i>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="orders-table-container animate-fade-in-up">
+        {% if orders.items %}
+        <table class="table orders-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Title</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Delivery Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders.items %}
+                <tr>
+                    <td>
+                        <span class="order-number">#{{ order.order_number }}</span>
+                    </td>
+                    <td>
+                        <div class="order-title" title="{{ order.title }}">
+                            {{ order.title }}
+                        </div>
+                        <small class="text-muted">
+                            {{ order.page_count }} pages • {{ order.academic_level.name }}
+                        </small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ order.client.get_name() }}</div>
+                        <small class="text-muted">{{ order.client.email }}</small>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ order.status.replace(' ', '-') }}">
+                            {{ order.status.title() }}
+                        </span>
+                    </td>
+                    <td>
+                        <!-- {#{% set days_left = (order.due_date - moment().date()).days %}#}
+                        <div class="due-date
+                            {#{% if days_left < 0 %}#}due-urgent
+                            {#{% elif days_left <= 1 %}#}due-soon
+                            {#{% endif %}">
+                            {#{{ order.due_date.strftime('%Y-%m-%d') }}#}
+                            <br>
+                            <small>
+                                {#{% if days_left < 0 %}#}
+                                    {#{{ -days_left }}#} days overdue
+                                {#{% elif days_left == 0 %}#}
+                                    Due today
+                                {#{% elif days_left == 1 %}#}
+                                    Due tomorrow
+                                {#{% else %}#}
+                                    {#{{ days_left }}#} days left
+                                {#{% endif %}#}
+                            </small>
+                        </div> -->
+                        {% set days_left = (order.due_date - current_date).days %}
+                        <div class="due-date
+                            {% if days_left < 0 %}due-urgent
+                            {% elif days_left <= 1 %}due-soon
+                            {% endif %}">
+                            {{ order.due_date.strftime('%Y-%m-%d') }}
+                            <br>
+                            <small>
+                                {% if days_left < 0 %}
+                                    {{ -days_left }} days overdue
+                                {% elif days_left == 0 %}
+                                    Due today
+                                {% elif days_left == 1 %}
+                                    Due tomorrow
+                                {% else %}
+                                    {{ days_left }} days left
+                                {% endif %}
+                            </small>
+                        </div>
+                    </td>
+                    <td>
+                        {% if order.deliveries %}
+                            {% set latest_delivery = order.deliveries[-1] %}
+                            <span class="status-badge status-{{ latest_delivery.delivery_status }}">
+                                {{ latest_delivery.delivery_status.title() }}
+                            </span>
+                            <br>
+                            <small class="text-muted">
+                                {{ latest_delivery.delivered_at.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                        {% else %}
+                            <span class="status-badge status-pending">
+                                Not Delivered
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="action-buttons">
+                            {% if not order.status == 'completed' %}
+                            <!-- <button class="btn-action btn-deliver" 
+                                    title="Deliver Order"
+                                    onclick="showDeliveryModal({{ order.id }})">
+                                <i class="fas fa-truck"></i>
+                            </button> -->
+                            <a class="btn-action btn-deliver" 
+                                    title="Deliver Order"
+                                    href="{{url_for('admin_delivery.deliver_order', order_id=order.id)}}">
+                                <i class="fas fa-truck"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('admin.view_order', order_id=order.id) }}" 
+                               class="btn-action btn-view" title="View Order">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('admin.edit_order', order_id=order.id) }}" 
+                               class="btn-action btn-edit" title="Edit Order">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-inbox fa-4x text-muted"></i>
+            </div>
+            <h5 class="text-muted">No orders found</h5>
+            <p class="text-muted">
+                {% if search_query %}
+                    No orders match your search criteria.
+                {% else %}
+                    There are no orders to display for the selected filter.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if orders.pages > 1 %}
+    <div class="pagination-container">
+        <nav>
+            <ul class="pagination">
+                {% if orders.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_delivery.delivery_dashboard', 
+                        page=orders.prev_num, status=status_filter, search=search_query) }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in orders.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != orders.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_delivery.delivery_dashboard', 
+                                page=page_num, status=status_filter, search=search_query) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if orders.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_delivery.delivery_dashboard', 
+                        page=orders.next_num, status=status_filter, search=search_query) }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
+    <!-- Recent Deliveries -->
+    {% if recent_deliveries %}
+    <div class="recent-deliveries animate-fade-in-up">
+        <h5>
+            <i class="fas fa-history"></i>
+            Recent Deliveries
+        </h5>
+        {% for delivery in recent_deliveries %}
+        <div class="delivery-item">
+            <div class="delivery-item-info">
+                <div class="delivery-item-title">
+                    Order #{{ delivery.order.order_number }} - {{ delivery.order.title }}
+                </div>
+                <div class="delivery-item-meta">
+                    Delivered to {{ delivery.order.client.get_name() }} on 
+                    {{ delivery.delivered_at.strftime('%Y-%m-%d at %H:%M') }}
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="status-badge status-{{ delivery.delivery_status }}">
+                    {{ delivery.delivery_status.title() }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Floating Action Button -->
+<button class="floating-action-btn" title="Quick Actions" onclick="showQuickActions()">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Delivery Modal -->
+<div class="modal fade" id="deliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-truck me-2"></i>
+                    Deliver Order
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="deliveryForm" method="POST">
+                <input type="hidden" name="csrf-token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <input type="hidden" name="order_id" id="delivery-order-id">
+                    
+                    <div class="mb-3">
+                        <label for="delivery-files" class="form-label">
+                            <i class="fas fa-file me-2"></i>
+                            Delivery Files
+                        </label>
+                        <input type="file" class="form-control" id="delivery-files" 
+                               name="delivery_files" multiple accept=".pdf,.doc,.docx,.txt,.zip">
+                        <div class="form-text">
+                            Upload delivery files (PDF, DOC, DOCX, TXT, ZIP). Multiple files allowed.
+                        </div>
+                    </div>
+                    
+                    <!-- <div class="mb-3">
+                        <label for="delivery-notes" class="form-label">
+                            <i class="fas fa-sticky-note me-2"></i>
+                            Delivery Notes
+                        </label>
+                        <textarea class="form-control" id="delivery-notes" name="delivery_notes" 
+                                  rows="4" placeholder="Add any notes for the client about this delivery..."></textarea>
+                    </div> -->
+                    
+                    <!-- <div class="mb-3">
+                        <label for="delivery-status" class="form-label">
+                            <i class="fas fa-flag me-2"></i>
+                            Delivery Status
+                        </label>
+                        <select class="form-select init-select" id="delivery-status" name="delivery_status" required>
+                            <option value="delivered">Delivered</option>
+                            <option value="revised">Needs Revision</option>
+                            <option value="partial">Partial Delivery</option>
+                        </select>
+                    </div> -->
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        The client will be automatically notified via email when the order is delivered.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-truck me-2"></i>Deliver Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Modal -->
+<div class="modal fade" id="quickActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.list_orders') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>New Order
+                    </a>
+                    <a href="{{ url_for('admin_delivery.bulk_delivery_actions') }}" class="btn btn-outline-success">
+                        <i class="fas fa-truck-loading me-2"></i>Bulk Delivery
+                    </a>
+                    <a href="{{ url_for('admin_delivery.delivery_reports') }}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-bar me-2"></i>Delivery Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update current time
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    }
+    
+    updateTime();
+    setInterval(updateTime, 60000); // Update every minute
+    
+    // Initialize Select2 for better dropdowns
+    // $('.init-select').select2({
+    //     theme: 'default',
+    //     width: '100%',
+    //     placeholder
+    // });
+    
+    // Auto-submit search form with delay
+    let searchTimeout;
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.form.submit();
+            }, 500);
+        });
+    }
+    
+    // Animate elements on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-in-up');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all cards and tables
+    document.querySelectorAll('.stat-card, .orders-table-container, .recent-deliveries').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Table row hover effects
+    const tableRows = document.querySelectorAll('.orders-table tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+
+// Show delivery modal
+function showDeliveryModal(orderId) {
+    document.getElementById('delivery-order-id').value = orderId;
+    const deliveryModal = new bootstrap.Modal(document.getElementById('deliveryModal'));
+    deliveryModal.show();
+}
+
+// Show quick actions modal
+function showQuickActions() {
+    const quickActionsModal = new bootstrap.Modal(document.getElementById('quickActionsModal'));
+    quickActionsModal.show();
+}
+
+// Handle delivery form submission
+document.getElementById('deliveryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const iD = document.getElementById('delivery-order-id').value;
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    submitBtn.disabled = true;
+    
+    fetch(`/admin/orders/${iD}/deliver`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('input[name=csrf-token]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showAlert('success', 'Order delivered successfully!');
+            
+            // Close modal and refresh page
+            bootstrap.Modal.getInstance(document.getElementById('deliveryModal')).hide();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showAlert('danger', data.message || 'Failed to deliver order');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'An error occurred while processing the delivery');
+    })
+    .finally(() => {
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// Show alert function
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }
+    
+    // Ctrl/Cmd + N for new order
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        window.location.href = '{{ url_for("admin.create_order") }}';
+    }
+    
+    // Escape to close modals
+    if (e.key === 'Escape') {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {
+            bootstrap.Modal.getInstance(modal).hide();
+        });
+    }
+});
+
+// Real-time status updates (if WebSocket is available)
+if (typeof io !== 'undefined') {
+    const socket = io();
+    
+    socket.on('delivery_update', function(data) {
+        // Update the UI when delivery status changes
+        const orderRow = document.querySelector(`tr[data-order-id="${data.order_id}"]`);
+        if (orderRow) {
+            // Update delivery status badge
+            const statusBadge = orderRow.querySelector('.status-badge');
+            if (statusBadge) {
+                statusBadge.className = `status-badge status-${data.delivery_status}`;
+                statusBadge.textContent = data.delivery_status.charAt(0).toUpperCase() + data.delivery_status.slice(1);
+            }
+            
+            // Show notification
+            showAlert('info', `Order #${data.order_number} delivery status updated`);
+        }
+    });
+}
+
+// Export functions for global access
+window.showDeliveryModal = showDeliveryModal;
+window.showQuickActions = showQuickActions;
+</script>
+{% endblock %}

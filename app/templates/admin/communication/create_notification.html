@@ -1,0 +1,125 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">Create Notification</h4>
+                    <p class="text-muted">Send a new notification to users</p>
+                </div>
+                <a href="{{ url_for('admin_communication.list_notifications') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Notifications
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form action="{{ url_for('admin_communication.create_notification') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" name="title" required placeholder="Enter notification title">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <textarea class="form-control" name="content" rows="4" required placeholder="Enter notification content"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="type">
+                                <option value="system">System</option>
+                                <option value="order">Order</option>
+                                <option value="payment">Payment</option>
+                                <option value="announcement">Announcement</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Link (Optional)</label>
+                            <input type="url" class="form-control" name="link" placeholder="Enter related link">
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="send_to_all" value="true" id="sendToAll">
+                                <label class="form-check-label" for="sendToAll">
+                                    Send to all users
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="userSelect">
+                            <label class="form-label">Select User</label>
+                            <select class="form-select" name="user_id">
+                                <option value="">Choose a user...</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Send Notification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Keep titles clear and concise
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Provide detailed information in the content
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Include relevant links when applicable
+                        </li>
+                        <li>
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Choose between sending to all users or a specific user
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sendToAllCheckbox = document.getElementById('sendToAll');
+        const userSelect = document.getElementById('userSelect');
+
+        function toggleUserSelect() {
+            userSelect.style.display = sendToAllCheckbox.checked ? 'none' : 'block';
+        }
+
+        sendToAllCheckbox.addEventListener('change', toggleUserSelect);
+        toggleUserSelect();
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

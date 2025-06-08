@@ -1,0 +1,277 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">Chat with {{ chat.user.username }}</h4>
+                    <p class="text-muted">
+                        {% if chat.order %}
+                        Regarding Order #{{ chat.order.order_number }}
+                        {% else %}
+                        General Discussion
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.list_chats') }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Chats
+                    </a>
+                    {% if chat.status == 'active' %}
+                    <form action="{{ url_for('admin.close_chat', chat_id=chat.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-times me-2"></i>Close Chat
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('admin.reopen_chat', chat_id=chat.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-redo me-2"></i>Reopen Chat
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Chat Messages -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body" style="height: 500px; overflow-y: auto;">
+                    <div id="chatContainer" class="chat-messages">
+                        {% for message in messages %}
+                        <div class="chat-message mb-3 {% if message.user.is_admin %}text-end{% endif %}">
+                            <div class="d-inline-block p-3 rounded {% if message.user.is_admin %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 75%;">
+                                <div class="message-content">{{ message.content }}</div>
+                                <small class="text-{% if message.user.is_admin %}white{% else %}muted{% endif %}">
+                                    {{ message.created_at.strftime('%H:%M') }} - {{ message.user.username }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if chat.status == 'active' %}
+                <div class="card-footer">
+                    <form id="messageForm">
+                        <input type="hidden" id="csrf" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="chat_id" value="{{ chat.id }}">
+                        <div class="input-group">
+                            <input type="text" id="messageContent" class="form-control" name="content" placeholder="Type your message..." required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="card-footer">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>This chat is closed. Reopen it to send messages.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Chat Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Chat Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Status</h6>
+                        <p class="mb-0">
+                            {% if chat.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Closed</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Started</h6>
+                        <p class="mb-0">{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Client</h6>
+                        <p class="mb-0">
+                            <a href="{{ url_for('admin.view_user', user_id=chat.user.id) }}">
+                                {{ chat.user.username }}
+                            </a>
+                        </p>
+                    </div>
+                    {% if chat.order %}
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Order Details</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Order #:</strong> {{ chat.order.order_number }}</p>
+                                <p class="mb-1"><strong>Status:</strong> {{ chat.order.status }}</p>
+                                <p class="mb-0"><strong>Amount:</strong> ${{ chat.order.total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if not chat.order %}
+                        <a href="{{ url_for('admin.create_order', client_id=chat.user.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Create Order
+                        </a>
+                        {% endif %}
+                        <a href="mailto:{{ chat.user.email }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-envelope me-2"></i>Send Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.querySelector('.chat-messages');
+        const messageForm = document.getElementById('messageForm');
+        const messageContent = document.getElementById('messageContent');
+        
+        // Scroll chat to bottom
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Initial scroll to bottom
+        scrollToBottom();
+        
+        // Handle form submission
+        if (messageForm) {
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                if (!messageContent.value.trim()) {
+                    return;
+                }
+                
+                // Disable form while sending
+                messageContent.disabled = true;
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                
+                fetch('{{ url_for('admin.send_chat_message', chat_id=chat.id) }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-Token': document.getElementById('csrf').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                // .then(response => response.json())
+                .then(response => {
+                    return response.json().catch(() => {
+                        console.error("Invalid JSON response");
+                        throw new Error("Invalid JSON");
+                    });
+                })
+
+                .then(data => {
+                    console.log("Server Response:",data)
+                    if (data.status === 'success') {
+                        // Clear the input field
+                        messageContent.value = '';
+                        
+                        // Create new message element matching template structure
+                        const messageHtml = `
+                            <div class="chat-message mb-3 text-end">
+                                <div class="d-inline-block p-3 rounded bg-primary text-white" style="max-width: 75%;">
+                                    <div class="message-content">${data.message.content}</div>
+                                    <small class="text-white">
+                                        ${data.message.created_at} - ${data.message.sender_name}
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Append to chat container
+                        chatContainer.insertAdjacentHTML('beforeend', messageHtml);
+                        
+                        // Scroll to bottom
+                        scrollToBottom();
+                    } else {
+                        alert('Error sending message. Please try again.:)');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error sending message. Please try again.');
+                })
+                .finally(() => {
+                    // Re-enable form
+                    messageContent.disabled = false;
+                    submitBtn.disabled = false;
+                    messageContent.focus();
+                });
+            });
+        }
+        
+        // Real-time updates using SocketIO (if available)
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            
+            // Join chat room
+            socket.emit('join', {room: 'chat_{{ chat.id }}'});
+            
+            // Listen for new messages
+            socket.on('new_message', function(data) {
+                if (data.chat_id == {{ chat.id }} && data.user_id != {{ current_user.id }}) {
+                    const isAdmin = data.user_id == {{ current_user.id }};
+                    const messageHtml = `
+                        <div class="chat-message mb-3 ${isAdmin ? 'text-end' : ''}">
+                            <div class="d-inline-block p-3 rounded ${isAdmin ? 'bg-primary text-white' : 'bg-light'}" style="max-width: 75%;">
+                                <div class="message-content">${data.content}</div>
+                                <small class="text-${isAdmin ? 'white' : 'muted'}">
+                                    ${data.created_at} - ${data.sender_name}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                    
+                    chatContainer.insertAdjacentHTML('beforeend', messageHtml);
+                    
+                    // Auto-scroll if user is near bottom
+                    const isNearBottom = chatContainer.scrollHeight - chatContainer.clientHeight - chatContainer.scrollTop < 100;
+                    if (isNearBottom) {
+                        scrollToBottom();
+                    }
+                }
+            });
+        }
+        
+        // Focus on message input
+        if (messageContent) {
+            messageContent.focus();
+        }
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

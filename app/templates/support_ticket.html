@@ -1,0 +1,57 @@
+{# order_detail.html – inside your {% block content %} … {% endblock %} #}
+
+<!-- Contact Support Button (you already have this) -->
+<a href="#" 
+   class="btn btn-outline-primary action-btn" 
+   data-bs-toggle="modal" 
+   data-bs-target="#supportTicketModal">
+  <i class="fas fa-headset me-1"></i>Contact Support
+</a>
+
+<!-- Support Ticket Modal -->
+<div class="modal fade" id="supportTicketModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="supportModalLabel">Submit a Support Ticket</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <form method="post" action="{{ url_for('support_ticket', order_id=order.id) }}">
+        {{ csrf_token() }}
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label for="ticket-subject" class="form-label">Subject</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="ticket-subject" 
+                   name="subject" 
+                   placeholder="Brief summary" 
+                   required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="ticket-message" class="form-label">Message</label>
+            <textarea class="form-control" 
+                      id="ticket-message" 
+                      name="message" 
+                      rows="4" 
+                      placeholder="Describe your issue or question…" 
+                      required></textarea>
+          </div>
+          
+          <input type="hidden" name="order_id" value="{{ order.id }}">
+        
+        </div><!-- /.modal-body -->
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send Ticket</button>
+        </div>
+      </form>
+      
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

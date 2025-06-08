@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block title %}Sample Papers{% endblock %}
+
+{% block meta_description %}View sample academic papers written by our professional writers. Essays, research papers, dissertations, and more to help you understand our quality.{% endblock %}
+
+{% block body_class %}samples-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <section class="page-header text-white py-5" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title display-4 fw-bold">Sample Papers</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">Sample Papers</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Samples Section -->
+    <section class="section py-5">
+        <div class="container">
+            <h2 class="section-title text-center mb-2 fw-bold">Our Sample Papers</h2>
+            <p class="section-description text-center mb-5">Browse through our collection of high-quality academic papers to get a feel for our writing style and quality.</p>
+            
+            <!-- Filter Options -->
+            <div class="filter-options mb-4 p-4 bg-light rounded-3 shadow-sm">
+                <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="sample-service-filter" class="form-label fw-bold">Filter by Service</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-success text-white">
+                                <i class="fas fa-filter"></i>
+                            </span>
+                            <select class="form-select" id="sample-service-filter">
+                                <option value="all">All Services</option>
+                                {% for service in services %}
+                                    <option value="{{ service.id }}">{{ service.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="sample-search" class="form-label fw-bold">Search Samples</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-success text-white d-flex align-items-center justify-content-center">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Enter keywords..." id="sample-search">
+                            <button class="btn btn-success" type="button" id="sample-search-button">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Samples Grid -->
+            <div class="samples-grid">
+                {% for sample in samples %}
+                    <div class="sample-card" data-service="{{ sample.service.id }}">
+                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                            <div class="card-header bg-light py-3 px-4 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title h5 mb-0 fw-bold">{{ sample.title }}</h3>
+                                    <span class="badge bg-success rounded-pill px-3 py-2">{{ sample.service.name }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="sample-meta mb-3">
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        <span>{{ sample.word_count }} words</span>
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-clock me-2"></i>
+                                        <span>{{ sample.page_count|default(1) }} {% if sample.page_count|default(1) > 1 %}pages{% else %}page{% endif %}</span>
+                                    </div>
+                                </div>
+                                <p class="card-text mb-4">{{ sample.excerpt }}</p>
+                                <div class="sample-topics mb-4">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for tag in sample.tags.split(',')|default([]) %}
+                                            <a href="{{url_for('main.search', q=tag)}}"><span class="btn btn-outline-success rounded-pill  text-small">{{ tag }}</span></a>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">Academic</span>
+                                            <span class="badge bg-light text-dark">{{ sample.service.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white p-4 border-0">
+                                <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn btn-success w-100">
+                                    <i class="fas fa-book-open me-2"></i>Read Full Sample
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <div class="alert alert-light shadow-sm py-4">
+                            <i class="fas fa-info-circle fa-2x mb-3 text-muted"></i>
+                            <p class="mb-0">No samples available at the moment. Please check back later.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Sample papers pagination">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link bg-success border-success" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 text-white" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-9 mb-4 mb-lg-0">
+                    <h2 class="mb-2 fw-bold">Ready to Get Started?</h2>
+                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-light btn-lg rounded-pill shadow-sm">
+                        <i class="fas fa-pencil-alt me-2"></i>Order Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #2E7D32;
+        --primary-light: #A5D6A7;
+        --gradient-primary: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    }
+
+    .bg-success {
+        background-color: var(--primary-color) !important;
+    }
+    
+    .text-success {
+        color: var(--primary-color) !important;
+    }
+    
+    .border-success {
+        border-color: var(--primary-color) !important;
+    }
+    
+    .input-group-text, .input-group .form-control, .input-group .btn {
+        height: 38px; /* Or whatever height you prefer */
+        line-height: 1.5;
+    }
+
+    .input-group-text {
+        padding: 0.375rem 0.75rem;
+    }
+
+    .input-group .form-control {
+        padding: 0.375rem 0.75rem;
+    }
+
+    .btn-success {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    
+    .btn-success:hover {
+        background-color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+    }
+
+    .page-link:focus {
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25) !important;
+    }
+
+    .samples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .sample-card {
+        transition: all 0.3s ease;
+    }
+    
+    .sample-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .filter-options {
+        transition: all 0.3s ease;
+    }
+    
+    .filter-options:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    @media (max-width: 767px) {
+        .samples-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sampleCards = document.querySelectorAll('.sample-card');
+        const serviceFilter = document.getElementById('sample-service-filter');
+        const sampleSearch = document.getElementById('sample-search');
+        const sampleSearchButton = document.getElementById('sample-search-button');
+        
+        // Filter by service
+        serviceFilter.addEventListener('change', filterSamples);
+        
+        // Search functionality
+        sampleSearchButton.addEventListener('click', filterSamples);
+        sampleSearch.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                filterSamples();
+            }
+        });
+        
+        function filterSamples() {
+            const selectedService = serviceFilter.value;
+            const searchQuery = sampleSearch.value.toLowerCase();
+            let visibleCount = 0;
+            
+            sampleCards.forEach(card => {
+                const serviceMatch = selectedService === 'all' || card.dataset.service === selectedService;
+                const titleElement = card.querySelector('.card-title');
+                const excerptElement = card.querySelector('.card-text');
+                const serviceName = card.querySelector('.badge').textContent.toLowerCase();
+                
+                const titleMatch = titleElement.textContent.toLowerCase().includes(searchQuery);
+                const excerptMatch = excerptElement.textContent.toLowerCase().includes(searchQuery);
+                const serviceTextMatch = serviceName.includes(searchQuery);
+                
+                const searchMatch = !searchQuery || titleMatch || excerptMatch || serviceTextMatch;
+                
+                if (serviceMatch && searchMatch) {
+                    card.style.display = '';
+                    visibleCount++;
+                    card.classList.add('fade-in');
+                } else {
+                    card.style.display = 'none';
+                    card.classList.remove('fade-in');
+                }
+            });
+            
+            // Show no results message if nothing matches
+            const noResultsDiv = document.querySelector('.no-results');
+            if (visibleCount === 0) {
+                if (!noResultsDiv) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'col-12 text-center py-5 no-results';
+                    noResults.innerHTML = `
+                        <div class="alert alert-light shadow-sm py-4">
+                            <i class="fas fa-search fa-2x mb-3 text-muted"></i>
+                            <p class="mb-0">No samples match your search criteria. Please try different keywords or filters.</p>
+                        </div>
+                    `;
+                    document.querySelector('.samples-grid').appendChild(noResults);
+                }
+            } else if (noResultsDiv) {
+                noResultsDiv.remove();
+            }
+        }
+    });
+</script>
+{% endblock %}

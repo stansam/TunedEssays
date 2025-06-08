@@ -1,0 +1,776 @@
+{% extends 'base.html' %} 
+
+{% block meta_description %}Get professional paper writing services from expert writers. Essays, research papers, dissertations, and more with guaranteed quality and on-time delivery.{% endblock %} 
+{% block body_class %}home-page{% endblock %} 
+
+{% block title %}Home - TunedEssays{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blogs.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/form-states.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/seo.css') }}">
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}"> -->
+<style>
+  .paper-image-cont {
+      height: 200px;
+      overflow: hidden;
+      transform: scale(1.05);
+      margin-bottom: 2rem;
+  }
+  .paper-card:hover .paper-image-cont img {
+      transform: scale(1.05);
+  }
+</style>
+{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-container" style="overflow: hidden;" >
+  <div class="hero-overlay"style="position: absolute; top:0; left:10px; width: 200px; height: 150px;"><img src="{{url_for('static', filename='assets/8850917.jpg')}}" style=""></div>
+  <div class="hero-overlay"style="position: absolute; top:80px; left:370px; width: 350px; height: 150px;"><img src="{{url_for('static', filename='assets/4099582.jpg')}}" style=""></div>
+  <div class="hero-overlay"style="position: absolute; top:10px; right:10px; width: 390px; height: 200px;"><img src="{{url_for('static', filename='assets/4038766.jpg')}}" style=""></div>
+  <div class="hero-overlay"style="position: absolute; bottom:150px; left:10px; width: 390px; height: 180px;overlay:hidden;"><img src="{{url_for('static', filename='assets/8767132.jpg')}}" style=""></div>
+  <div class="hero" style="background-color: rgba(48, 54, 87, 0.7);" >
+    <!-- <style="background: url('{{url_for('static', filename='assets/4038766.jpg')}}') no-repeat; background-size: contain; background-position: right top;"> -->
+    <div class="hero-content" >
+      <div class="hero-header">
+        <h1 class="hero-title">Your Trusted Writer & Editor</h1>
+        <div class="hero-subtitle">Your love letter to the very essence of writing</div>
+        <!-- <a href="#services" class="get-started-btn">Get Started</a> -->
+      </div>
+      <!-- <form class="search-bar" method="GET" action="{{ url_for('main.search') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" class="search-input" name="q" placeholder="What are you looking for?"/>
+        <button style="display: none;" type="submit"></button>
+      </form>
+
+      <div class="mobile-search-bar">
+        <input type="text" name="qmobile" class="mobile-search-input" placeholder="What are you looking for?"/>
+        <button style="display: none;" type="submit"></button>
+      </div> -->
+      <div class="search-container">
+        <!-- Desktop Search Form -->
+        <form class="search-bar" method="GET" action="{{ url_for('main.search') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" class="search-input" name="q" 
+                  placeholder="What are you looking for?" 
+                  autocomplete="off"
+                  value="{{ request.args.get('q', '') }}">
+            <button style="display:none;" type="submit" class="search-btn" aria-label="Search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+            </button>
+        </form>
+
+        <!-- Mobile Search Form -->
+        <form class="mobile-search-bar" method="GET" action="{{ url_for('main.search') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="q" class="mobile-search-input" 
+                  placeholder="What are you looking for?" 
+                  autocomplete="off"
+                  value="{{ request.args.get('q', '') }}">
+            <!-- <button type="submit" class="search-btn" aria-label="Search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="21 21l-4.35-4.35"></path>
+                </svg>
+            </button> -->
+        </form>
+
+    </div>
+      
+    </div>
+    <div class="form-container">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="content">
+          <div class="header">
+            AI & Plagiarism free services
+            <p>Get a custom quote now</p>
+          </div>
+          <div class="service-tabs">
+              <div class="tab active">Writing</div>
+              <div class="tab ">Proofreading</div>
+              <div class="tab">Technical</div>
+          </div>
+          <div class="form-content">
+              <div class="custom-select-wrapper">
+                  <select id="paperType"  class="form-select original-select">
+                      <option value="">Choose a service</option>
+                  </select>
+                  <div class="custom-select-display" id="customPaperType">Choose a service</div>
+                  <div class="custom-select-options" id="customPaperOptions"></div>
+              </div>
+                <div class="custom-select-wrapper">
+                  <select id="proofType" class="form-select original-select">
+                      <option value="">Choose a service</option>
+                  </select>
+                  <div class="custom-select-display" id="customProofType">Choose a service</div>
+                  <div class="custom-select-options" id="customProofOptions"></div>
+                </div>
+                <div class="custom-select-wrapper">
+                  <select id="techType" class="form-select original-select">
+                        <option value="">Choose a service</option>
+                  </select>
+                  <div class="custom-select-display" id="customTechType">Choose a service</div>
+                  <div class="custom-select-options" id="customTechOptions"></div>
+                </div>
+              
+              <div class="select-row">
+                  <div class="custom-select-wrapper">
+                      <select id="academicLevel" class="form-select original-select">
+                          <option value="">Project-Level</option>
+                      </select>
+                      <div class="custom-select-display" id="customAcademicLevel">Level</div>
+                      <div class="custom-select-options" id="customAcademicOptions"></div>
+                  </div>
+                  
+                  <!-- <div class="custom-select-wrapper">
+                      <input type="datetime-local" id="due_date" class="due-date-input" placeholder="">
+                  </div> -->
+                  <div class="custom-select-wrapper">
+                    <div class="datetime-container">
+                        <div class="datetime-input">
+                            <input type="text" class="due-date-input form-control" id="deadline_picker" name="deadline_picker" required readonly>
+                        </div>
+                        
+                        <!-- <div class="deadline-info" id="deadlineInfo">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="deadlineText"></span>
+                        </div> -->
+                        <input type="hidden" id="deadline" name="deadline" value="{{ selected_deadline.id if selected_deadline else ''  }}">
+                        <input type="hidden" id="dateDue" name="due_date" value="">
+                    </div>
+                  </div>
+              </div>
+              
+              <div class="pages-control">
+                  <button id="decreasePages">-</button>
+                  <div class="pages-text pages-default" id="pagesText">1 page / 275 words</div>
+                  <button id="increasePages">+</button>
+              </div>
+              <div class="form-end">
+                <div class="price-info">
+                  <div class="price-text">Approx-Price:</div>
+                  <div class="price-display" id="priceDisplay"><span id="totalPrice">$0.00</span></div>
+                </div>
+                <button class="continue-btn" id="continueBtn">Continue</button>
+              </div>
+          </div>
+      </div>
+  </div>
+  </div>
+</div> 
+
+
+
+
+<!-- Services Section -->
+<div class="services-container">
+  <h2 class="services-title">Services</h2>
+
+  <div class="services-slider">
+    {% for service in categories %}
+    <div class="service-item">
+      <div class="service-image">
+        <!-- SVG icon based on service category -->
+        {% if service.name == "Proofreading and Editing" %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          {% elif service.name == "Writing" %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            <path d="M2 2l7.586 7.586"></path>
+            <circle cx="11" cy="11" r="2"></circle>
+          </svg>
+          {% elif service.name == "Data Analysis" %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          {% elif "Business" in service.name %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          {% elif "Presentations" in service.name %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          {% elif service.name == "Resume Writing" %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          {% elif service.name == "Technical Writing & Calculations" %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        {% endif %}
+      </div>
+      <h3 class="service-item-title">{{ service.name }}</h3>
+      <p class="service-description">
+        {{ service.description }}
+      </p>
+      <div class="service-footer">
+        <!-- <div class="service-price">
+          {#{% if service.pricing_type == 'page' %}
+            ${{ "%.2f"|format(service.price_per_page) }} per page
+          {% else %}
+            ${{ "%.2f"|format(service.price_per_page) }}
+          {% endif %}#}
+        </div> -->
+        <a href="{{url_for('main.service_detail', service_id=service.id)}}" class="see-more-btn">See more</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="slider-navigation">
+    <button class="nav-button prev-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="nav-button next-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="blog-section">
+    <h2>Featured Blog Posts</h2>
+    <div class="blog-carousel">
+        <div class="blog-carousel-container" id="blogCarousel">
+            <!-- Blog cards will be inserted here -->
+        </div>
+    </div>
+    <div class="blog-controls">
+        <button id="prevBtn" aria-label="Previous">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button id="nextBtn" aria-label="Next">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Reviews Section -->
+<div class="reviews-container">
+  <h2 class="reviews-title">Reviews</h2>
+
+  <div class="reviews-slider">
+    {% for testimonial in testimonials %}
+    <div class="review-card">
+      <div class="rating">
+        {% for i in range(5) %}
+          {% if i < testimonial.rating %}
+            <span class="fas star fa-star"></span>
+          {% else %}
+            <span class="far star fa-star"></span>
+          {% endif %}
+        {% endfor %}
+        <!-- <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>-->
+      </div> 
+      <p class="review-text">
+        <!-- "Perfect for checking marketing materials. Keeps our brand content
+        fresh, original, and protected against plagiarism claims." -->
+        {{testimonial.content}}
+      </p>
+      <div class="reviewer-info">
+        <div class="avatar">
+          <span class="initials">{{ testimonial.author.first_name[0] | upper }}{{ testimonial.author.last_name[0] | upper }}</span>
+        </div>
+        <div class="reviewer-details">
+          <h4 class="reviewer-name">{{ testimonial.author.first_name }} {{ testimonial.author.last_name }}</h4>
+          <p class="reviewer-title">{{ testimonial.service.name }}</p>
+        </div>
+      </div>      
+    </div>
+    {% endfor %}
+
+    <!-- <div class="review-card">
+      <div class="rating">
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+      </div>
+      <p class="review-text">
+        "This plagiarism checker saved me during finals! It's fast, accurate,
+        and easy to use. Highly recommend to any student!"
+      </p>
+      <div class="reviewer-info">
+        <div class="avatar">
+          <span class="initials">EM</span>
+        </div>
+        <div class="reviewer-details">
+          <h4 class="reviewer-name">Emma Johnson</h4>
+          <p class="reviewer-title">University Student</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="rating">
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+      </div>
+      <p class="review-text">
+        "As a full-time writer, maintaining originality is crucial. This tool
+        helps me ensure all my articles are 100% unique before submission."
+      </p>
+      <div class="reviewer-info">
+        <div class="avatar">
+          <span class="initials">MI</span>
+        </div>
+        <div class="reviewer-details">
+          <h4 class="reviewer-name">Michael Lee</h4>
+          <p class="reviewer-title">Content Writer</p>
+        </div>
+      </div>
+    </div>-->
+  </div> 
+
+  <div class="reviews-navigation">
+    <button class="nav-arrow prev-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="nav-arrow next-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>
+<!-- Sample Papers Section -->
+<div class="sample-papers-container">
+  <h2 class="sample-papers-title">Sample Papers</h2>
+
+  <div class="papers-slider">
+    {% for sample in samples %}
+    <div class="paper-card">
+      <div class="paper-body">
+        <div class="paper-image-cont">
+          {% if sample.image %}
+            <img src="{{ url_for('static', filename='uploads/samples/' + sample.image) }}">
+          {% else %}
+            <img src="{{url_for('static', filename='assets/no-orders.svg')}}">
+          {% endif %}
+        </div>
+        <h3 class="paper-title">{{sample.title}}</h3>
+        <p class="paper-type">{{sample.service.name}} | {{ sample.word_count }} words</p>
+        <p class="paper-description">
+          {{sample.excerpt}}
+        </p>
+        <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="read-sample-btn">Read Sample</a>
+      </div>
+      <div class="tags-field">
+        <ul class="tag-list">
+          <li class="tag-item">
+            
+            {% if sample.tags %}
+            {% for tag in sample.tags.split(',') %}
+                <a href="{{url_for('main.search', q=tag)}}"><span class="btn btn-outline-success rounded-pill  text-small">{{ tag }}</span></a>
+            
+            {% endfor %}
+            {%endif%}
+          </li>
+        </ul>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="paper-card">
+      <div class="paper-image-cont">
+        <img src="{{url_for('static', filename='assets/no-orders.svg')}}">
+      </div>
+      <h3 class="paper-title">Research Paper on AI Ethics</h3>
+      <p class="paper-type">Research Paper | 2500 words</p>
+      <p class="paper-description">
+        An in-depth analysis of the ethical concerns surrounding artificial
+        intelligence and its impact on society.
+      </p>
+      <button class="read-sample-btn">Read Sample</button>
+    </div>
+
+    <div class="paper-card">
+      <div class="paper-image-cont">
+        <img src="{{url_for('static', filename='assets/no-orders.svg')}}">
+      </div>
+      <h3 class="paper-title">Machine Learning Algorithms</h3>
+      <p class="paper-type">Technical Paper | 3500 words</p>
+      <p class="paper-description">
+        A detailed study of different machine learning algorithms, their
+        applications, and their limitations in real-world scenarios.
+      </p>
+      <button class="read-sample-btn">Read Sample</button>
+    </div>
+  </div>
+
+  <div class="papers-navigation">
+    <button class="nav-arrow prev-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="nav-arrow next-arrow">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>
+<!-- How it Works Section -->
+<div class="how-it-works-container bg-gray-50 py-16 px-4">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="how-it-works-title text-3xl font-bold text-center mb-12">How Our Paper Writing Service Works</h2>
+    <p class="text-center text-gray-600 mb-16 max-w-3xl mx-auto">Our streamlined process ensures you receive high-quality papers with minimal effort. Follow these simple steps:</p>
+
+    <div class="steps-grid grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Row 1 -->
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Place Your Order</h3>
+        <p class="step-text text-gray-600 text-center">Complete our user-friendly order form with your paper requirements, including topic, length, deadline, and formatting style. The more details you provide, the better we can match you with the perfect writer.</p>
+      </div>
+
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Make Your Payment</h3>
+        <p class="step-text text-gray-600 text-center">Choose from our secure payment options to confirm your order. We offer competitive pricing with no hidden fees. Multiple payment methods are available for your convenience and security.</p>
+      </div>
+
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Track Your Progress</h3>
+        <p class="step-text text-gray-600 text-center">Monitor your order's status through our real-time tracking system. Receive notifications at each milestone, from writer assignment to draft completion. Stay informed throughout the entire process.</p>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Receive Your Paper</h3>
+        <p class="step-text text-gray-600 text-center">Download your completed paper from your account. All papers are delivered on time, thoroughly researched, properly formatted, and plagiarism-free. We ensure your work meets all paper standards.</p>
+      </div>
+
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Review and Request Revisions</h3>
+        <p class="step-text text-gray-600 text-center">Read through your paper and request free revisions if needed. Our writers are committed to your satisfaction and will make adjustments according to your feedback within our revision policy timeframe.</p>
+      </div>
+
+      <div class="step-card bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="font-bold text-xl mb-2 text-center">Return for Future Orders</h3>
+        <p class="step-text text-gray-600 text-center">Join our community of satisfied customers who return for reliable paper assistance. Enjoy loyalty discounts on future orders and build a relationship with your preferred writers for consistent quality.</p>
+      </div>
+    </div>
+
+    <div class="mt-16 text-center">
+      <p class="text-gray-400 mb-6">Experience the difference professional paper assistance can make in your proffessional journey.</p>
+      {% if current_user.is_authenticated %}
+      <a href="{{url_for('orders.create_order')}}" style="border: 1px solid var(--secondary-color);" class="hover:bg-green-500 text-black-50 font-bold py-3 px-8 rounded-full transition duration-300">Make an order now</a>
+      {% else %}
+      <a href="{{url_for('auth.register')}}"style="border: 1px solid var(--secondary-color);" class="hover:bg-green-500 text-black-50 font-bold py-3 px-8 rounded-full transition duration-300"> Get Started Today</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<section class="seo-section fade-in">
+    <div class="container">
+        <h2 class="seo-title">Excellence in Academic Writing Services</h2>
+        
+        <div class="seo-container">
+            <div class="seo-content">
+                <div class="seo-column">
+                    <h3>Professional Essay Writing Services</h3>
+                    <p>TunedEssays provides comprehensive academic writing assistance for students seeking high-quality papers. Our experienced writers specialize in crafting essays, research papers, dissertations, and thesis projects across all academic disciplines. With our write my essay service, students receive original, well-researched content tailored to their specific requirements.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">98%</span>
+                            <span class="stat-label">Success Rate</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">24/7</span>
+                            <span class="stat-label">Support</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">500+</span>
+                            <span class="stat-label">Expert Writers</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">$11</span>
+                            <span class="stat-label">Starting Price</span>
+                        </div>
+                    </div>
+                    
+                    <div class="seo-keywords">
+                        <span class="keyword-tag">essay writing service</span>
+                        <span class="keyword-tag">write my essay</span>
+                        <span class="keyword-tag">paper writer</span>
+                        <span class="keyword-tag">academic help</span>
+                        <span class="keyword-tag">custom essays</span>
+                    </div>
+                </div>
+
+                <div class="seo-column">
+                    <h3>Academic Paper Writing Solutions</h3>
+                    <p>From urgent assignments to complex dissertations, our paper writing service covers all academic levels. Students can hire professional writers who hold advanced degrees in their respective fields. Our pay for essay platform ensures secure transactions through Braintree integration, supporting PayPal, Venmo, and card payments for convenient order processing.</p>
+                    
+                    <div class="collapsible-content">
+                        <h3>Research and Dissertation Assistance</h3>
+                        <p>Our thesis writing service and dissertation help provide comprehensive support for graduate students. Expert researchers and writers collaborate to deliver original, well-cited academic papers that meet university standards. From proposal to final defense, we guide students through every step of their research journey.</p>
+                        
+                        <div class="seo-keywords">
+                            <span class="keyword-tag">dissertation writing</span>
+                            <span class="keyword-tag">thesis help</span>
+                            <span class="keyword-tag">research papers</span>
+                            <span class="keyword-tag">graduate assistance</span>
+                            <span class="keyword-tag">academic research</span>
+                        </div>
+                    </div>
+                    
+                    <button class="expand-btn" onclick="toggleContent(this)">
+                        <span>View More Services</span>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    
+                    <div class="seo-keywords">
+                        <span class="keyword-tag">paper writing service</span>
+                        <span class="keyword-tag">hire essay writer</span>
+                        <span class="keyword-tag">pay for essays</span>
+                        <span class="keyword-tag">assignment help</span>
+                        <span class="keyword-tag">homework assistance</span>
+                    </div>
+                </div>
+
+                <div class="seo-column">
+                    <h3>Quality Assurance & Customer Support</h3>
+                    <p>Every write my paper request undergoes rigorous quality control processes. Our team ensures originality, proper formatting, and adherence to academic standards. With 24/7 customer support, unlimited revisions, and money-back guarantees, TunedEssays prioritizes student satisfaction and academic success.</p>
+                    
+                    <div class="seo-keywords">
+                        <span class="keyword-tag">quality guarantee</span>
+                        <span class="keyword-tag">plagiarism free</span>
+                        <span class="keyword-tag">original papers</span>
+                        <span class="keyword-tag">academic standards</span>
+                        <span class="keyword-tag">professional writing</span>
+                        <span class="keyword-tag">student support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/form-data-fetcher.js') }}"></script>
+<script src="{{ url_for('static', filename='js/blogs.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hs.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ls.js') }}"></script>
+<script src="{{ url_for('static', filename='js/seo.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/search.js') }}"></script> -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  // Initialize both sliders
+  initializeSlider('.services-slider', '.slider-navigation .prev-arrow', '.slider-navigation .next-arrow');
+  initializeSlider('.reviews-slider', '.reviews-navigation .prev-arrow', '.reviews-navigation .next-arrow');
+  initializeSlider('.papers-slider', '.papers-navigation .prev-arrow', '.papers-navigation .next-arrow');
+  
+  // Handle resize events to update slider functionality
+  window.addEventListener('resize', function() {
+    updateSliders();
+  });
+  
+  // Initial update
+  updateSliders();
+});
+
+function initializeSlider(sliderSelector, prevBtnSelector, nextBtnSelector) {
+  const slider = document.querySelector(sliderSelector);
+  const prevBtn = document.querySelector(prevBtnSelector);
+  const nextBtn = document.querySelector(nextBtnSelector);
+  
+  // Skip if elements don't exist
+  if (!slider || !prevBtn || !nextBtn) return;
+  
+  prevBtn.addEventListener('click', function() {
+    // Calculate how much to scroll (approximately one card width)
+    const scrollAmount = slider.offsetWidth / 2;
+    slider.scrollBy({
+      left: -scrollAmount,
+      behavior: 'smooth'
+    });
+  });
+  
+  nextBtn.addEventListener('click', function() {
+    // Calculate how much to scroll (approximately one card width)
+    const scrollAmount = slider.offsetWidth / 2;
+    slider.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
+    });
+  });
+}
+
+function updateSliders() {
+  // Get all sliders
+  const sliders = document.querySelectorAll('.services-slider, .reviews-slider, .papers-slider');
+  
+  sliders.forEach(slider => {
+    const cards = slider.querySelectorAll('.service-item, .review-card, .paper-card');
+    const parentWidth = slider.offsetWidth;
+    
+    // Calculate how many cards should be visible
+    let cardsPerView = 3; // Default for desktop
+    
+    if (window.innerWidth <= 1024 && window.innerWidth > 768) {
+      cardsPerView = 2; // For tablets
+    } else if (window.innerWidth <= 768) {
+      cardsPerView = 1; // For mobile
+    }
+    
+    // Determine if we need arrows (if there are more cards than can be shown)
+    const showArrows = cards.length > cardsPerView;
+    
+    // Get navigation elements
+    const navigation = slider.closest('.services-container, .reviews-container, .sample-papers-container')
+      .querySelector('.slider-navigation .reviews-navigation, .papers-navigation');
+    
+    // Show or hide navigation based on need
+    if (navigation) {
+      navigation.style.display = showArrows ? 'flex' : 'none';
+    }
+  });
+}
+</script>
+
+{% endblock %}
+

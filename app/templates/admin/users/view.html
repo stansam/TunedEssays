@@ -1,0 +1,1181 @@
+{% extends "admin/base.html" %}
+
+{% block title %}User: {{ user.username }} | TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .user-header-bg {
+        background-color: var(--primary-subtle);
+        border-radius: 10px;
+    }
+    
+    .user-avatar {
+        width: 120px;
+        height: 120px;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2rem;
+    }
+    
+    .tab-pane {
+        padding: 1.5rem 0;
+    }
+    
+    .nav-tabs .nav-link {
+        color: var(--gray);
+        border: none;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--primary);
+        border-bottom: 2px solid var(--primary);
+        background-color: transparent;
+    }
+    
+    .nav-tabs .nav-link:hover:not(.active) {
+        border-bottom: 2px solid var(--gray-light);
+    }
+    
+    .stat-mini-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-mini-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: var(--gray-light);
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: white;
+        border: 2px solid var(--primary);
+    }
+    
+    .badge-outline-success {
+        color: var(--success);
+        background-color: transparent;
+        border: 1px solid var(--success);
+    }
+    
+    .badge-outline-warning {
+        color: var(--warning);
+        background-color: transparent;
+        border: 1px solid var(--warning);
+    }
+    
+    .badge-outline-danger {
+        color: var(--danger);
+        background-color: transparent;
+        border: 1px solid var(--danger);
+    }
+    
+    .badge-outline-info {
+        color: var(--info);
+        background-color: transparent;
+        border: 1px solid var(--info);
+    }
+    
+    .order-status-verified {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: #4caf50;
+    }
+    
+    .order-status-pending {
+        background-color: rgba(255, 152, 0, 0.1);
+        color: #ff9800;
+    }
+    
+    .order-status-completed {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: #2196f3;
+    }
+    
+    .order-status-cancelled {
+        background-color: rgba(244, 67, 54, 0.1);
+        color: #f44336;
+    }
+    
+    .reward-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: var(--warning);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .activity-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    .activity-active {
+        background-color: var(--success);
+    }
+    
+    .activity-inactive {
+        background-color: var(--gray);
+    }
+    
+    .user-actions .btn {
+        margin-right: 0.5rem;
+    }
+    
+    .user-actions .btn:last-child {
+        margin-right: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.list_users') }}">Users</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ user.username }}</li>
+        </ol>
+    </nav>
+
+    <!-- User Header -->
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">User Profile</h4>
+                <div class="user-actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                        <i class="fas fa-trash-alt me-1"></i> Delete
+                    </button>
+                    {% if not user.email_verified %}
+                    <button type="button" class="btn btn-sm btn-outline-success" id="verifyEmailBtn">
+                        <i class="fas fa-check-circle me-1"></i> Verify Email
+                    </button>
+                    {% endif %}
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userActionDropdown">
+                            <li><a class="dropdown-item" href="#" id="resetPasswordBtn"><i class="fas fa-key me-2"></i> Reset Password</a></li>
+                            <li><a class="dropdown-item" href="#" id="loginAsUserBtn"><i class="fas fa-user-secret me-2"></i> Login as User</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% if user.is_admin %}
+                            <li><a class="dropdown-item" href="#" id="removeAdminBtn"><i class="fas fa-user-minus me-2"></i> Remove Admin</a></li>
+                            {% else %}
+                            <li><a class="dropdown-item" href="#" id="makeAdminBtn"><i class="fas fa-user-shield me-2"></i> Make Admin</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="user-header-bg p-4">
+                        <div class="d-flex flex-wrap align-items-center">
+                            <div class="user-avatar">
+                                <span>{{ user.username[0]|upper }}</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h3 class="mb-0">{{ user.get_name() }}</h3>
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-danger ms-2">Admin</span>
+                                    {% endif %}
+                                    <span class="badge {{ 'bg-success' if user.email_verified else 'bg-warning' }} ms-2">
+                                        {{ 'Verified' if user.email_verified else 'Unverified' }}
+                                    </span>
+                                </div>
+                                <p class="mb-2">
+                                    <i class="far fa-envelope me-2"></i> {{ user.email }}
+                                </p>
+                                <p class="mb-2">
+                                    <i class="far fa-calendar-alt me-2"></i> Joined {{ user.created_at.strftime('%B %d, %Y') }}
+                                </p>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-3">
+                                        <span class="activity-indicator {{ 'activity-active' if user.last_failed_login is none or (user.last_failed_login and (datetime.utcnow() - user.last_failed_login).days > 30) else 'activity-inactive' }}"></span>
+                                        Account Status: {{ 'Active' if user.last_failed_login is none or (user.last_failed_login and (datetime.utcnow() - user.last_failed_login).days > 30) else 'Inactive' }}
+                                    </span>
+                                    <span class="me-3">
+                                        <i class="fas fa-gift me-1 text-warning"></i> {{ user.reward_points }} Points
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-user-friends me-1 text-info"></i> {{ referrals|length }} Referrals
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Stats Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-mini-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Orders</h6>
+                        <h3 class="mb-0">{{ orders|length }}</h3>
+                    </div>
+                    <div class="icon-container">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Completed Orders</h6>
+                        <h3 class="mb-0">{{ orders|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                    </div>
+                    <div class="icon-container icon-blue">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Reward Points</h6>
+                        <h3 class="mb-0">{{ user.reward_points }}</h3>
+                    </div>
+                    <div class="icon-container icon-orange">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Referrals</h6>
+                        <h3 class="mb-0">{{ referrals|length }}</h3>
+                    </div>
+                    <div class="icon-container icon-purple">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Tabs -->
+    <div class="card">
+        <div class="card-header bg-white p-0">
+            <ul class="nav nav-tabs" id="userDetailsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">
+                        <i class="fas fa-file-alt me-2"></i> Orders History
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="referrals-tab" data-bs-toggle="tab" data-bs-target="#referrals" type="button" role="tab" aria-controls="referrals" aria-selected="false">
+                        <i class="fas fa-user-friends me-2"></i> Referrals
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">
+                        <i class="fas fa-history me-2"></i> Activity Log
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
+                        <i class="fas fa-user me-2"></i> Account Details
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">
+                        <i class="fas fa-sticky-note me-2"></i> Admin Notes
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="userDetailsTabsContent">
+                <!-- Orders Tab -->
+                <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                    {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Deadline</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td><a href="{{ url_for('admin.view_order', order_id=order.id) }}" class="text-primary fw-bold">#{{ order.id }}</a></td>
+                                    <td>{{ order.title|truncate(30) }}</td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>${{ "%.2f"|format(order.total_price) }}</td>
+                                    <td>{{ order.deadline.name }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill px-3 py-2 order-status-{{ order.status }}">
+                                            {{ order.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{{ url_for('admin.view_order', order_id=order.id) }}"><i class="fas fa-eye me-2"></i> View</a></li>
+                                                <li><a class="dropdown-item" href="{{ url_for('admin.edit_order', order_id=order.id) }}"><i class="fas fa-edit me-2"></i> Edit</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteOrderModal" data-order-id="{{ order.id }}"><i class="fas fa-trash-alt me-2"></i> Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5>No Orders Found</h5>
+                        <p class="text-muted">This user hasn't placed any orders yet.</p>
+                        <a href="{{ url_for('admin.create_order') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Create Order
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Referrals Tab -->
+                <div class="tab-pane fade" id="referrals" role="tabpanel" aria-labelledby="referrals-tab">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-container icon-purple me-3">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Referral Code</h6>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" value="{{ user.referral_code }}" id="referralCode" readonly>
+                                                <button class="btn btn-outline-primary" type="button" id="copyReferralBtn" onclick="copyToClipboard('referralCode')">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if referrals %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Referred User</th>
+                                    <th>Email</th>
+                                    <th>Date</th>
+                                    <th>Orders</th>
+                                    <th>Status</th>
+                                    <th>Reward Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in referrals %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('admin.view_user', user_id=referral.referred_id) }}" class="d-flex align-items-center">
+                                            <div class="avatar-container me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                                                <span>{{ referral.referred.username[0]|upper }}</span>
+                                            </div>
+                                            <span>{{ referral.referred.get_name() }}</span>
+                                        </a>
+                                    </td>
+                                    <td>{{ referral.referred.email }}</td>
+                                    <td>{{ referral.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ referral.referred.orders|length }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if referral.status == 'completed' else 'warning' }}">
+                                            {{ referral.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>+{{ referral.points_earned }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+                        <h5>No Referrals Found</h5>
+                        <p class="text-muted">This user hasn't referred anyone yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Activity Log Tab -->
+                <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Account Created</h6>
+                            <p class="text-muted mb-1">{{ user.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+                            <p class="mb-0">User registered with email: {{ user.email }}</p>
+                        </div>
+                        
+                        {% if user.email_verified %}
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Email Verified</h6>
+                            <p class="text-muted mb-1">{{ (user.created_at + timedelta(hours=2)).strftime('%B %d, %Y at %H:%M') }}</p>
+                            <p class="mb-0">User confirmed their email address</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% for order in orders %}
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Order {{ order.status|capitalize }}</h6>
+                            <p class="text-muted mb-1">{{ order.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+                            <p class="mb-0">Order #{{ order.id }}: {{ order.title|truncate(50) }}</p>
+                        </div>
+                        {% endfor %}
+                        
+                        {% for referral in referrals %}
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Referred a user</h6>
+                            <p class="text-muted mb-1">{{ referral.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+                            <p class="mb-0">Referred {{ referral.referred.get_name() }} ({{ referral.referred.email }})</p>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if user.last_failed_login %}
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Failed Login Attempt</h6>
+                            <p class="text-muted mb-1">{{ user.last_failed_login.strftime('%B %d, %Y at %H:%M') }}</p>
+                            <p class="mb-0">Failed login attempts: {{ user.failed_login_attempts }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Account Details Tab -->
+                <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Personal Information</h5>
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Username</label>
+                                        <div>{{ user.username }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">First Name</label>
+                                        <div>{{ user.first_name or 'Not set' }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Last Name</label>
+                                        <div>{{ user.last_name or 'Not set' }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Email</label>
+                                        <div>{{ user.email }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label text-muted">Registration Date</label>
+                                        <div>{{ user.created_at.strftime('%B %d, %Y at %H:%M') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Account Security</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Email Verification</label>
+                                        <div>
+                                            <span class="badge {{ 'bg-success' if user.email_verified else 'bg-warning' }}">
+                                                {{ 'Verified' if user.email_verified else 'Unverified' }}
+                                            </span>
+                                            {% if not user.email_verified %}
+                                            <button class="btn btn-sm btn-link" id="resendVerificationBtn">Resend verification</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Failed Login Attempts</label>
+                                        <div>{{ user.failed_login_attempts }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Last Failed Login</label>
+                                        <div>{{ user.last_failed_login.strftime('%B %d, %Y at %H:%M') if user.last_failed_login else 'None' }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Admin Privileges</label>
+                                        <div>
+                                            <span class="badge {{ 'bg-danger' if user.is_admin else 'bg-secondary' }}">
+                                                {{ 'Yes' if user.is_admin else 'No' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-primary" id="resetPasswordModalBtn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                                            <i class="fas fa-key me-2"></i> Reset Password
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Rewards & Referrals</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label text-muted">Reward Points</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="rewardPoints" value="{{ user.reward_points }}">
+                                                    <button class="btn btn-outline-primary" type="button" id="updatePointsBtn">Update</button>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label text-muted">Referral Code</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" value="{{ user.referral_code }}" id="referralCodeField" readonly>
+                                                    <button class="btn btn-outline-primary" type="button" id="copyReferralCodeBtn" onclick="copyToClipboard('referralCodeField')">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label text-muted">Total Referrals</label>
+                                                <div>{{ referrals|length }}</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label text-muted">Completed Referrals</label>
+                                                <div>{{ referrals|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Notes Tab -->
+                <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Add Note</h6>
+                            <form id="adminNoteForm">
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="noteContent" rows="3" placeholder="Add an internal note about this user..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> Add Note
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Previous Notes</h6>
+                    
+                    <!-- Sample notes - in a real app, these would come from the database -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="card-subtitle text-muted">Admin User</h6>
+                                <small class="text-muted">{{ (user.created_at + timedelta(days=5)).strftime('%B %d, %Y') }}</small>
+                            </div>
+                            <p class="card-text">User requested a refund for order #{{ orders[0].id if orders else '123' }} but was denied due to policy violation.</p>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-sm btn-link text-danger" onclick="deleteNote(1)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="card-subtitle text-muted">Support Agent</h6>
+                                <small class="text-muted">{{ (user.created_at + timedelta(days=1)).strftime('%B %d, %Y') }}</small>
+                            </div>
+                            <p class="card-text">User has been added to the VIP customer program due to successful referrals.</p>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-sm btn-link text-danger" onclick="deleteNote(2)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" value="{{ user.username }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" value="{{ user.email }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" value="{{ user.first_name or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" value="{{ user.last_name or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="isAdmin" {{ 'checked' if user.is_admin else '' }}>
+                        <label class="form-check-label" for="isAdmin">Admin Privileges</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="emailVerified" {{ 'checked' if user.email_verified else '' }}>
+                        <label class="form-check-label" for="emailVerified">Email Verified</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveUserChanges">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                    <h5>Are you sure you want to delete this user?</h5>
+                    <p class="text-muted">This action cannot be undone. All associated data including orders, payments, and messages will be permanently removed.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>User: <strong>{{ user.get_name() }}</strong> ({{ user.email }})</span>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete">
+                    <label class="form-check-label" for="confirmDelete">
+                        I understand this action cannot be reversed
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteUserBtn" disabled>Delete User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">Reset User Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>Resetting password for: <strong>{{ user.get_name() }}</strong> ({{ user.email }})</span>
+                    </div>
+                </div>
+                <form id="resetPasswordForm">
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="sendPasswordEmail" checked>
+                        <label class="form-check-label" for="sendPasswordEmail">
+                            Send password reset email to user
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmResetPassword">Reset Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Order Modal -->
+<div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteOrderModalLabel">Confirm Delete Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                    <h5>Are you sure you want to delete this order?</h5>
+                    <p class="text-muted">This action cannot be undone. All associated files and payment records will be permanently removed.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>Order ID: <strong id="deleteOrderId"></strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteOrder">Delete Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Confirm delete checkbox logic
+        const confirmDelete = document.getElementById('confirmDelete');
+        const deleteUserBtn = document.getElementById('deleteUserBtn');
+        
+        if (confirmDelete && deleteUserBtn) {
+            confirmDelete.addEventListener('change', function() {
+                deleteUserBtn.disabled = !this.checked;
+            });
+        }
+        
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const newPassword = document.getElementById('newPassword');
+        
+        if (togglePassword && newPassword) {
+            togglePassword.addEventListener('click', function() {
+                const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                newPassword.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+        }
+        
+        // Handle delete order modal
+        const deleteOrderModal = document.getElementById('deleteOrderModal');
+        if (deleteOrderModal) {
+            deleteOrderModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const orderId = button.getAttribute('data-order-id');
+                document.getElementById('deleteOrderId').textContent = orderId;
+            });
+        }
+        
+        // Handle user deletion
+        if (deleteUserBtn) {
+            deleteUserBtn.addEventListener('click', function() {
+                // Simulate deletion
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        User successfully deleted.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                    window.location.href = "{{ url_for('admin.list_users') }}";
+                }, 2000);
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+                modal.hide();
+            });
+        }
+        
+        // Handle save user changes
+        const saveUserChanges = document.getElementById('saveUserChanges');
+        if (saveUserChanges) {
+            saveUserChanges.addEventListener('click', function() {
+                // Simulate saving
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        User information updated successfully.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                    location.reload();
+                }, 2000);
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                modal.hide();
+            });
+        }
+        
+        // Handle password reset
+        const confirmResetPassword = document.getElementById('confirmResetPassword');
+        if (confirmResetPassword) {
+            confirmResetPassword.addEventListener('click', function() {
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+                
+                // Simulate resetting
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        Password reset successfully.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 2000);
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                modal.hide();
+            });
+        }
+        
+        // Update reward points
+        const updatePointsBtn = document.getElementById('updatePointsBtn');
+        if (updatePointsBtn) {
+            updatePointsBtn.addEventListener('click', function() {
+                const points = document.getElementById('rewardPoints').value;
+                
+                // Simulate updating
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        Reward points updated to ${points}.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 2000);
+            });
+        }
+        
+        // Handle admin note form
+        const adminNoteForm = document.getElementById('adminNoteForm');
+        if (adminNoteForm) {
+            adminNoteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const noteContent = document.getElementById('noteContent').value;
+                
+                if (!noteContent.trim()) {
+                    alert('Please enter a note.');
+                    return;
+                }
+                
+                // Create new note element
+                const notesContainer = document.getElementById('notes');
+                const newNote = document.createElement('div');
+                newNote.className = 'card mb-3';
+                newNote.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="card-subtitle text-muted">{{ current_user.username }}</h6>
+                            <small class="text-muted">Just now</small>
+                        </div>
+                        <p class="card-text">${noteContent}</p>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-link text-danger">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Insert at the beginning
+                const firstNote = document.querySelector('#notes .card');
+                if (firstNote) {
+                    notesContainer.insertBefore(newNote, firstNote);
+                } else {
+                    notesContainer.appendChild(newNote);
+                }
+                
+                // Clear the form
+                document.getElementById('noteContent').value = '';
+                
+                // Show toast
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        Note added successfully.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 2000);
+            });
+        }
+        
+        // Verify Email button
+        const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+        if (verifyEmailBtn) {
+            verifyEmailBtn.addEventListener('click', function() {
+                // Simulate verification
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast show';
+                toast.innerHTML = `
+                    <div class="toast-header">
+                        <strong class="me-auto">Success</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-success text-white">
+                        Email verified successfully.
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                    location.reload();
+                }, 2000);
+            });
+        }
+    });
+    
+    // Copy to clipboard function
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        element.select();
+        document.execCommand('copy');
+        
+        // Show toast
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.innerHTML = `
+            <div class="toast-header">
+                <strong class="me-auto">Success</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body bg-info text-white">
+                Copied to clipboard!
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 2000);
+    }
+    
+    // Delete note function
+    function deleteNote(noteId) {
+        if (confirm('Are you sure you want to delete this note?')) {
+            // Simulate deletion
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <strong class="me-auto">Success</strong>
+                    <small>Just now</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body bg-success text-white">
+                    Note deleted successfully.
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+    }
+</script>
+{% endblock %}

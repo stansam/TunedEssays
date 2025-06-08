@@ -1,0 +1,886 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Create New Order - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .form-label {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+    
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: var(--primary);
+    }
+    
+    .form-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-header {
+        border-bottom: 1px solid var(--gray-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .price-display {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--primary);
+        padding: 1rem;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .price-display:hover {
+        background-color: #e9ecef;
+    }
+    
+    .price-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    
+    .price-total {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 1.25rem;
+    }
+    
+    .format-style-option {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .format-style-option:hover {
+        border-color: var(--primary);
+        background-color: var(--primary-subtle);
+    }
+    
+    .format-style-option.selected {
+        border-color: var(--primary);
+        background-color: var(--primary-subtle);
+    }
+    
+    .format-style-option i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+    }
+    
+    #wordCountDisplay {
+        font-size: 0.875rem;
+        color: var(--gray);
+    }
+    
+    .floating-submit {
+        position: sticky;
+        bottom: 1rem;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 -0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        z-index: 10;
+        transform: translateY(100%);
+        animation: slideUp 0.3s forwards;
+    }
+    
+    @keyframes slideUp {
+        to {
+            transform: translateY(0);
+        }
+    }
+    
+    .sources-controls {
+        display: flex;
+        align-items: center;
+    }
+    
+    .sources-controls button {
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin: 0 0.5rem;
+    }
+    
+    .help-icon {
+        color: var(--gray);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .help-icon:hover {
+        color: var(--primary);
+    }
+    
+    /* Animation for price update */
+    @keyframes highlight {
+        0% { background-color: var(--primary-subtle); }
+        100% { background-color: #f8f9fa; }
+    }
+    
+    .price-highlight {
+        animation: highlight 1.5s;
+    }
+
+    .instruction-placeholder {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.875rem;
+    }
+
+    .upload-container {
+        border: 2px dashed #ced4da;
+        border-radius: 0.25rem;
+        padding: 2rem 1rem;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .upload-container:hover {
+        border-color: var(--primary);
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .client-info {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .client-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 1rem;
+    }
+
+    .client-details {
+        flex-grow: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Create New Order</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.list_orders') }}">Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create New Order</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{{ url_for('admin.list_orders') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Orders
+        </a>
+    </div>
+
+    <form id="createOrderForm" method="POST" action="{{ url_for('admin.create_order') }}" enctype="multipart/form-data">
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Client Information -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Client Information</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label for="client_id" class="form-label">Select Client <span class="text-danger">*</span></label>
+                        <select class="form-select select2" id="client_id" name="client_id" required>
+                            <option value="">Select a client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.get_name() }} ({{ client.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="clientInfo" class="mt-3 d-none">
+                        <div class="client-info bg-light">
+                            <div class="client-avatar">
+                                <span id="clientInitial"></span>
+                            </div>
+                            <div class="client-details">
+                                <h6 class="mb-0" id="clientName"></h6>
+                                <small class="text-muted" id="clientEmail"></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Details -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Order Details</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="service_id" class="form-label">Service Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="service_id" name="service_id" required>
+                                <option value="">Select service type</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}" data-price="{{ service.price_per_page }}">{{ service.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="academic_level_id" class="form-label">Academic Level <span class="text-danger">*</span></label>
+                            <select class="form-select" id="academic_level_id" name="academic_level_id" required>
+                                <option value="">Select academic level</option>
+                                {% for level in academic_levels %}
+                                <option value="{{ level.id }}" data-multiplier="{{ level.price_multiplier }}">{{ level.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="deadline_id" class="form-label">Deadline <span class="text-danger">*</span></label>
+                            <select class="form-select" id="deadline_id" name="deadline_id" required>
+                                <option value="">Select deadline</option>
+                                {% for deadline in deadlines %}
+                                <option value="{{ deadline.id }}" data-multiplier="{{ deadline.price_multiplier }}">{{ deadline.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Due Date <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                <input type="text" class="form-control" id="due_date" name="due_date" placeholder="Select date and time" required readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="subject" name="subject" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Topic/Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="topic" name="topic" required>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="pages" class="form-label">Number of Pages <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <button type="button" class="btn btn-outline-secondary" id="decreasePages"><i class="fas fa-minus"></i></button>
+                                <input type="number" class="form-control text-center" id="pages" name="pages" value="1" min="1" required>
+                                <button type="button" class="btn btn-outline-secondary" id="increasePages"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <small id="wordCountDisplay" class="form-text">Approximately 275 words</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sources_required" class="form-label">Sources Required</label>
+                            <div class="sources-controls">
+                                <button type="button" class="btn btn-outline-secondary" id="decreaseSources"><i class="fas fa-minus"></i></button>
+                                <input type="number" class="form-control text-center" id="sources_required" name="sources_required" value="0" min="0">
+                                <button type="button" class="btn btn-outline-secondary" id="increaseSources"><i class="fas fa-plus"></i></button>
+                                <i class="fas fa-question-circle help-icon ms-2" data-bs-toggle="tooltip" title="Number of references/sources required for this assignment"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Format/Citation Style <span class="text-danger">*</span></label>
+                        <div class="row">
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="APA">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>APA</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="MLA">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>MLA</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="Chicago">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>Chicago</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="Harvard">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>Harvard</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="Vancouver">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>Vancouver</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-3">
+                                <div class="format-style-option" data-value="Other">
+                                    <i class="fas fa-plus"></i>
+                                    <div>Other</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="format_style" name="format_style" required>
+                        <div id="otherFormatContainer" class="d-none mt-2">
+                            <input type="text" class="form-control" id="other_format" placeholder="Specify format style">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i>Instructions</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label for="instructions" class="form-label">Detailed Instructions <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="instructions" name="instructions" rows="8" required></textarea>
+                        <div class="instruction-placeholder mt-2">
+                            <p>Include details such as:</p>
+                            <ul>
+                                <li>Specific requirements for the assignment</li>
+                                <li>Key points to address</li>
+                                <li>Any preferred structure or approach</li>
+                                <li>Special instructions from the professor</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attachments -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>Attachments</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Upload Files (Optional)</label>
+                        <div class="upload-container" id="fileDropArea">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h6>Drag & drop files here</h6>
+                            <p class="mb-1">or</p>
+                            <button type="button" class="btn btn-outline-primary" id="browseFilesBtn">Browse Files</button>
+                            <input type="file" class="d-none" id="fileInput" name="files" multiple>
+                            <p class="text-muted mt-2 mb-0"><small>Upload assignment instructions, rubrics, or relevant materials (Max. 10MB per file)</small></p>
+                        </div>
+                        <div id="filePreviewContainer" class="mt-3 d-none">
+                            <h6>Selected Files:</h6>
+                            <ul class="list-group" id="filePreviewList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="form-section sticky-top" style="top: 80px">
+                    <div class="section-header">
+                        <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                    </div>
+                    
+                    <div class="price-display" id="priceDisplay">
+                        <div class="price-item">
+                            <span>Service:</span>
+                            <span id="serviceName">-</span>
+                        </div>
+                        <div class="price-item">
+                            <span>Academic Level:</span>
+                            <span id="academicLevelName">-</span>
+                        </div>
+                        <div class="price-item">
+                            <span>Deadline:</span>
+                            <span id="deadlineName">-</span>
+                        </div>
+                        <div class="price-item">
+                            <span>Pages:</span>
+                            <span id="pageCount">1</span>
+                        </div>
+                        <div class="price-item">
+                            <span>Words:</span>
+                            <span id="wordCount">275</span>
+                        </div>
+                        <hr>
+                        <div class="price-item price-total">
+                            <span>Total:</span>
+                            <span id="totalPrice">$0.00</span>
+                            <input type="hidden" id="total_price" name="total_price" value="0">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Create Order
+                            </button>
+                            <a href="{{ url_for('admin.list_orders') }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Floating submit button (appears when scrolling) -->
+    <div class="floating-submit d-none d-lg-block" id="floatingSubmit">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="price-total me-4">Total: <span id="floatingPrice">$0.00</span></div>
+                        <div id="floatingDetails" class="text-muted small"></div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" form="createOrderForm" class="btn btn-primary">
+                        <i class="fas fa-check-circle me-2"></i>Create Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: "Select a client",
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Initialize flatpickr for date picker
+        flatpickr('#due_date', {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            time_24hr: true
+        });
+
+        // Format style selection
+        const formatOptions = document.querySelectorAll('.format-style-option');
+        const formatStyleInput = document.getElementById('format_style');
+        const otherFormatContainer = document.getElementById('otherFormatContainer');
+        const otherFormatInput = document.getElementById('other_format');
+
+        formatOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove selected class from all options
+                formatOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                option.classList.add('selected');
+                
+                // Set the value to hidden input
+                const value = option.getAttribute('data-value');
+                formatStyleInput.value = value;
+                
+                // Show/hide other format input
+                if (value === 'Other') {
+                    otherFormatContainer.classList.remove('d-none');
+                    otherFormatInput.focus();
+                    
+                    // Update the format_style input when other_format changes
+                    otherFormatInput.addEventListener('input', () => {
+                        formatStyleInput.value = otherFormatInput.value || 'Other';
+                    });
+                } else {
+                    otherFormatContainer.classList.add('d-none');
+                }
+            });
+        });
+
+        // Client selection change
+        const clientSelect = document.getElementById('client_id');
+        const clientInfo = document.getElementById('clientInfo');
+        const clientInitial = document.getElementById('clientInitial');
+        const clientName = document.getElementById('clientName');
+        const clientEmail = document.getElementById('clientEmail');
+
+        clientSelect.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                const clientText = selectedOption.text;
+                
+                // Parse client text to extract name and email
+                const matches = clientText.match(/(.*) \((.*)\)/);
+                if (matches && matches.length === 3) {
+                    const name = matches[1];
+                    const email = matches[2];
+                    
+                    clientInitial.textContent = name.charAt(0).toUpperCase();
+                    clientName.textContent = name;
+                    clientEmail.textContent = email;
+                    clientInfo.classList.remove('d-none');
+                }
+            } else {
+                clientInfo.classList.add('d-none');
+            }
+        });
+
+        // Page count controls
+        const pagesInput = document.getElementById('pages');
+        const wordCountDisplay = document.getElementById('wordCountDisplay');
+        const wordCountElement = document.getElementById('wordCount');
+        const pageCountElement = document.getElementById('pageCount');
+        const decreasePagesBtn = document.getElementById('decreasePages');
+        const increasePagesBtn = document.getElementById('increasePages');
+
+        function updateWordCount() {
+            const pages = parseInt(pagesInput.value) || 1;
+            const wordCount = pages * 275;
+            wordCountDisplay.textContent = `Approximately ${wordCount} words`;
+            wordCountElement.textContent = wordCount;
+            pageCountElement.textContent = pages;
+            calculatePrice();
+        }
+
+        decreasePagesBtn.addEventListener('click', () => {
+            if (parseInt(pagesInput.value) > 1) {
+                pagesInput.value = parseInt(pagesInput.value) - 1;
+                updateWordCount();
+            }
+        });
+
+        increasePagesBtn.addEventListener('click', () => {
+            pagesInput.value = parseInt(pagesInput.value) + 1;
+            updateWordCount();
+        });
+
+        pagesInput.addEventListener('change', updateWordCount);
+
+        // Sources required controls
+        const sourcesInput = document.getElementById('sources_required');
+        const decreaseSourcesBtn = document.getElementById('decreaseSources');
+        const increaseSourcesBtn = document.getElementById('increaseSources');
+
+        decreaseSourcesBtn.addEventListener('click', () => {
+            if (parseInt(sourcesInput.value) > 0) {
+                sourcesInput.value = parseInt(sourcesInput.value) - 1;
+            }
+        });
+
+        increaseSourcesBtn.addEventListener('click', () => {
+            sourcesInput.value = parseInt(sourcesInput.value) + 1;
+        });
+
+        // Price calculation
+        const serviceSelect = document.getElementById('service_id');
+        const academicLevelSelect = document.getElementById('academic_level_id');
+        const deadlineSelect = document.getElementById('deadline_id');
+        const totalPriceElement = document.getElementById('totalPrice');
+        const totalPriceInput = document.getElementById('total_price');
+        const floatingPrice = document.getElementById('floatingPrice');
+        const serviceNameElement = document.getElementById('serviceName');
+        const academicLevelNameElement = document.getElementById('academicLevelName');
+        const deadlineNameElement = document.getElementById('deadlineName');
+        const floatingDetails = document.getElementById('floatingDetails');
+
+        function calculatePrice() {
+            const serviceOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const academicLevelOption = academicLevelSelect.options[academicLevelSelect.selectedIndex];
+            const deadlineOption = deadlineSelect.options[deadlineSelect.selectedIndex];
+            
+            if (serviceOption.value && academicLevelOption.value && deadlineOption.value) {
+                const basePrice = parseFloat(serviceOption.getAttribute('data-price')) || 0;
+                const academicMultiplier = parseFloat(academicLevelOption.getAttribute('data-multiplier')) || 1;
+                const deadlineMultiplier = parseFloat(deadlineOption.getAttribute('data-multiplier')) || 1;
+                const pages = parseInt(pagesInput.value) || 1;
+                
+                const totalPrice = basePrice * pages * academicMultiplier * deadlineMultiplier;
+                const formattedPrice = totalPrice.toFixed(2);
+                
+                totalPriceElement.textContent = `$${formattedPrice}`;
+                floatingPrice.textContent = `$${formattedPrice}`;
+                totalPriceInput.value = formattedPrice;
+                
+                // Update service, academic level, and deadline names
+                serviceNameElement.textContent = serviceOption.text;
+                academicLevelNameElement.textContent = academicLevelOption.text;
+                deadlineNameElement.textContent = deadlineOption.text;
+                
+                // Update floating details
+                floatingDetails.textContent = `${pages} page(s), ${academicLevelOption.text}, ${deadlineOption.text}`;
+                
+                // Highlight price update with animation
+                const priceDisplay = document.getElementById('priceDisplay');
+                priceDisplay.classList.remove('price-highlight');
+                void priceDisplay.offsetWidth; // Trigger reflow
+                priceDisplay.classList.add('price-highlight');
+            }
+        }
+
+        serviceSelect.addEventListener('change', calculatePrice);
+        academicLevelSelect.addEventListener('change', calculatePrice);
+        deadlineSelect.addEventListener('change', calculatePrice);
+
+        // File upload handling
+        const fileDropArea = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const browseFilesBtn = document.getElementById('browseFilesBtn');
+        const filePreviewContainer = document.getElementById('filePreviewContainer');
+        const filePreviewList = document.getElementById('filePreviewList');
+
+        browseFilesBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            fileDropArea.classList.add('border-primary');
+        }
+
+        function unhighlight() {
+            fileDropArea.classList.remove('border-primary');
+        }
+
+        // Handle dropped files
+        fileDropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+// Handle files from input or drop
+fileInput.addEventListener('change', () => {
+    handleFiles(fileInput.files);
+});
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        filePreviewContainer.classList.remove('d-none');
+        filePreviewList.innerHTML = '';
+        
+        Array.from(files).forEach(file => {
+            // Check file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert(`File "${file.name}" exceeds the 10MB size limit.`);
+                return;
+            }
+            
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            // Get file extension
+            const extension = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fas fa-file';
+            
+            // Set icon based on file type
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                iconClass = 'fas fa-file-image';
+            } else if (['doc', 'docx'].includes(extension)) {
+                iconClass = 'fas fa-file-word';
+            } else if (['pdf'].includes(extension)) {
+                iconClass = 'fas fa-file-pdf';
+            } else if (['xls', 'xlsx'].includes(extension)) {
+                iconClass = 'fas fa-file-excel';
+            } else if (['ppt', 'pptx'].includes(extension)) {
+                iconClass = 'fas fa-file-powerpoint';
+            } else if (['zip', 'rar'].includes(extension)) {
+                iconClass = 'fas fa-file-archive';
+            }
+            
+            const fileSize = formatFileSize(file.size);
+            
+            listItem.innerHTML = `
+                <div>
+                    <i class="${iconClass} me-2 text-primary"></i>
+                    <span>${file.name}</span>
+                    <small class="text-muted ms-2">${fileSize}</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-file">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            filePreviewList.appendChild(listItem);
+        });
+        
+        // Add event listeners to remove buttons
+        document.querySelectorAll('.remove-file').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('li').remove();
+                if (filePreviewList.children.length === 0) {
+                    filePreviewContainer.classList.add('d-none');
+                    fileInput.value = ''; // Clear the file input
+                }
+            });
+        });
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Floating submit button visibility control
+const floatingSubmit = document.getElementById('floatingSubmit');
+window.addEventListener('scroll', () => {
+    const submitButtonOffset = document.querySelector('.form-section:last-of-type').getBoundingClientRect().top;
+    if (submitButtonOffset < 0) {
+        floatingSubmit.style.display = 'block';
+    } else {
+        floatingSubmit.style.display = 'none';
+    }
+});
+
+// Form validation
+const createOrderForm = document.getElementById('createOrderForm');
+createOrderForm.addEventListener('submit', function(e) {
+    // Check if format style is selected
+    if (!formatStyleInput.value) {
+        e.preventDefault();
+        alert('Please select a format/citation style.');
+        return;
+    }
+    
+    // Make sure price is calculated
+    if (totalPriceInput.value === '0') {
+        e.preventDefault();
+        alert('Please complete all required fields to calculate the price.');
+        return;
+    }
+    
+    // Check if due date is after the selected deadline
+    const dueDate = new Date(document.getElementById('due_date').value);
+    const now = new Date();
+    const selectedDeadline = deadlineSelect.options[deadlineSelect.selectedIndex].text;
+    
+    // Basic validation that due date is in the future
+    if (dueDate <= now) {
+        e.preventDefault();
+        alert('Due date must be in the future.');
+        return;
+    }
+    
+    // Submit the form if all validations pass
+    console.log('Order form submitted successfully');
+});
+
+// Auto-update deadline based on selected deadline option
+deadlineSelect.addEventListener('change', function() {
+    if (this.value) {
+        const selectedOption = this.options[this.selectedIndex];
+        const deadlineText = selectedOption.text;
+        const dueDatePicker = document.getElementById('due_date')._flatpickr;
+        const now = new Date();
+        
+        // Parse deadline text to set appropriate due date
+        if (deadlineText.includes('hours') || deadlineText.includes('hour')) {
+            const hours = parseInt(deadlineText.match(/\d+/)[0]);
+            const newDate = new Date(now.getTime() + hours * 60 * 60 * 1000);
+            dueDatePicker.setDate(newDate);
+        } else if (deadlineText.includes('days') || deadlineText.includes('day')) {
+            const days = parseInt(deadlineText.match(/\d+/)[0]);
+            const newDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+            dueDatePicker.setDate(newDate);
+        } else if (deadlineText.includes('week') || deadlineText.includes('weeks')) {
+            const weeks = parseInt(deadlineText.match(/\d+/)[0]);
+            const newDate = new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000);
+            dueDatePicker.setDate(newDate);
+        }
+    }
+});
+
+// Initialize price calculation on page load
+calculatePrice();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,697 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Payment Management | TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .status-badge {
+        padding: 0.4rem 0.6rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-completed {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: #4caf50;
+    }
+    .status-pending {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    .status-failed {
+        background-color: rgba(244, 67, 54, 0.1);
+        color: #f44336;
+    }
+    .status-refunded {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: #2196f3;
+    }
+    .stats-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    }
+    .payment-filter-card {
+        border-radius: 10px;
+    }
+    .payment-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    .payment-action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .payment-action-btn.view {
+        color: var(--secondary);
+    }
+    .payment-action-btn.edit {
+        color: var(--primary);
+    }
+    .payment-action-btn.delete {
+        color: var(--danger);
+    }
+    .sort-icon {
+        font-size: 0.8rem;
+        margin-left: 0.25rem;
+    }
+    .payment-method-icon {
+        font-size: 1.2rem;
+    }
+    .select2-container--bootstrap5 .select2-selection {
+        height: calc(1.5em + 0.75rem + 2px);
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    .clear-filter-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--gray);
+        display: none;
+    }
+    .filter-input-group:hover .clear-filter-btn {
+        display: block;
+    }
+    .filter-input-group {
+        position: relative;
+    }
+    .flatpickr-calendar {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        border-radius: 0.5rem !important;
+    }
+    .payment-table th {
+        white-space: nowrap;
+    }
+    .payment-card {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .payment-card:hover {
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+    }
+    .revenue-trend {
+        height: 50px;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+    }
+    .revenue-trend-bar {
+        flex: 1;
+        margin: 0 1px;
+        background-color: rgba(76, 175, 80, 0.2);
+        height: 20%;
+        transition: all 0.3s ease;
+        border-radius: 2px 2px 0 0;
+    }
+    .revenue-trend-bar:hover {
+        background-color: rgba(76, 175, 80, 0.5);
+    }
+    .payment-export-btn {
+        border-radius: 50px;
+    }
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 0;
+        text-align: center;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-light);
+        margin-bottom: 1rem;
+    }
+    .payment-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (max-width: 767.98px) {
+        .payment-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .payment-filters {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Payments</li>
+                </ol>
+            </nav>
+            <h2 class="mb-0">Payment Management</h2>
+            <p class="text-muted">Track and manage all payment transactions</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-container">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.list_payments', status='completed') }}">View Completed</a></li>
+                                <li><a class="dropdown-item" href="#">Export Report</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="text-muted mb-1">Completed Payments</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">{{ completed_count }}</h3>
+                        <span class="badge bg-success ms-2 d-flex align-items-center">
+                            <i class="fas fa-arrow-up me-1"></i> 12%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-container icon-orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.list_payments', status='pending') }}">View Pending</a></li>
+                                <li><a class="dropdown-item" href="#">Export Report</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="text-muted mb-1">Pending Payments</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">{{ pending_count }}</h3>
+                        <span class="badge bg-warning ms-2 d-flex align-items-center">
+                            <i class="fas fa-arrow-down me-1"></i> 3%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-container icon-purple">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.list_payments', status='failed') }}">View Failed</a></li>
+                                <li><a class="dropdown-item" href="#">Export Report</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="text-muted mb-1">Failed Payments</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">{{ failed_count }}</h3>
+                        <span class="badge bg-danger ms-2 d-flex align-items-center">
+                            <i class="fas fa-arrow-up me-1"></i> 5%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stats-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-container icon-blue">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">View Revenue</a></li>
+                                <li><a class="dropdown-item" href="#">Export Report</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="text-muted mb-1">Total Revenue</h6>
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0">${{ total_revenue|round(2) }}</h3>
+                            <span class="badge bg-success ms-2 d-flex align-items-center">
+                                <i class="fas fa-arrow-up me-1"></i> 8%
+                            </span>
+                        </div>
+                        <div class="revenue-trend mt-2">
+                            {% for i in range(14) %}
+                                <div class="revenue-trend-bar" style="height: {{ [10, 15, 25, 20, 35, 40, 30, 45, 50, 60, 70, 65, 80, 75][i] }}%"></div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">2 weeks ago</small>
+                            <small class="text-muted">Today</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <!-- Payment Header with Filters -->
+                    <div class="payment-header">
+                        <div>
+                            <h5 class="mb-0">Payment Transactions</h5>
+                            <p class="text-muted mb-0">{{ payments|length }} results found</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary payment-export-btn" data-bs-toggle="dropdown">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Excel</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i>CSV</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>PDF</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card payment-filter-card bg-light mb-4 mt-3">
+                        <div class="card-body">
+                            <form method="get" action="{{ url_for('admin.list_payments') }}" id="payment-filter-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="row g-3">
+                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                        <label for="status" class="form-label">Status</label>
+                                        <div class="filter-input-group">
+                                            <select class="form-select" id="status" name="status">
+                                                <option value="">All Statuses</option>
+                                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                                                <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>Refunded</option>
+                                            </select>
+                                            <button type="button" class="clear-filter-btn" data-filter="status"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-6">
+                                        <label for="search" class="form-label">Search</label>
+                                        <div class="filter-input-group">
+                                            <input type="text" class="form-control" id="search" name="search" placeholder="Order #, Username, Email..." value="{{ search_query }}">
+                                            <button type="button" class="clear-filter-btn" data-filter="search"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <label for="date_from" class="form-label">Date From</label>
+                                        <div class="filter-input-group">
+                                            <input type="text" class="form-control date-picker" id="date_from" name="date_from" placeholder="YYYY-MM-DD" value="{{ date_from }}">
+                                            <button type="button" class="clear-filter-btn" data-filter="date_from"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <label for="date_to" class="form-label">Date To</label>
+                                        <div class="filter-input-group">
+                                            <input type="text" class="form-control date-picker" id="date_to" name="date_to" placeholder="YYYY-MM-DD" value="{{ date_to }}">
+                                            <button type="button" class="clear-filter-btn" data-filter="date_to"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <label for="sort_by" class="form-label">Sort By</label>
+                                        <div class="filter-input-group">
+                                            <select class="form-select" id="sort_by" name="sort_by">
+                                                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Date</option>
+                                                <option value="amount" {% if sort_by == 'amount' %}selected{% endif %}>Amount</option>
+                                                <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <label for="sort_order" class="form-label">Sort Order</label>
+                                        <div class="filter-input-group">
+                                            <select class="form-select" id="sort_order" name="sort_order">
+                                                <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                                                <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-4 col-sm-12 d-flex align-items-end">
+                                        <div class="d-flex gap-2 w-100">
+                                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                                <i class="fas fa-filter me-1"></i> Apply Filters
+                                            </button>
+                                            <a href="{{ url_for('admin.list_payments') }}" class="btn btn-outline-secondary flex-grow-1">
+                                                <i class="fas fa-times me-1"></i> Clear Filters
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Payment Table -->
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover payment-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Payment ID
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='payment_id', sort_order='asc' if sort_by == 'payment_id' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'payment_id' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Order
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='order_id', sort_order='asc' if sort_by == 'order_id' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'order_id' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            User
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='user_id', sort_order='asc' if sort_by == 'user_id' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'user_id' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Amount
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='amount', sort_order='asc' if sort_by == 'amount' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'amount' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Method
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Status
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='status', sort_order='asc' if sort_by == 'status' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'status' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="d-flex align-items-center">
+                                            Date
+                                            <a href="{{ url_for('admin.list_payments', status=status_filter, search=search_query, date_from=date_from, date_to=date_to, sort_by='created_at', sort_order='asc' if sort_by == 'created_at' and sort_order == 'desc' else 'desc') }}" class="ms-1">
+                                                <i class="fas fa-sort-{{ 'up' if sort_by == 'created_at' and sort_order == 'asc' else 'down' }}"></i>
+                                            </a>
+                                        </div>
+                                    </th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="text-primary">{{ payment.payment_id }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.view_order', order_id=payment.order_id) }}" class="text-decoration-none">
+                                            {{ payment.order.order_number if payment.order else 'N/A' }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-container me-2">
+                                                <span>{{ payment.user.username[0]|upper if payment.user else 'U' }}</span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ payment.user.username if payment.user else 'Unknown' }}</h6>
+                                                <small class="text-muted">{{ payment.user.email if payment.user else 'N/A' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">${{ payment.amount }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if payment.method == 'credit_card' %}
+                                                <i class="fab fa-cc-visa me-2 payment-method-icon"></i>
+                                            {% elif payment.method == 'paypal' %}
+                                                <i class="fab fa-paypal me-2 payment-method-icon"></i>
+                                            {% elif payment.method == 'apple_pay' %}
+                                                <i class="fab fa-apple-pay me-2 payment-method-icon"></i>
+                                            {% elif payment.method == 'google_pay' %}
+                                                <i class="fab fa-google-pay me-2 payment-method-icon"></i>
+                                            {% else %}
+                                                <i class="fas fa-money-bill-wave me-2 payment-method-icon"></i>
+                                            {% endif %}
+                                            <span>{{ payment.method|replace('_', ' ')|title }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ payment.status }}">
+                                            {% if payment.status == 'completed' %}
+                                                <i class="fas fa-check-circle me-1"></i>
+                                            {% elif payment.status == 'pending' %}
+                                                <i class="fas fa-clock me-1"></i>
+                                            {% elif payment.status == 'failed' %}
+                                                <i class="fas fa-times-circle me-1"></i>
+                                            {% elif payment.status == 'refunded' %}
+                                                <i class="fas fa-undo-alt me-1"></i>
+                                            {% endif %}
+                                            {{ payment.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span>{{ payment.created_at.strftime('%b %d, %Y') }}</span>
+                                            <small class="text-muted">{{ payment.created_at.strftime('%H:%M') }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex">
+                                            <a href="#" class="payment-action-btn view me-1" data-bs-toggle="tooltip" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if payment.status == 'pending' %}
+                                            <a href="#" class="payment-action-btn edit me-1" data-bs-toggle="tooltip" title="Process Payment">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if payment.status == 'completed' %}
+                                            <a href="#" class="payment-action-btn delete" data-bs-toggle="tooltip" title="Issue Refund">
+                                                <i class="fas fa-undo-alt"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h4>No payments found</h4>
+                        <p class="text-muted">Try adjusting your filters or search criteria</p>
+                        <a href="{{ url_for('admin.list_payments') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-redo me-1"></i> Reset Filters
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date pickers
+        flatpickr(".date-picker", {
+            dateFormat: "Y-m-d",
+            allowInput: true,
+            disableMobile: true
+        });
+
+        // Initialize select2 for enhanced dropdown selects
+        $('.form-select').select2({
+            theme: 'bootstrap5',
+            width: '100%'
+        });
+
+        // Initialize tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+        // Handle filter clearing
+        document.querySelectorAll('.clear-filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const filterName = this.getAttribute('data-filter');
+                const filterInput = document.getElementById(filterName);
+                
+                if (filterInput) {
+                    if (filterInput.tagName === 'SELECT') {
+                        filterInput.value = '';
+                        $(filterInput).trigger('change');
+                    } else {
+                        filterInput.value = '';
+                    }
+                }
+            });
+        });
+
+        // Auto-submit form when sort options change
+        document.getElementById('sort_by').addEventListener('change', function() {
+            document.getElementById('payment-filter-form').submit();
+        });
+
+        document.getElementById('sort_order').addEventListener('change', function() {
+            document.getElementById('payment-filter-form').submit();
+        });
+
+        // Handle payment view details action
+        document.querySelectorAll('.payment-action-btn.view').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const paymentId = this.closest('tr').querySelector('td:first-child .text-primary').textContent.trim();
+                // Redirect to payment details or show modal
+                // window.location.href = `/admin/payments/${paymentId}`;
+                
+                // For demo purposes, show an alert
+                alert(`Viewing details for payment ${paymentId}`);
+            });
+        });
+
+        // Handle payment process action
+        document.querySelectorAll('.payment-action-btn.edit').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const paymentId = this.closest('tr').querySelector('td:first-child .text-primary').textContent.trim();
+                
+                if (confirm(`Are you sure you want to manually process payment ${paymentId}?`)) {
+                    // Send AJAX request to process payment
+                    // For demo purposes, show an alert
+                    alert(`Payment ${paymentId} has been processed successfully`);
+                    // Reload the page to reflect changes
+                    // window.location.reload();
+                }
+            });
+        });
+
+        // Handle refund action
+        document.querySelectorAll('.payment-action-btn.delete').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const paymentId = this.closest('tr').querySelector('td:first-child .text-primary').textContent.trim();
+                const amount = this.closest('tr').querySelector('td:nth-child(4) .fw-semibold').textContent.trim();
+                
+                if (confirm(`Are you sure you want to issue a refund for payment ${paymentId} (${amount})?`)) {
+                    // Send AJAX request to refund payment
+                    // For demo purposes, show an alert
+                    alert(`Refund for payment ${paymentId} (${amount}) has been initiated`);
+                    // Reload the page to reflect changes
+                    // window.location.reload();
+                }
+            });
+        });
+
+        // Handle export functionality
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
+            if (item.textContent.includes('Excel') || item.textContent.includes('CSV') || item.textContent.includes('PDF')) {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const format = this.textContent.trim();
+                    
+                    // Get current filter parameters
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let filterParams = '';
+                    
+                    if (urlParams.toString()) {
+                        filterParams = '&' + urlParams.toString();
+                    }
+                    
+                    // For demo purposes, show an alert
+                    alert(`Exporting payments to ${format} format with current filters`);
+                    
+                    // In production, redirect to export endpoint
+                    // window.location.href = `/admin/payments/export?format=${format.toLowerCase()}${filterParams}`;
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+*.log
+*.json
+/venv
+/.env
+/overview.txt
+/models_overview.txt
+/illustrations
+/ngroke.exe
+*.exe
+/zed
+

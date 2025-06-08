@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Activities - {{ order.order_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #4CAF50;
+            --light-green: #E8F5E8;
+            --neutral-light: #F8F9FA;
+            --neutral-medium: #E9ECEF;
+            --neutral-dark: #6C757D;
+            --text-dark: #212529;
+            --shadow-light: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        body {
+            background-color: var(--neutral-light);
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-dark);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .order-header {
+            background: linear-gradient(135deg, var(--primary-green), #45a049);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .order-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .order-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        /* Countdown Timer */
+        .countdown-container {
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .countdown-timer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            text-align: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            min-width: 60px;
+        }
+
+        .countdown-number {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Tab Navigation */
+        .custom-tabs {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--neutral-medium);
+            margin: 0;
+            padding: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--neutral-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-green);
+        }
+
+        .tab-button:hover {
+            background: rgba(255,255,255,0.7);
+        }
+
+        .tab-content {
+            padding: 25px;
+            min-height: 400px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Card Styles */
+        .activity-card, .detail-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-light);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--neutral-medium);
+        }
+
+        .activity-card:hover, .detail-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .activity-card.primary {
+            border-left-color: var(--primary-green);
+        }
+
+        .activity-card.success {
+            border-left-color: #28a745;
+        }
+
+        .activity-card.warning {
+            border-left-color: #ffc107;
+        }
+
+        .activity-card.info {
+            border-left-color: #17a2b8;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--neutral-medium);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .card-time {
+            font-size: 11px;
+            color: var(--neutral-dark);
+            background: var(--neutral-light);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .card-content {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #495057;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-primary {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--neutral-dark);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--neutral-dark);
+            border: 2px solid var(--neutral-medium);
+        }
+
+        .btn-outline:hover {
+            background: var(--neutral-light);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--neutral-medium);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--primary-green);
+        }
+
+        /* Chat Section */
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--neutral-medium);
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-bubble {
+            background: var(--neutral-light);
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 70%;
+            font-size: 13px;
+        }
+
+        .message-bubble.admin {
+            background: var(--light-green);
+            margin-left: auto;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--neutral-dark);
+            margin-top: 4px;
+        }
+
+        /* File Upload */
+        .file-upload-area {
+            border: 2px dashed var(--neutral-medium);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: var(--neutral-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-green);
+            background: var(--light-green);
+        }
+
+        .file-list {
+            margin-top: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .file-icon {
+            color: var(--primary-green);
+        }
+
+        .file-name {
+            flex-grow: 1;
+            font-size: 13px;
+        }
+
+        .file-size {
+            font-size: 11px;
+            color: var(--neutral-dark);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-active {
+            background: var(--light-green);
+            color: #2d5a2d;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 15px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .countdown-timer {
+                gap: 10px;
+            }
+            
+            .countdown-item {
+                min-width: 50px;
+                padding: 6px 8px;
+            }
+            
+            .tab-button {
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--neutral-dark);
+        }
+
+        .spinner {
+            border: 2px solid var(--neutral-medium);
+            border-top: 2px solid var(--primary-green);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Order Header -->
+        <div class="order-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="order-title">{{ order.title }}</h1>
+                    <p class="order-subtitle">
+                        Order #{{ order.order_number }} • 
+                        Status: <span class="status-badge status-{{ order.status.replace(' ', '-') }}">{{ order.status }}</span> • 
+                        {{ order.page_count }} pages • 
+                        Due: {{ order.due_date.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <div class="countdown-container">
+                        <div class="text-center mb-2">
+                            <small>Time Remaining</small>
+                        </div>
+                        <div class="countdown-timer" id="countdown">
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="days">00</span>
+                                <span class="countdown-label">Days</span>
+                            </div>
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="hours">00</span>
+                                <span class="countdown-label">Hours</span>
+                            </div>
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="minutes">00</span>
+                                <span class="countdown-label">Minutes</span>
+                            </div>
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="seconds">00</span>
+                                <span class="countdown-label">Seconds</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            {% if not order.paid %}
+            <a href="{{ url_for('payment.process_payment', order_id=order.id) }}" class="action-btn btn-primary">
+                <i class="fas fa-credit-card"></i>
+                Proceed to Payment
+            </a>
+            {% endif %}
+            
+            <button class="action-btn btn-secondary" onclick="updateDeadline()">
+                <i class="fas fa-calendar-alt"></i>
+                Update Deadline
+            </button>
+            
+            {% if order.is_delivered %}
+            <button class="action-btn btn-primary" onclick="markCompleted()">
+                <i class="fas fa-check-circle"></i>
+                Mark as Completed
+            </button>
+            
+            <button class="action-btn btn-outline" onclick="requestRevision()">
+                <i class="fas fa-undo"></i>
+                Request Revision
+            </button>
+            {% endif %}
+            
+            {% if order.paid %}
+            <button class="action-btn btn-outline" onclick="requestRefund()">
+                <i class="fas fa-money-bill-wave"></i>
+                Request Refund
+            </button>
+            {% endif %}
+            
+            {% if order.latest_delivery %}
+            <a href="{#{{ url_for('result_services.download_delivery_file', order_id=order.delivery.) }}#}" class="action-btn btn-primary">
+                <i class="fas fa-download"></i>
+                Download Files
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="custom-tabs">
+            <div class="tab-nav">
+                <button class="tab-button active" onclick="switchTab('activities')">
+                    <i class="fas fa-list-ul"></i> Activities
+                </button>
+                <button class="tab-button" onclick="switchTab('details')">
+                    <i class="fas fa-info-circle"></i> Details
+                </button>
+            </div>
+
+            <!-- Activities Tab -->
+            <div class="tab-content">
+                <div id="activities-tab" class="tab-pane active">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Timeline -->
+                            <h5 class="mb-3">Order Timeline</h5>
+                            <div class="timeline" id="order-timeline">
+                                <!-- Timeline items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <!-- Chat Section -->
+                            <div class="activity-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Communication</h6>
+                                </div>
+                                <div class="chat-container" id="chat-messages">
+                                    <!-- Chat messages will be loaded here -->
+                                </div>
+                                <form id="chat-form" class="mt-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="message-input" placeholder="Type your message..." required>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="activity-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Additional Files</h6>
+                                </div>
+                                <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0">Click to upload additional files</p>
+                                    <small class="text-muted">PDF, DOC, DOCX, TXT (Max 10MB)</small>
+                                    <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleFileUpload(this)">
+                                </div>
+                                <div class="file-list" id="uploaded-files">
+                                    <!-- Uploaded files will be displayed here -->
+                                </div>
+                            </div>
+
+                            <!-- Delivery Files -->
+                            {% if order.latest_delivery %}
+                            <div class="activity-card success">
+                                <div class="card-header">
+                                    <h6 class="card-title">Delivered Files</h6>
+                                    <span class="card-time">{{ order.latest_delivery.delivered_at.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                <div class="file-list">
+                                    {% for file in order.latest_delivery.delivery_files %}
+                                    <div class="file-item">
+                                        <i class="fas {{ file.file_icon }} file-icon"></i>
+                                        <span class="file-name">{{ file.original_filename }}</span>
+                                        <span class="file-size">{{ file.file_size_mb }}MB</span>
+                                        <a href="{#{{ url_for('order.download_file', file_id=file.id) }}#}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Tab -->
+                <div id="details-tab" class="tab-pane">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Order Information</h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Order Number:</strong></div>
+                                        <div class="col-8">{{ order.order_number }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Service:</strong></div>
+                                        <div class="col-8">{{ order.service.name if order.service else 'N/A' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Academic Level:</strong></div>
+                                        <div class="col-8">{{ order.academic_level.name if order.academic_level else 'N/A' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Pages:</strong></div>
+                                        <div class="col-8">{{ order.page_count }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Words:</strong></div>
+                                        <div class="col-8">{{ order.word_count }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Format:</strong></div>
+                                        <div class="col-8">{{ order.format_style or 'Not specified' }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Created:</strong></div>
+                                        <div class="col-8">{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Payment Information</h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Total Price:</strong></div>
+                                        <div class="col-8">${{ "%.2f"|format(order.total_price) }}</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Payment Status:</strong></div>
+                                        <div class="col-8">
+                                            <span class="status-badge {{ 'status-completed' if order.paid else 'status-pending' }}">
+                                                {{ 'Paid' if order.paid else 'Pending' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if order.payments %}
+                                    {% for payment in order.payments %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Payment Date:</strong></div>
+                                        <div class="col-8">{{ payment.created_at.strftime('%B %d, %Y') }}</div>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Assignment Description</h6>
+                                </div>
+                                <div class="card-content">
+                                    <p>{{ order.description }}</p>
+                                </div>
+                            </div>
+
+                            {% if order.files %}
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Uploaded Files</h6>
+                                </div>
+                                <div class="file-list">
+                                    {% for file in order.files %}
+                                    <div class="file-item">
+                                        <i class="fas fa-file file-icon"></i>
+                                        <span class="file-name">{{ file.filename }}</span>
+                                        <span class="file-size">{{ (file.file_size / 1024 / 1024)|round(2) }}MB</span>
+                                        <a href="{{ url_for('order.download_order_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="detail-card">
+                                <div class="card-header">
+                                    <h6 class="card-title">Order Status</h6>
+                                </div>
+                                <div class="card-content">
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Status:</strong></div>
+                                        <div class="col-8">
+                                            <span class="status-badge status-{{ order.status.replace(' ', '-') }}">{{ order.status }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Writer Assigned:</strong></div>
+                                        <div class="col-8">{{ 'Yes' if order.writer_is_assigned else 'No' }}</div>
+                                    </div>
+                                    {% if order.writer_assigned_at %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Assigned At:</strong></div>
+                                        <div class="col-8">{{ order.writer_assigned_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="row mb-2">
+                                        <div class="col-4"><strong>Last Updated:</strong></div>
+                                        <div class="col-8">{{ order.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Loading...
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        const orderId = {{ order.id }};
+        const dueDate = new Date('{{ order.due_date.isoformat() }}');
+        let chatPollingInterval;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCountdown();
+            loadTimeline();
+            loadChatMessages();
+            loadUploadedFiles();
+            
+            // Start polling for updates
+            chatPollingInterval = setInterval(loadChatMessages, 30000); // Poll every 30 seconds
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Remove active class from all tabs and buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            // Add active class to selected tab and button
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Countdown timer
+        function initializeCountdown() {
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const timeLeft = dueDate.getTime() - now;
+
+                if (timeLeft > 0) {
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    document.getElementById('days').textContent = days.toString().padStart(2, '0');
+                    document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+                    document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+                    document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+                } else {
+                    // Time is up
+                    document.getElementById('countdown').innerHTML = '<div class="text-center"><strong>OVERDUE</strong></div>';
+                }
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        // Load order timeline
+        function loadTimeline() {
+            showLoading();
+            fetch(`/activity/order/${orderId}/timeline`)
+                .then(response => response.json())
+                .then(data => {
+                    const timeline = document.getElementById('order-timeline');
+                    timeline.innerHTML = '';
+                    
+                    data.activities.forEach(activity => {
+                        const timelineItem = document.createElement('div');
+                        timelineItem.className = 'timeline-item';
+                        timelineItem.innerHTML = `
+                            <div class="activity-card ${activity.type}">
+                                <div class="card-header">
+                                    <h6 class="card-title">${activity.title}</h6>
+                                    <span class="card-time">${formatDateTime(activity.timestamp)}</span>
+                                </div>
+                                <div class="card-content">${activity.description}</div>
+                            </div>
+                        `;
+                        timeline.appendChild(timelineItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading timeline:', error);
+                    showError('Failed to load order timeline');
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+        }
+
+        // Load chat messages
+        function loadChatMessages() {
+            fetch(`/activity/order/${orderId}/chat`)
+                .then(response => response.json())
+                .then(data => {
+                    const chatContainer = document.getElementById('chat-messages');
+                    chatContainer.innerHTML = '';
+                    
+                    data.messages.forEach(message => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'chat-message';
+                        messageDiv.innerHTML = `
+                            <div class="message-bubble ${message.is_admin ? 'admin' : 'client'}">
+                                <div>${message.content}</div>
+                                <div class="message-time">${formatDateTime(message.created_at)}</div>
+                            </div>
+                        `;
+                        chatContainer.appendChild(messageDiv);
+                    });
+                    
+                    // Scroll to bottom
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error loading chat messages:', error);
+                });
+        }
+
+        // Send chat message
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageInput.value = '';
+                    loadChatMessages();
+                } else {
+                    showError('Failed to send message');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                showError('Failed to send message');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        });
+
+        // File upload handling
+        function handleFileUpload(input) {
+            const files = input.files;
+            if (files.length === 0) return;
+            
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadUploadedFiles();
+                    input.value = ''; // Clear the input
+                    showSuccess('Files uploaded successfully');
+                } else {
+                    showError('Failed to upload files');
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading files:', error);
+                showError('Failed to upload files');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // Load uploaded files
+        function loadUploadedFiles() {
+            fetch(`/activity/order/${orderId}/files`)
+                .then(response => response.json())
+                .then(data => {
+                    const fileList = document.getElementById('uploaded-files');
+                    fileList.innerHTML = '';
+                    
+                    data.files.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <i class="fas fa-file file-icon"></i>
+                            <span class="file-name">${file.filename}</span>
+                            <span class="file-size">${(file.size / 1024 / 1024).toFixed(2)}MB</span>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile(${file.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                        fileList.appendChild(fileItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading files:', error);
+                });
+        }
+
+        // Delete file
+        function deleteFile(fileId) {
+            if (!confirm('Are you sure you want to delete this file?')) return;
+            
+            showLoading();
+            fetch(`/activity/order/file/${fileId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadUploadedFiles();
+                    showSuccess('File deleted successfully');
+                } else {
+                    showError('Failed to delete file');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting file:', error);
+                showError('Failed to delete file');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // Quick action functions
+        function updateDeadline() {
+            const newDeadline = prompt('Enter new deadline (YYYY-MM-DD HH:MM):');
+            if (!newDeadline) return;
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/deadline`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deadline: newDeadline })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showError('Failed to update deadline');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating deadline:', error);
+                showError('Failed to update deadline');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        function markCompleted() {
+            if (!confirm('Are you sure you want to mark this order as completed?')) return;
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/complete`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showError('Failed to mark order as completed');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking order as completed:', error);
+                showError('Failed to mark order as completed');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        function requestRevision() {
+            const reason = prompt('Please provide a reason for revision:');
+            if (!reason) return;
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/revision`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showError('Failed to request revision');
+                }
+            })
+            .catch(error => {
+                console.error('Error requesting revision:', error);
+                showError('Failed to request revision');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        function requestRefund() {
+            const reason = prompt('Please provide a reason for refund request:');
+            if (!reason) return;
+            
+            showLoading();
+            fetch(`/activity/order/${orderId}/refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Refund request submitted successfully');
+                    loadTimeline();
+                } else {
+                    showError('Failed to submit refund request');
+                }
+            })
+            .catch(error => {
+                console.error('Error requesting refund:', error);
+                showError('Failed to submit refund request');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // Utility functions
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            // You can implement a toast notification system here
+            alert('Success: ' + message);
+        }
+
+        function showError(message) {
+            // You can implement a toast notification system here
+            alert('Error: ' + message);
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (chatPollingInterval) {
+                clearInterval(chatPollingInterval);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="user-id" content="{{ current_user.id if current_user.is_authenticated else '' }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}TunedEssays{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Professional academic writing services for students and professionals. Get high-quality essays, research papers, dissertations, and more.{% endblock %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='assets/images.jpeg') }}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}Academic Writing Services{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Professional academic writing services for students and professionals. Get high-quality essays, research papers, dissertations, and more.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{% block og_image %}{{ request.url_root.rstrip('/') + url_for('static', filename='assets/og-image.jpg') }}{% endblock %}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    {% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+    <!-- Add additional CSS links here -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+
+    <!-- Enhanced Notifications Modal Styles -->
+    <style>
+        .notifications-modal {
+            backdrop-filter: blur(10px);
+        }
+        
+        .notifications-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            max-height: 90vh;
+        }
+        
+        .notifications-modal .modal-header {
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .notifications-modal .modal-body {
+            padding: 0;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification-item:hover {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            transform: translateX(5px);
+        }
+        
+        .notification-item.unread {
+            background: linear-gradient(135deg, #fff8f0 0%, #fef5e7 100%);
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 107, 53, 0.05), transparent);
+            pointer-events: none;
+        }
+        
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .notification-icon.info {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+        }
+        
+        .notification-icon.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .notification-icon.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .notification-icon.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+        
+        .notification-message {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+        }
+        
+        .notification-time {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        
+        .notification-actions {
+            margin-left: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+        
+        .unread-badge {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #ff6b35, #ff4500);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .btn-mark-read {
+            background: linear-gradient(135deg, #6c63ff, #5a52d5);
+            border: none;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .btn-mark-read:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+            color: white;
+        }
+        
+        .empty-notifications {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-notifications i {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+        
+        .notifications-header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .btn-mark-all-read {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-mark-all-read:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .notification-filters {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .filter-btn {
+            background: none;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #6c63ff, #5a52d5);
+            border-color: #6c63ff;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            border-color: #6c63ff;
+            color: #6c63ff;
+        }
+        
+        .filter-btn.active:hover {
+            color: white;
+        }
+        
+        /* Loading spinner */
+        .notification-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6c63ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Error state */
+        .notification-error {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #dc3545;
+        }
+        
+        .notification-error i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Custom scrollbar for notifications */
+        .notifications-modal .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .notifications-modal .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .notifications-modal .modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #6c63ff, #5a52d5);
+            border-radius: 10px;
+        }
+        
+        .notifications-modal .modal-body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a52d5, #4f46e5);
+        }
+        
+        /* Animation for notification items */
+        .notification-item {
+            animation: slideInLeft 0.3s ease-out;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .notifications-modal .modal-dialog {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+            }
+            
+            .notification-item {
+                padding: 1rem;
+            }
+            
+            .notifications-modal .modal-header {
+                padding: 1rem;
+            }
+            
+            .notification-filters {
+                padding: 1rem;
+            }
+            
+            .notifications-header-actions {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            
+            .btn-mark-all-read {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+        }
+        
+        /* Notification badge positioning */
+        .notification-badge, .notification-badge-1 {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+        
+        /* Dropdown notification improvements */
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+        }
+        
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="{{ url_for('main.home') }}" class="logo">TunedEssays</a>
+        <div class="nav-links" id="navLinks">
+            <a class="nav-link {% if request.path == url_for('main.services') %}active{% endif %}" href="{{ url_for('main.services') }}">Services</a>
+            <a class="nav-link {% if request.path == url_for('main.faq') %}active{% endif %}" href="{{ url_for('main.faq') }}">FAQ</a>
+            <a class="nav-link {% if request.path == url_for('main.samples') %}active{% endif %}" href="{{ url_for('main.samples') }}">Samples</a>
+            <a class="nav-link {% if request.path == url_for('blog.index') %}active{% endif %}" href="{{ url_for('blog.index') }}">Blog</a>
+            <a class="nav-link {% if request.path == url_for('main.testimonials') %}active{% endif %}" href="{{ url_for('main.testimonials') }}">Testimonials</a>
+        </div>
+        <div class="auth-buttons">
+            {% if current_user.is_authenticated %}
+                <div class="d-flex align-items-center">
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown notifications-dropdown me-1">
+                        <button style="border: none;" class="btn btn-light text-dark position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" style="display: none;">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="notificationDropdown">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="fas fa-bell me-2"></i>
+                                    Recent Notifications
+                                </h6>
+                            </li>
+                            <div id="dropdownNotificationsList">
+                                <!-- Notification items will be dynamically inserted here -->
+                            </div>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center fw-bold" href="#" id="viewAllNotifications">
+                                    <i class="fas fa-eye me-2"></i>View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Messages Dropdown -->
+                    <div class="dropdown notifications-dropdown me-1">
+                        <button style="border: none;" class="btn btn-light text-dark me-1 js-chat-toggle position-relative" type="button" id="messagesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-comments js-chat-icon"></i>
+                            <span class="notification-badge-1 js-chat-badge" style="display: none;">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm js-chat-dropdown" aria-labelledby="messagesDropdown">
+                            <li>
+                                <h6 class="dropdown-header js-chat-header">
+                                    <i class="fas fa-comments me-2"></i>
+                                    Messages
+                                </h6>
+                            </li>
+                            <!-- container for items -->
+                            <div class="js-chat-messages-list">
+                                
+                            </div>
+                            <li>
+                                <hr class="dropdown-divider js-chat-divider" />
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center js-chat-view-all fw-bold" href="#">
+                                    <i class="fas fa-eye me-2"></i>View All Messages
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="dropdown">
+                    <button style="border: none; background: none;" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if current_user.is_admin %}
+                            <img src="https://avatar.iran.liara.run/public/boy?username=boniface" style="border-radius: 50%; max-width: 45px;"  alt="Admin Avatar"> 
+                        {% else %}
+                        {% if current_user.gender == 'male'%}
+                            <img src="https://avatar.iran.liara.run/public/boy?username={{current_user.first_name}}" style="border-radius: 50%; max-width: 45px;" alt="User Avatar"> 
+                            {% else %}
+                            <img src="https://avatar.iran.liara.run/public/girl?username={{current_user.first_name}}" style="border-radius: 50%; max-width: 45px;" alt="User Avatar"> 
+                            {% endif %}
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
+                        <li><a class="dropdown-item" href="{{ url_for('client.dashboard') }}"><i class="fas fa-tachometer-alt text-success me-2"></i>Dashboard</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('orders.order_list') }}"><i class="fas fa-clipboard-list text-success me-2"></i>My Orders</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('client.list_chats') }}"><i class="fas fa-comments text-success me-2"></i>My Chats</a></li>
+                        <li><a class="dropdown-item" href="#" id="myNotificationsLink"><i class="fas fa-bell text-success me-2"></i>Notifications</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('client.profile') }}"><i class="fas fa-user text-success me-2"></i>Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="sign-in">Sign in</a>
+                <a href="{{ url_for('orders.create_order') }}" class="order-now">Order now</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Enhanced Notifications Modal -->
+    <div class="modal fade notifications-modal" id="notificationsModal" tabindex="-1" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="notificationsModalLabel">
+                        <i class="fas fa-bell me-2"></i>
+                        All Notifications
+                    </h5>
+                    <div class="notifications-header-actions">
+                        <button type="button" class="btn btn-mark-all-read" id="markAllReadBtn">
+                            <i class="fas fa-check-double me-1"></i>
+                            Mark All Read
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="notification-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="unread">Unread</button>
+                    <button class="filter-btn" data-filter="info">Info</button>
+                    <button class="filter-btn" data-filter="success">Success</button>
+                    <button class="filter-btn" data-filter="warning">Warning</button>
+                    <button class="filter-btn" data-filter="error">Error</button>
+                </div>
+                <div class="modal-body" id="notificationsContainer">
+                    <!-- Notifications will be loaded here -->
+                    <div class="notification-loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert-container container mt-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'warning' else 'check-circle' if category == 'success' else 'info-circle' if category == 'info' else 'times-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-main">
+        <div class="footer-content">
+            <div class="container py-3">
+                <!-- Brand Section -->
+                <div class="text-center mb-5">
+                    <h2 class="footer-brand">TunedEssays</h2>
+                    <p class="footer-tagline">Professional paper writing services for students and professionals</p>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="row justify-content-center mb-4">
+                    <div class="col-lg-8">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div>
+                                        <p class="contact-text">(+254)-7-3456-7890</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div>
+                                        <p class="contact-text">info@tunedessays.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <p class="contact-text">Trusted Writer and Editor</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media Links -->
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <!-- <a href="#" class="social-link" aria-label="Google">
+                        <i class="fab fa-google"></i>
+                    </a> -->
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <!-- <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin"></i>
+                    </a> -->
+                    <!-- <a href="#" class="social-link" aria-label="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a> -->
+                </div>
+
+                <!-- Divider -->
+                <div class="footer-divider"></div>
+                <div class="footer-bottom py-2">
+                    <div class="container">
+                        <div class="row justify-content-center align-items-center">
+                            <div class="col-md-8 text-center">
+                                <div class="footer-links mb-2">
+                                    <a href="{{url_for('main.terms')}}" class="footer-link">Terms of Service</a>
+                                    <a href="{{url_for('main.privacy')}}" class="footer-link">Privacy Policy</a>
+                                    <a href="{{url_for('main.refund')}}" class="footer-link">Refund Policy</a>
+                                </div>
+                                <div class="copyright">
+                                    © 2025 Copyright: <a href="{{url_for('main.home')}}" class="brand-link">TunedEssays</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Footer Bottom -->
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+    
+<script>
+    // Enhanced Notifications and Messages Manager
+class EnhancedNotificationsManager {
+    constructor() {
+        this.modal = null;
+        this.container = document.getElementById('notificationsContainer');
+        this.allNotifications = [];
+        this.currentFilter = 'all';
+        this.isLoading = false;
+        this.retryCount = 0;
+        this.maxRetries = 3;
+        this.refreshInterval = null;
+        this.debounceTimers = new Map();
+        this.init();
+    }
+
+    init() {
+        try {
+            this.modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+        } catch (error) {
+            console.error('Error initializing modal:', error);
+        }
+        
+        this.setupEventListeners();
+        this.initNotificationSystem();
+    }
+
+    setupEventListeners() {
+        // Use debounced event handlers
+        this.addEventListenerSafely('#viewAllNotifications', 'click', 
+            this.debounce((e) => {
+                e.preventDefault();
+                this.openModal();
+            }, 300)
+        );
+
+        this.addEventListenerSafely('#myNotificationsLink', 'click', 
+            this.debounce((e) => {
+                e.preventDefault();
+                this.openModal();
+            }, 300)
+        );
+
+        this.addEventListenerSafely('#markAllReadBtn', 'click', 
+            this.debounce(() => this.markAllAsRead(), 500)
+        );
+
+        // Filter buttons with delegation
+        const filterContainer = document.querySelector('.notification-filters');
+        if (filterContainer) {
+            filterContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('filter-btn')) {
+                    this.setFilter(e.target.dataset.filter);
+                }
+            });
+        }
+
+        // Modal events
+        const modalElement = document.getElementById('notificationsModal');
+        if (modalElement) {
+            modalElement.addEventListener('shown.bs.modal', () => {
+                this.loadNotifications();
+                this.startPeriodicRefresh();
+            });
+            
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                this.stopPeriodicRefresh();
+            });
+        }
+
+        // Back to top with throttling
+        this.addEventListenerSafely('#backToTop', 'click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Throttled scroll handler
+        window.addEventListener('scroll', this.throttle(() => {
+            const backToTop = document.getElementById('backToTop');
+            if (backToTop) {
+                backToTop.style.display = window.pageYOffset > 300 ? 'flex' : 'none';
+            }
+        }, 100));
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'n') {
+                    e.preventDefault();
+                    this.openModal();
+                }
+            }
+            if (e.key === 'Escape' && this.modal) {
+                this.modal.hide();
+            }
+        });
+    }
+
+    addEventListenerSafely(selector, event, handler) {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element not found: ${selector}`);
+        }
+    }
+
+    initNotificationSystem() {
+        this.loadDropdownNotifications();
+        this.loadUnreadCount();
+        
+        // Staggered refresh intervals
+        setInterval(() => this.loadUnreadCount(), 15000);
+        setInterval(() => this.loadDropdownNotifications(), 30000);
+        
+        // Visibility change handler - refresh when tab becomes active
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                this.loadDropdownNotifications();
+                this.loadUnreadCount();
+            }
+        });
+    }
+
+    startPeriodicRefresh() {
+        this.stopPeriodicRefresh();
+        this.refreshInterval = setInterval(() => {
+            if (!document.hidden) {
+                this.loadNotifications(true); // Silent refresh
+            }
+        }, 10000);
+    }
+
+    stopPeriodicRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+    }
+
+    async loadDropdownNotifications() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            const response = await fetch('/client/get-notifications', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.updateDropdownNotifications(data.notifications || []);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('Dropdown notifications request timed out');
+            } else {
+                console.error('Error loading dropdown notifications:', error);
+            }
+            this.handleNotificationError();
+        }
+    }
+
+    async loadUnreadCount() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            const response = await fetch('/notifications/count', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.updateNotificationBadge(data.unread_count || 0);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Error loading unread count:', error);
+            }
+        }
+    }
+
+    updateDropdownNotifications(notifications) {
+        const container = document.getElementById('dropdownNotificationsList');
+        if (!container) return;
+
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
+
+        if (notifications.length === 0) {
+            const emptyItem = document.createElement('li');
+            emptyItem.className = 'px-3 py-2 text-muted text-center';
+            emptyItem.innerHTML = `
+                <i class="fas fa-inbox me-2"></i>
+                No new notifications
+            `;
+            fragment.appendChild(emptyItem);
+        } else {
+            notifications.slice(0, 5).forEach(notification => {
+                const item = this.createDropdownNotificationItem(notification);
+                fragment.appendChild(item);
+            });
+        }
+
+        // Batch DOM update
+        container.innerHTML = '';
+        container.appendChild(fragment);
+    }
+
+    createDropdownNotificationItem(notification) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = `dropdown-item notification-dropdown-item ${notification.is_read ? '' : 'fw-bold'}`;
+        // a.href = '#';
+        if (notification.link) {
+            a.href = notification.link;
+        } else {
+            a.href = '#';
+        }
+        a.dataset.notificationId = notification.id;
+        
+        a.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-2">
+                    <i class="fas fa-${this.getNotificationIcon(notification.type)} text-${this.getNotificationColor(notification.type)}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="small fw-semibold">${this.escapeHtml(notification.title)}</div>
+                    <div class="small text-muted">${this.escapeHtml(this.truncateText(notification.message, 50))}</div>
+                    <div class="small text-muted">${this.timeAgo(notification.created_at)}</div>
+                </div>
+                ${!notification.is_read ? '<div class="flex-shrink-0"><span class="badge bg-primary rounded-pill">New</span></div>' : ''}
+            </div>
+        `;
+
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(!notification.link){
+                this.markAsRead(notification.id);
+                this.openModal();
+            } else {
+                this.markAsRead(notification.id);
+                const href = notification.link;
+                window.location.href = href;
+            }
+        });
+
+        li.appendChild(a);
+        return li;
+    }
+
+    updateNotificationBadge(count) {
+        const badge = document.querySelector('.notification-badge');
+        if (!badge) return;
+
+        // Animate badge changes
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+            if (!badge.classList.contains('badge-animate')) {
+                badge.classList.add('badge-animate');
+                setTimeout(() => badge.classList.remove('badge-animate'), 500);
+            }
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    async openModal() {
+        if (!this.modal) return;
+        
+        try {
+            this.modal.show();
+        } catch (error) {
+            console.error('Error opening modal:', error);
+        }
+    }
+
+    async loadNotifications(silent = false) {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
+        
+        if (!silent) {
+            this.showLoading();
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            const response = await fetch('/notifications/all', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Check if notifications have changed before updating
+            if (!this.notificationsEqual(this.allNotifications, data.notifications || [])) {
+                this.allNotifications = data.notifications || [];
+                this.displayNotifications();
+            }
+            
+            this.retryCount = 0;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('Notifications request timed out');
+            } else {
+                console.error('Error loading notifications:', error);
+            }
+            if (!silent) {
+                this.handleLoadError();
+            }
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    notificationsEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        return arr1.every((item, index) => 
+            item.id === arr2[index].id && 
+            item.is_read === arr2[index].is_read
+        );
+    }
+
+    displayNotifications() {
+        if (!this.container) return;
+
+        const filteredNotifications = this.filterNotifications();
+
+        if (filteredNotifications.length === 0) {
+            this.showEmptyState();
+            return;
+        }
+
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
+        
+        filteredNotifications.forEach(notification => {
+            const element = this.createNotificationElement(notification);
+            fragment.appendChild(element);
+        });
+
+        // Batch DOM update
+        this.container.innerHTML = '';
+        this.container.appendChild(fragment);
+    }
+
+    createNotificationElement(notification) {
+        const div = document.createElement('div');
+        div.className = `notification-item ${!notification.is_read ? 'unread' : ''}`;
+        div.dataset.notificationId = notification.id;
+        
+        div.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="notification-icon ${notification.type}">
+                    <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+                    <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+                    <div class="notification-time">${this.timeAgo(notification.created_at)}</div>
+                </div>
+                <div class="notification-actions">
+                    ${!notification.is_read ? '<div class="unread-badge"></div>' : ''}
+                    ${!notification.is_read ? '<button class="btn btn-mark-read btn-sm">Mark as Read</button>' : ''}
+                </div>
+            </div>
+        `;
+
+        // Add event listener to mark read button
+        const markReadBtn = div.querySelector('.btn-mark-read');
+        if (markReadBtn) {
+            markReadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.markAsRead(notification.id);
+            });
+        }
+
+        return div;
+    }
+
+    filterNotifications() {
+        switch (this.currentFilter) {
+            case 'all':
+                return this.allNotifications;
+            case 'unread':
+                return this.allNotifications.filter(n => !n.is_read);
+            default:
+                return this.allNotifications.filter(n => n.type === this.currentFilter);
+        }
+    }
+
+    setFilter(filter) {
+        if (this.currentFilter === filter) return;
+        
+        this.currentFilter = filter;
+        
+        // Update filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+        
+        this.displayNotifications();
+    }
+
+    async markAsRead(notificationId) {
+        // Optimistic update
+        const notification = this.allNotifications.find(n => n.id == notificationId);
+        if (notification && !notification.is_read) {
+            notification.is_read = true;
+            this.displayNotifications();
+            this.loadDropdownNotifications();
+            this.loadUnreadCount();
+        }
+
+        try {
+            const response = await fetch(`/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            // Revert optimistic update
+            if (notification) {
+                notification.is_read = false;
+                this.displayNotifications();
+            }
+            this.showErrorMessage('Failed to mark notification as read');
+        }
+    }
+
+    async markAllAsRead() {
+        // Get unread notifications for optimistic update
+        const unreadNotifications = this.allNotifications.filter(n => !n.is_read);
+        
+        if (unreadNotifications.length === 0) {
+            this.showSuccessMessage('No unread notifications');
+            return;
+        }
+
+        // Optimistic update
+        unreadNotifications.forEach(notification => {
+            notification.is_read = true;
+        });
+        
+        this.displayNotifications();
+        this.loadDropdownNotifications();
+        this.loadUnreadCount();
+
+        try {
+            const response = await fetch('/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showSuccessMessage('All notifications marked as read');
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            // Revert optimistic update
+            unreadNotifications.forEach(notification => {
+                notification.is_read = false;
+            });
+            this.displayNotifications();
+            this.showErrorMessage('Failed to mark all notifications as read');
+        }
+    }
+
+    showLoading() {
+        if (this.container) {
+            this.container.innerHTML = `
+                <div class="notification-loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            `;
+        }
+    }
+
+    showEmptyState() {
+        if (this.container) {
+            const emptyMessage = this.currentFilter === 'unread' 
+                ? "You're all caught up!" 
+                : 'No notifications found';
+                
+            this.container.innerHTML = `
+                <div class="empty-notifications">
+                    <i class="fas fa-bell-slash"></i>
+                    <h5>${emptyMessage}</h5>
+                    <p class="text-muted">${this.currentFilter === 'all' ? 'Check back later for updates' : 'All notifications are read'}</p>
+                </div>
+            `;
+        }
+    }
+
+    handleLoadError() {
+        if (this.retryCount < this.maxRetries) {
+            this.retryCount++;
+            setTimeout(() => {
+                this.loadNotifications();
+            }, Math.min(2000 * Math.pow(2, this.retryCount), 10000));
+        } else {
+            this.showErrorState();
+        }
+    }
+
+    showErrorState() {
+        if (this.container) {
+            this.container.innerHTML = `
+                <div class="notification-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h5>Failed to load notifications</h5>
+                    <p>Please check your connection and try again.</p>
+                    <button class="btn btn-primary btn-sm" onclick="notificationManager.loadNotifications()">
+                        <i class="fas fa-redo me-1"></i>
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    handleNotificationError() {
+        const container = document.getElementById('dropdownNotificationsList');
+        if (container) {
+            container.innerHTML = `
+                <li class="px-3 py-2 text-muted text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Unable to load notifications
+                </li>
+            `;
+        }
+    }
+
+    // Utility methods
+    debounce(func, wait) {
+        return (...args) => {
+            const key = func.toString();
+            clearTimeout(this.debounceTimers.get(key));
+            this.debounceTimers.set(key, setTimeout(() => func.apply(this, args), wait));
+        };
+    }
+
+    throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+
+    truncateText(text, maxLength) {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    getNotificationIcon(type) {
+        const icons = {
+            'info': 'info-circle',
+            'success': 'check-circle',
+            'warning': 'exclamation-triangle',
+            'error': 'times-circle',
+            'message': 'envelope',
+            'order': 'shopping-cart',
+            'payment': 'credit-card',
+            'system': 'cog'
+        };
+        return icons[type] || 'bell';
+    }
+
+    getNotificationColor(type) {
+        const colors = {
+            'info': 'primary',
+            'success': 'success',
+            'warning': 'warning',
+            'error': 'danger',
+            'message': 'info',
+            'order': 'primary',
+            'payment': 'success',
+            'system': 'secondary'
+        };
+        return colors[type] || 'primary';
+    }
+
+    timeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes}m ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours}h ago`;
+        } else if (diffInSeconds < 604800) {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days}d ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    showSuccessMessage(message) {
+        this.showToast(message, 'success');
+    }
+
+    showErrorMessage(message) {
+        this.showToast(message, 'error');
+    }
+
+    showToast(message, type) {
+        // Remove existing toasts
+        document.querySelectorAll('.notification-toast').forEach(toast => {
+            toast.remove();
+        });
+
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed notification-toast`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);';
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 150);
+            }
+        }, 4000);
+    }
+}
+
+// Enhanced Chat Manager
+class EnhancedChatManager {
+    constructor() {
+        this.socket = null;
+        this.currentChatId = null;
+        this.currentUserId = null;
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.messageQueue = [];
+        this.unreadCount = 0;
+        this.debounceTimers = new Map();
+        this.init();
+    }
+
+    init() {
+        this.getCurrentUserId();
+        this.initializeSocket();
+        this.setupEventListeners();
+        this.loadInitialData();
+    }
+
+    getCurrentUserId() {
+        const userIdMeta = document.querySelector('meta[name="user-id"]');
+        this.currentUserId = userIdMeta ? userIdMeta.getAttribute('content') : null;
+    }
+
+    initializeSocket() {
+        try {
+            this.socket = io({
+                transports: ['websocket', 'polling'],
+                timeout: 20000,
+                reconnection: true,
+                reconnectionAttempts: this.maxReconnectAttempts,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000
+            });
+
+            this.setupSocketEventListeners();
+        } catch (error) {
+            console.error('Failed to initialize socket:', error);
+            this.handleConnectionError();
+        }
+    }
+
+    setupSocketEventListeners() {
+        this.socket.on('connect', () => {
+            console.log('Connected to chat server');
+            this.isConnected = true;
+            this.reconnectAttempts = 0;
+            
+            if (this.currentUserId) {
+                this.socket.emit('join', {room: `user_${this.currentUserId}`});
+            }
+            
+            const chatContainer = document.querySelector('#chat-container');
+            if (chatContainer) {
+                this.currentChatId = chatContainer.dataset.chatId;
+                if (this.currentChatId) {
+                    this.socket.emit('join_chat', {chat_id: this.currentChatId});
+                    this.socket.emit('mark_messages_read', {chat_id: this.currentChatId});
+                }
+            }
+
+            // Send queued messages
+            this.processMessageQueue();
+        });
+
+        this.socket.on('disconnect', (reason) => {
+            console.log('Disconnected from chat server:', reason);
+            this.isConnected = false;
+            
+            if (reason === 'io server disconnect') {
+                this.socket.connect();
+            }
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            this.handleConnectionError();
+        });
+
+        this.socket.on('new_message', (message) => {
+            this.handleNewMessage(message);
+        });
+
+        this.socket.on('update_unread_count', (data) => {
+            if (data.user_id == this.currentUserId) {
+                this.updateUnreadCount();
+                this.updateRecentMessages();
+            }
+        });
+
+        this.socket.on('messages_marked_read', (data) => {
+            if (this.currentChatId && this.currentChatId == data.chat_id) {
+                this.markMessagesAsReadInUI();
+            }
+        });
+    }
+
+    setupEventListeners() {
+        const messageForm = document.querySelector('#message-form');
+        if (messageForm) {
+            messageForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.sendMessage();
+            });
+        }
+
+        const messageInput = document.querySelector('#message-input');
+        if (messageInput) {
+            // Auto-resize textarea
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = messageInput.scrollHeight + 'px';
+            });
+
+            // Send on Ctrl+Enter
+            messageInput.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+        }
+
+        const chatToggle = document.querySelector('.js-chat-toggle');
+        if (chatToggle) {
+            chatToggle.addEventListener('click', 
+                this.debounce(() => this.updateRecentMessages(), 200)
+            );
+        }
+
+        // Visibility change handler
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && this.currentChatId) {
+                this.socket?.emit('mark_messages_read', {chat_id: this.currentChatId});
+            }
+        });
+    }
+
+    loadInitialData() {
+        this.updateUnreadCount();
+        this.updateRecentMessages();
+        this.addDropdownStyles();
+    }
+
+    async updateUnreadCount() {
+        try {
+            const response = await fetch('/api/chats/unread_count', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.unreadCount = data.unread_count || 0;
+            this.updateChatBadge(this.unreadCount);
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    }
+
+    async updateRecentMessages() {
+        try {
+            const response = await fetch('/api/chats/recent_messages', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const messages = await response.json();
+            this.updateMessagesDropdown(messages);
+        } catch (error) {
+            console.error('Error fetching recent messages:', error);
+            this.handleMessagesError();
+        }
+    }
+
+    updateChatBadge(count) {
+        const chatBadge = document.querySelector('.js-chat-badge');
+        if (!chatBadge) return;
+
+        if (count > 0) {
+            chatBadge.textContent = count > 99 ? '99+' : count;
+            chatBadge.style.display = 'inline-block';
+        } else {
+            chatBadge.style.display = 'none';
+        }
+    }
+
+    // updateMessagesDropdown(messages) {
+    //     const container = document.querySelector('.js-chat-messages-list');
+    //     if (!container) return;
+
+    //     // Use document fragment for better performance
+    //     const fragment = document.createDocumentFragment();
+
+    //     if (messages.length === 0) {
+    //         const emptyItem = document.createElement('li');
+    //         emptyItem.className = 'dropdown-item text-muted';
+    //         emptyItem.textContent = '<em> No new messages</em>';
+    //         fragment.appendChild(emptyItem);
+    //     } else {
+    //         messages.forEach(message => {
+    //             const item = this.createMessageDropdownItem(message);
+    //             fragment.appendChild(item);
+    //         });
+    //     }
+
+    //     container.innerHTML = '';
+    //     container.appendChild(fragment);
+    // }
+
+    updateMessagesDropdown(chats) {
+        const container = document.querySelector('.js-chat-messages-list');
+        if (!container) return;
+
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
+
+        if (chats.length === 0) {
+            const emptyItem = document.createElement('li');
+            emptyItem.className = 'dropdown-item text-center text-muted';
+            emptyItem.innerHTML = '<em>No recent conversations</em>';
+            fragment.appendChild(emptyItem);
+        } else {
+            chats.forEach(chat => {
+                const item = this.createChatDropdownItem(chat);
+                fragment.appendChild(item);
+            });
+        }
+
+        container.innerHTML = '';
+        container.appendChild(fragment);
+    }
+
+    
+    // createMessageDropdownItem(message) {
+    //     const li = document.createElement('li');
+    //     li.className = `dropdown-item message-preview ${!message.is_read ? 'unread' : ''}`;
+        
+    //     const a = document.createElement('a');
+    //     a.href = `/client/${message.chat_id}`;
+    //     a.className = 'text-decoration-none text-dark';
+        
+    //     a.innerHTML = `
+    //         <div class="d-flex align-items-center">
+    //             <div class="message-preview-content">
+    //                 <div class="fw-bold">${this.escapeHtml(message.subject)}</div>
+    //                 <small>${this.escapeHtml(message.sender_name)}: ${this.escapeHtml(this.truncateText(message.content, 50))}</small>
+    //                 <small class="text-muted">${this.timeAgo(message.created_at)}</small>
+    //             </div>
+    //             ${!message.is_read ? '<span class="badge bg-primary ms-2">New</span>' : ''}
+    //         </div>
+    //     `;
+        
+    //     li.appendChild(a);
+    //     return li;
+    // }
+
+    createChatDropdownItem(chat) {
+        const li = document.createElement('li');
+        li.className = `dropdown-item chat-preview ${chat.has_unread ? 'has-unread' : ''}`;
+        
+        const a = document.createElement('a');
+        a.href = `/client/${chat.chat_id}`;
+        a.className = 'text-decoration-none text-dark d-block p-2';
+        
+        // Add hover effect
+        a.addEventListener('mouseenter', () => {
+            a.style.backgroundColor = '#f8f9fa';
+        });
+        a.addEventListener('mouseleave', () => {
+            a.style.backgroundColor = '';
+        });
+        
+        a.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 min-width-0">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="mb-0 fw-bold text-truncate" style="max-width: 200px;">
+                            ${this.escapeHtml(chat.subject)}
+                        </h6>
+                        ${chat.unread_count > 0 ? 
+                            `<span class="badge bg-primary rounded-pill ms-2">${chat.unread_count}</span>` : 
+                            ''
+                        }
+                    </div>
+                    <div class="text-muted small mb-1">
+                        <strong>${this.escapeHtml(chat.latest_message.sender_name)}:</strong>
+                        <span class="text-truncate d-inline" style="max-width: 180px;">
+                            ${this.escapeHtml(chat.latest_message.content)}
+                        </span>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        ${this.timeAgo(chat.latest_message.created_at)}
+                    </div>
+                </div>
+                ${chat.has_unread ? 
+                    '<div class="ms-2"><i class="fas fa-circle text-primary" style="font-size: 0.5rem;"></i></div>' : 
+                    ''
+                }
+            </div>
+        `;
+        
+        li.appendChild(a);
+        return li;
+    }
+
+    // Enhanced time ago function for better readability
+    timeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes}m ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours}h ago`;
+        } else if (diffInSeconds < 604800) {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days}d ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+
+    // Add CSS styles for better visualization
+    addDropdownStyles() {
+        if (document.getElementById('chat-dropdown-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'chat-dropdown-styles';
+        style.textContent = `
+            .chat-preview {
+                border: none !important;
+                padding: 0 !important;
+            }
+            
+            .chat-preview:not(:last-child) {
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .chat-preview.has-unread {
+                background-color: #f8f9ff !important;
+            }
+            
+            .chat-preview:hover {
+                background-color: #f8f9fa !important;
+            }
+            
+            .chat-preview a {
+                transition: background-color 0.2s ease;
+            }
+            
+            .min-width-0 {
+                min-width: 0;
+            }
+            
+            .js-chat-messages-list {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            
+            .js-chat-messages-list::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .js-chat-messages-list::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+            
+            .js-chat-messages-list::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 3px;
+            }
+            
+            .js-chat-messages-list::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    handleMessagesError() {
+        const container = document.querySelector('.js-chat-messages-list');
+        if (container) {
+            container.innerHTML = `
+                <li class="dropdown-item text-muted">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Unable to load messages
+                </li>
+            `;
+        }
+    }
+
+    async sendMessage() {
+        const messageInput = document.querySelector('#message-input');
+        const messageText = messageInput?.value.trim();
+        
+        if (!messageText || !this.currentChatId) return;
+
+        const tempMessage = {
+            id: 'temp_' + Date.now(),
+            content: messageText,
+            sender_name: 'You',
+            created_at: new Date().toISOString(),
+            is_temp: true
+        };
+
+        // Clear input immediately
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+
+        // Add temporary message to UI
+        this.addMessageToChat(tempMessage);
+
+        const messageData = {
+            chat_id: this.currentChatId,
+            content: messageText,
+            temp_id: tempMessage.id
+        };
+
+        if (this.isConnected && this.socket) {
+            try {
+                this.socket.emit('send_message', messageData);
+            } catch (error) {
+                console.error('Error sending message via socket:', error);
+                this.queueMessage(messageData);
+                this.sendMessageFallback(messageData);
+            }
+        } else {
+            this.queueMessage(messageData);
+            this.sendMessageFallback(messageData);
+        }
+    }
+
+    async sendMessageFallback(messageData) {
+        try {
+            const response = await fetch('/api/send-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(messageData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            // Replace temporary message with real one
+            this.replaceTempMessage(messageData.temp_id, result.message);
+            
+        } catch (error) {
+            console.error('Error sending message via HTTP:', error);
+            this.handleMessageError(messageData.temp_id);
+        }
+    }
+
+    queueMessage(messageData) {
+        this.messageQueue.push(messageData);
+    }
+
+    processMessageQueue() {
+        while (this.messageQueue.length > 0) {
+            const messageData = this.messageQueue.shift();
+            try {
+                this.socket.emit('send_message', messageData);
+            } catch (error) {
+                console.error('Error processing queued message:', error);
+                this.sendMessageFallback(messageData);
+            }
+        }
+    }
+
+    handleNewMessage(message) {
+        if (message.chat_id == this.currentChatId) {
+            // Replace temp message if it exists, otherwise add new message
+            if (message.temp_id) {
+                this.replaceTempMessage(message.temp_id, message);
+            } else {
+                this.addMessageToChat(message);
+            }
+            
+            // Mark as read if window is visible
+            if (!document.hidden) {
+                this.socket?.emit('mark_messages_read', {chat_id: this.currentChatId});
+            }
+        } else {
+            // Update unread count and recent messages for other chats
+            this.updateUnreadCount();
+            this.updateRecentMessages();
+        }
+    }
+
+    addMessageToChat(message) {
+        const messagesContainer = document.querySelector('#messages-container');
+        if (!messagesContainer) return;
+
+        const messageElement = this.createMessageElement(message);
+        messagesContainer.appendChild(messageElement);
+        
+        // Scroll to bottom
+        this.scrollToBottom();
+    }
+
+    createMessageElement(message) {
+        const div = document.createElement('div');
+        div.className = `message ${message.sender_id == this.currentUserId ? 'sent' : 'received'} ${message.is_temp ? 'temp-message' : ''}`;
+        div.dataset.messageId = message.id;
+        
+        div.innerHTML = `
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="sender-name">${this.escapeHtml(message.sender_name)}</span>
+                    <span class="message-time">${this.formatMessageTime(message.created_at)}</span>
+                    ${message.is_temp ? '<i class="fas fa-clock text-muted ms-1" title="Sending..."></i>' : ''}
+                </div>
+                <div class="message-text">${this.escapeHtml(message.content)}</div>
+            </div>
+        `;
+        
+        return div;
+    }
+
+    replaceTempMessage(tempId, realMessage) {
+        const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
+        if (tempElement) {
+            const newElement = this.createMessageElement(realMessage);
+            tempElement.parentNode.replaceChild(newElement, tempElement);
+        }
+    }
+
+    handleMessageError(tempId) {
+        const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
+        if (tempElement) {
+            tempElement.classList.add('message-error');
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn btn-sm btn-outline-danger mt-1';
+            retryBtn.innerHTML = '<i class="fas fa-redo me-1"></i>Retry';
+            retryBtn.onclick = () => {
+                // Implement retry logic here
+                console.log('Retry sending message');
+            };
+            tempElement.querySelector('.message-content').appendChild(retryBtn);
+        }
+    }
+
+    markMessagesAsReadInUI() {
+        document.querySelectorAll('.message.received').forEach(message => {
+            message.classList.add('read');
+        });
+    }
+
+    scrollToBottom() {
+        const messagesContainer = document.querySelector('#messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+
+    handleConnectionError() {
+        this.reconnectAttempts++;
+        
+        if (this.reconnectAttempts > this.maxReconnectAttempts) {
+            console.error('Max reconnection attempts reached');
+            this.showConnectionError();
+        }
+    }
+
+    showConnectionError() {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed';
+        errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        errorDiv.innerHTML = `
+            <i class="fas fa-wifi me-2"></i>
+            Connection lost. Messages may not be delivered in real-time.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(errorDiv);
+        
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 10000);
+    }
+
+    // Utility methods
+    debounce(func, wait) {
+        return (...args) => {
+            const key = func.toString();
+            clearTimeout(this.debounceTimers.get(key));
+            this.debounceTimers.set(key, setTimeout(() => func.apply(this, args), wait));
+        };
+    }
+
+    truncateText(text, maxLength) {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    timeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes}m ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours}h ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+
+    formatMessageTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const isToday = date.toDateString() === now.toDateString();
+        
+        if (isToday) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else {
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    // Public API methods
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+        }
+    }
+
+    reconnect() {
+        if (this.socket) {
+            this.socket.connect();
+        }
+    }
+
+    joinChat(chatId) {
+        this.currentChatId = chatId;
+        if (this.socket && this.isConnected) {
+            this.socket.emit('join_chat', { chat_id: chatId });
+            this.socket.emit('mark_messages_read', { chat_id: chatId });
+        }
+    }
+
+    leaveChat(chatId) {
+        if (this.socket && this.isConnected) {
+            this.socket.emit('leave_chat', { chat_id: chatId });
+        }
+        if (this.currentChatId === chatId) {
+            this.currentChatId = null;
+        }
+    }
+}
+
+// Initialize managers when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize notification manager
+    window.notificationManager = new EnhancedNotificationsManager();
+    
+    // Initialize chat manager
+    window.chatManager = new EnhancedChatManager();
+    
+    // Global error handler
+    window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+    });
+    
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+    });
+    const menuToggle = document.getElementById("menuToggle")
+    menuToggle.addEventListener('click', function() {
+        navLinks.classList.toggle('active');
+        
+        // Change icon between bars and times
+        const icon = menuToggle.querySelector('i');
+        if (icon.classList.contains('fa-bars')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        }
+    });
+
+    // Close menu when clicking on a link
+    const links = navLinks.querySelectorAll('a');
+    links.forEach(link => {
+        link.addEventListener('click', function() {
+            navLinks.classList.remove('active');
+            const icon = menuToggle.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.navbar')) {
+            navLinks.classList.remove('active');
+            const icon = menuToggle.querySelector('i');
+            if (icon.classList.contains('fa-times')) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+    });
+});
+
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { EnhancedNotificationsManager, EnhancedChatManager };
+}
+</script>
+</body>
+</html>

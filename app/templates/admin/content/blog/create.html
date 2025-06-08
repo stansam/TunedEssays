@@ -1,0 +1,639 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Create Blog Post | TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<!-- Summernote WYSIWYG Editor -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+
+<!-- Tagify for tags input -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.12.0/tagify.min.css" rel="stylesheet">
+
+<!-- Dropzone for better file uploads -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">
+
+<style>
+    .image-preview {
+        max-width: 100%;
+        height: 200px;
+        border-radius: 8px;
+        object-fit: cover;
+        display: none;
+        margin-top: 10px;
+        border: 1px solid var(--gray-light);
+    }
+
+    .image-preview-container {
+        position: relative;
+    }
+
+    .remove-image {
+        position: absolute;
+        top: 15px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        padding: 5px 8px;
+        cursor: pointer;
+        display: none;
+    }
+
+    .dropzone {
+        border: 2px dashed var(--gray-light);
+        border-radius: 8px;
+        background: white;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .dropzone:hover {
+        border-color: var(--primary);
+    }
+
+    .dropzone .dz-message {
+        margin: 2em 0;
+    }
+
+    .note-editor {
+        border-radius: 8px;
+        border: 1px solid var(--gray-light) !important;
+    }
+
+    .note-toolbar {
+        background-color: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .word-count {
+        font-size: 0.8rem;
+        color: var(--gray);
+        margin-top: 5px;
+    }
+    
+    /* Pulse animation for publish button */
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+        }
+    }
+    
+    .btn-pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    .card-sticky {
+        position: sticky;
+        top: 80px;
+    }
+    
+    /* Custom toggle switch */
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+    
+    .tagify {
+        border: 1px solid var(--gray-light);
+        border-radius: 5px;
+        padding: 5px;
+    }
+    
+    /* Progress bar for content quality */
+    .content-progress {
+        height: 6px;
+        margin-top: 5px;
+    }
+    
+    .slug-preview {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.list_blog_posts') }}">Blog</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Post</li>
+                </ol>
+            </nav>
+            <h2 class="h4 mb-3">Create New Blog Post</h2>
+        </div>
+    </div>
+
+    <form id="blogPostForm" method="POST" enctype="multipart/form-data" action="{{ url_for('admin.create_blog_post') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row">
+            <!-- Main content column -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Post Content</h5>
+                        <div class="d-flex align-items-center">
+                            <span id="savingStatus" class="text-muted me-2" style="display:none;">
+                                <i class="fas fa-circle-notch fa-spin me-1"></i> Auto-saving...
+                            </span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="previewBtn">
+                                <i class="fas fa-eye me-1"></i> Preview
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required placeholder="Enter an engaging title">
+                            <div class="slug-preview">Permalink: <span id="slugPreview" class="fw-bold">your-post-title</span></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" required rows="10"></textarea>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="word-count">Word count: <span id="wordCount">0</span></div>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">Content quality:</span>
+                                    <div class="progress content-progress" style="width: 100px;">
+                                        <div id="contentQuality" class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="excerpt" class="form-label">Excerpt</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" placeholder="Write a brief summary of your post (shown in blog listings)"></textarea>
+                            <small class="text-muted">Recommended: 150-160 characters</small>
+                            <div class="progress content-progress">
+                                <div id="excerptProgress" class="progress-bar bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">SEO & Meta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="meta_description" class="form-label">Meta Description</label>
+                            <textarea class="form-control" id="meta_description" name="meta_description" rows="2" placeholder="Write a description that will appear in search engines"></textarea>
+                            <small class="text-muted">Recommended: 150-160 characters</small>
+                            <div class="progress content-progress">
+                                <div id="metaProgress" class="progress-bar bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" id="tags" name="tags" class="form-control" placeholder="Add relevant tags">
+                            <small class="text-muted">Hit Enter after each tag. Recommended: 3-5 tags</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar column -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4 card-sticky">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Publishing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="published" name="published" value="true">
+                                <label class="form-check-label" for="published">Publish immediately</label>
+                            </div>
+                            <small class="text-muted">If unchecked, post will be saved as draft</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="" selected disabled>Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="publishBtn">
+                                <i class="fas fa-paper-plane me-1"></i> Create Post
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="saveDraftBtn">
+                                <i class="fas fa-save me-1"></i> Save as Draft
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Featured Image</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="image-preview-container">
+                                <img id="imagePreview" class="image-preview" src="#" alt="Featured image preview">
+                                <span class="remove-image" id="removeImage"><i class="fas fa-times"></i></span>
+                            </div>
+                            <div class="custom-file mt-2">
+                                <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
+                                <small class="text-muted">Recommended: 1200 x 630 pixels</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Writing Tips</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="writingTipsAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        SEO Optimization
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#writingTipsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>Include target keywords in title, first paragraph, and headings</li>
+                                            <li>Write compelling meta descriptions with a call-to-action</li>
+                                            <li>Use descriptive image alt text</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        Readability
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#writingTipsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>Use short paragraphs (3-4 sentences)</li>
+                                            <li>Include subheadings to break up content</li>
+                                            <li>Use bullet points for lists</li>
+                                            <li>Include engaging visuals</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        Engagement
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#writingTipsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>Start with a compelling hook</li>
+                                            <li>Use conversational tone</li>
+                                            <li>End with a question or call-to-action</li>
+                                            <li>Incorporate relevant examples</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">Post Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container py-4">
+                        <div class="post-preview">
+                            <h1 id="previewTitle" class="mb-3">Post Title</h1>
+                            <div class="d-flex align-items-center text-muted mb-4">
+                                <div class="avatar-container me-2">
+                                    <span>{{ current_user.username[0]|upper }}</span>
+                                </div>
+                                <div>
+                                    <span>{{ current_user.get_name() }}</span>
+                                    <span class="mx-2">•</span>
+                                    <span id="previewDate"></span>
+                                </div>
+                            </div>
+                            <div id="previewFeaturedImage" class="mb-4 text-center">
+                                <img src="#" alt="Featured image" class="img-fluid rounded" style="max-height: 400px; object-fit: cover;">
+                            </div>
+                            <div id="previewContent" class="mb-4"></div>
+                            <div class="tags-container">
+                                <span class="fw-bold">Tags: </span>
+                                <div id="previewTags" class="d-inline"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Summernote WYSIWYG Editor -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+
+<!-- Tagify for tags input -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.12.0/tagify.min.js"></script>
+
+<!-- Dropzone for better file uploads -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Summernote
+        $('#content').summernote({
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            callbacks: {
+                onChange: function(contents) {
+                    updateWordCount();
+                    updateContentQuality(contents);
+                    showSavingStatus();
+                }
+            }
+        });
+        
+        // Initialize Tagify
+        const tagInput = document.querySelector('#tags');
+        new Tagify(tagInput);
+        
+        // Generate slug from title
+        const titleInput = document.getElementById('title');
+        const slugPreview = document.getElementById('slugPreview');
+        
+        titleInput.addEventListener('input', function() {
+            const title = this.value.trim();
+            if (title) {
+                const slug = generateSlug(title);
+                slugPreview.textContent = slug;
+            } else {
+                slugPreview.textContent = 'your-post-title';
+            }
+            showSavingStatus();
+        });
+        
+        // Featured image preview
+        const imageInput = document.getElementById('featured_image');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImage');
+        
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    removeImageBtn.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        removeImageBtn.addEventListener('click', function() {
+            imagePreview.src = '#';
+            imagePreview.style.display = 'none';
+            removeImageBtn.style.display = 'none';
+            imageInput.value = '';
+        });
+        
+        // Meta description character count
+        const metaDescription = document.getElementById('meta_description');
+        const metaProgress = document.getElementById('metaProgress');
+        
+        metaDescription.addEventListener('input', function() {
+            const length = this.value.length;
+            const percentage = Math.min(100, Math.round((length / 160) * 100));
+            
+            metaProgress.style.width = percentage + '%';
+            
+            if (length > 160) {
+                metaProgress.classList.remove('bg-info', 'bg-success');
+                metaProgress.classList.add('bg-danger');
+            } else if (length > 140) {
+                metaProgress.classList.remove('bg-info', 'bg-danger');
+                metaProgress.classList.add('bg-success');
+            } else {
+                metaProgress.classList.remove('bg-success', 'bg-danger');
+                metaProgress.classList.add('bg-info');
+            }
+            
+            showSavingStatus();
+        });
+        
+        // Excerpt character count
+        const excerpt = document.getElementById('excerpt');
+        const excerptProgress = document.getElementById('excerptProgress');
+        
+        excerpt.addEventListener('input', function() {
+            const length = this.value.length;
+            const percentage = Math.min(100, Math.round((length / 160) * 100));
+            
+            excerptProgress.style.width = percentage + '%';
+            
+            if (length > 160) {
+                excerptProgress.classList.remove('bg-info', 'bg-success');
+                excerptProgress.classList.add('bg-danger');
+            } else if (length > 140) {
+                excerptProgress.classList.remove('bg-info', 'bg-danger');
+                excerptProgress.classList.add('bg-success');
+            } else {
+                excerptProgress.classList.remove('bg-success', 'bg-danger');
+                excerptProgress.classList.add('bg-info');
+            }
+            
+            showSavingStatus();
+        });
+        
+        // Save Draft Button
+        document.getElementById('saveDraftBtn').addEventListener('click', function() {
+            document.getElementById('published').checked = false;
+            document.getElementById('blogPostForm').submit();
+        });
+        
+        // Preview Button
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            const title = document.getElementById('title').value || 'Post Title';
+            const content = $('#content').summernote('code') || '<p>No content yet.</p>';
+            const tags = document.getElementById('tags').value;
+            const featuredImage = document.getElementById('imagePreview').src;
+            
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewContent').innerHTML = content;
+            
+            // Set date
+            const today = new Date();
+            document.getElementById('previewDate').textContent = today.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Set tags
+            const previewTags = document.getElementById('previewTags');
+            previewTags.innerHTML = '';
+            
+            if (tags) {
+                const tagList = JSON.parse(tags).map(tag => tag.value);
+                tagList.forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'badge bg-secondary me-1';
+                    tagSpan.textContent = tag;
+                    previewTags.appendChild(tagSpan);
+                });
+            } else {
+                previewTags.textContent = 'No tags';
+            }
+            
+            // Set featured image
+            const previewFeaturedImage = document.getElementById('previewFeaturedImage');
+            if (featuredImage && featuredImage !== '#') {
+                previewFeaturedImage.innerHTML = `<img src="${featuredImage}" alt="Featured image" class="img-fluid rounded" style="max-height: 400px; object-fit: cover;">`;
+                previewFeaturedImage.style.display = 'block';
+            } else {
+                previewFeaturedImage.style.display = 'none';
+            }
+            
+            // Show modal
+            const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            previewModal.show();
+        });
+        
+        // Functions
+        function generateSlug(text) {
+            return text.toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+        }
+        
+        function updateWordCount() {
+            const text = $('#content').summernote('code').replace(/<[^>]*>/g, ' ');
+            const words = text.trim().split(/\s+/);
+            const wordCount = text.trim() ? words.length : 0;
+            document.getElementById('wordCount').textContent = wordCount;
+            
+            // Add pulse animation to publish button if there are enough words
+            const publishBtn = document.getElementById('publishBtn');
+            if (wordCount > 300) {
+                publishBtn.classList.add('btn-pulse');
+            } else {
+                publishBtn.classList.remove('btn-pulse');
+            }
+        }
+        
+        function updateContentQuality(content) {
+            let quality = 0;
+            const contentText = content.replace(/<[^>]*>/g, ' ');
+            
+            // Calculate content quality based on length
+            const wordCount = contentText.trim().split(/\s+/).length;
+            if (wordCount > 1000) quality += 40;
+            else if (wordCount > 700) quality += 30;
+            else if (wordCount > 500) quality += 20;
+            else if (wordCount > 300) quality += 10;
+            
+            // Check for headings
+            const headingsCount = (content.match(/<h[1-6][^>]*>/g) || []).length;
+            if (headingsCount > 4) quality += 20;
+            else if (headingsCount > 2) quality += 10;
+            
+            // Check for images
+            const imagesCount = (content.match(/<img[^>]*>/g) || []).length;
+            if (imagesCount > 2) quality += 20;
+            else if (imagesCount > 0) quality += 10;
+            
+            // Check for links
+            const linksCount = (content.match(/<a[^>]*>/g) || []).length;
+            if (linksCount > 3) quality += 10;
+            else if (linksCount > 0) quality += 5;
+            
+            // Update progress bar
+            const contentQuality = document.getElementById('contentQuality');
+            contentQuality.style.width = quality + '%';
+            
+            if (quality > 70) {
+                contentQuality.classList.remove('bg-warning', 'bg-danger');
+                contentQuality.classList.add('bg-success');
+            } else if (quality > 40) {
+                contentQuality.classList.remove('bg-success', 'bg-danger');
+                contentQuality.classList.add('bg-warning');
+            } else {
+                contentQuality.classList.remove('bg-success', 'bg-warning');
+                contentQuality.classList.add('bg-danger');
+            }
+        }
+        
+        function showSavingStatus() {
+            const savingStatus = document.getElementById('savingStatus');
+            savingStatus.style.display = 'inline-block';
+            
+            clearTimeout(window.savingTimeout);
+            window.savingTimeout = setTimeout(() => {
+                savingStatus.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Form validation
+        document.getElementById('blogPostForm').addEventListener('submit', function(event) {
+            const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category_id').value;
+            
+            if (!title) {
+                event.preventDefault();
+                alert('Please enter a post title');
+            } else if (!category) {
+                event.preventDefault();
+                alert('Please select a category');
+            }
+        });
+    });
+</script>
+{% endblock %}

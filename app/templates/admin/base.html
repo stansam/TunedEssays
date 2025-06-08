@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="user-id" content="{{ current_user.id if current_user.is_authenticated else '' }}">
+    <title>{% block title %}TunedEssays Admin{% endblock %}</title>
+    <meta name="description"
+        content="Admin dashboard for managing academic writing services, users, orders, and content.">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='assets/images.jpeg') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% block styles %}{% endblock %}
+
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-light: #81c784;
+            --primary-dark: #388e3c;
+            --primary-subtle: rgba(76, 175, 80, 0.1);
+            --secondary: #2196f3;
+            --success: #4caf50;
+            --info: #00bcd4;
+            --warning: #ffc107;
+            --danger: #f44336;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --top-nav-height: 60px;
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .admin-dashboard-page {
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar styles */
+        #admin-sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            border-right: 1px solid var(--gray-light);
+        }
+
+        #admin-sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        #admin-sidebar.collapsed .sidebar-header h5 {
+            display: none;
+        }
+        #admin-sidebar.collapsed .logo-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            color: var(--primary);
+        }
+
+        .logo-container {
+            background-color: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .logo-icon {
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu .nav-link {
+            padding: 0.8rem 1.5rem;
+            color: var(--dark);
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        .notification-badge-1 {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-menu .nav-link:hover,
+        .sidebar-menu .nav-link.active {
+            color: var(--primary);
+            background-color: var(--primary-subtle);
+        }
+
+        .sidebar-menu .nav-link.active {
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        /* Top navbar */
+        .top-navbar {
+            background-color: white;
+            height: var(--top-nav-height);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        #sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.2rem;
+        }
+
+        .search-box .input-group {
+            background-color: var(--light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            border-color: var(--light);
+            background-color: var(--light);
+        }
+
+        .search-box input:focus {
+            box-shadow: none;
+            border-color: var(--light);
+            background-color: var(--light);
+        }
+
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+            animation: bounce 2s infinte;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+        }
+        
+        .notification-item {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification-item:hover {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            transform: translateX(5px);
+        }
+        
+        .notification-item.unread {
+            background: linear-gradient(135deg, #fff8f0 0%, #fef5e7 100%);
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 107, 53, 0.05), transparent);
+            pointer-events: none;
+        }
+        
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .notification-icon.info {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+        }
+        
+        .notification-icon.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .notification-icon.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .notification-icon.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+        
+        .notification-message {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+        }
+
+        .notification-time {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        
+        .notification-actions {
+            margin-left: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+        
+        .unread-badge {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #ff6b35, #ff4500);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+            animation: pulse 2s infinite;
+        }
+        /* .admin-profile-btn {
+            border: none;
+            background: none;
+            color: var(--dark);
+        } */
+         @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .avatar-container {
+            width: 40px;
+            height: 40px;
+            /* background-color: var(--primary); */
+            background: url('https://avatar.iran.liara.run/public/job/administrator/male');
+            background-size: cover;
+            background-position: center;
+            /* border-radius: 50%; */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.25rem;
+        }
+
+        .card-footer {
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.25rem;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .icon-blue {
+            background-color: rgba(33, 150, 243, 0.1) !important;
+            color: #2196f3 !important;
+        }
+
+        .icon-purple {
+            background-color: rgba(156, 39, 176, 0.1) !important;
+            color: #9c27b0 !important;
+        }
+
+        .icon-orange {
+            background-color: rgba(255, 152, 0, 0.1) !important;
+            color: #ff9800 !important;
+        }
+
+        /* Tables */
+        .table> :not(:first-child) {
+            border-top: 1px solid currentColor;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+        }
+
+        /* Insight cards */
+        .insight-card {
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Chart */
+        .chart-container {
+            position: relative;
+            margin: auto;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) {
+            #admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            #admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* Toast notifications */
+        .toast {
+            background-color: white;
+            border: none;
+        }
+
+        /* Helper classes */
+        .btn-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .btn-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body class="admin-dashboard-page">
+    <!-- Page Loader -->
+    <div class="loader-container" id="pageLoader">
+        <div class="loader"></div>
+    </div>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <nav id="admin-sidebar" class="shadow-sm">
+            <div class="sidebar-header">
+                <div class="d-flex align-items-center justify-content-center mb-4">
+                    <div class="logo-container">
+                        <i class="fas fa-graduation-cap logo-icon"></i>
+                    </div>
+                    <h5 class="mb-0 ms-2">Admin Portal</h5>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" href="{{ url_for('admin.index') }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint.endswith('orders') %}active{% endif %}" href="{{ url_for('admin.list_orders') }}">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Orders</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint.endswith('delivery') %}active{% endif %}" href="{{ url_for('admin_delivery.delivery_dashboard') }}">
+                            <i class="fas fa-truck"></i>
+                            <span>Order Deliveries</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint.endswith('users') %}active{% endif %}" href="{{ url_for('admin.list_users') }}">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint.endswith('payments') %}active{% endif %}" href="{{ url_for('admin.list_payments') }}">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Payments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'messages' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.services_management') }}">
+                            <i class="fas fa-signal"></i>
+                            <span>Services</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'chats' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.list_chats') }}">
+                            <i class="fas fa-comments"></i>
+                            <span>Live Chat</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'blog' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.list_blog_posts') }}">
+                            <i class="fas fa-blog"></i>
+                            <span>Blog</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'testimonials' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.list_testimonials') }}">
+                            <i class="fas fa-star"></i>
+                            <span>Testimonials</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'samples' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.list_samples') }}">
+                            <i class="fas fa-file-signature"></i>
+                            <span>Samples</span>
+                        </a>
+                    </li>
+                    <li class="nav-header pt-3 pb-2 px-3">
+                        <!-- <small class="text-uppercase text-muted">Settings</small> -->
+                         <hr />
+                    </li>
+                    <!-- <li class="nav-item">
+                        <a class="nav-link {% if 'settings' in request.endpoint %}active{% endif %}" href="#">
+                            <i class="fas fa-cog"></i>
+                            <span>Account Settings</span>
+                        </a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-navbar shadow-sm">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <button id="sidebar-toggle" class="btn btn-sm">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="search-box ms-3 d-none d-md-block">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" placeholder="Search..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                            <div class="d-flex align-items-center">
+                                <div class="dropdown notifications-dropdown me-3">
+                                    <button class="btn position-relative" type="button" id="notificationDropdown"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-bell"></i>
+                                        <span class="notification-badge" style="display: none;">0</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                        aria-labelledby="notificationDropdown">
+                                        <li>
+                                            <h6 class="dropdown-header">Notifications</h6>
+                                        </li>
+                                        <!-- Notification items will be dynamically inserted here -->
+                                        <li>
+                                            <hr class="dropdown-divider" />
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-center" href="{{url_for('admin.list_notifications')}}">View all</a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="dropdown notifications-dropdown me-1">
+                                    <button class="btn btn-successjs-chat-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-comments js-chat-icon"></i>
+                                        <span class="notification-badge-1 js-chat-badge" style="display: none;">0</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm js-chat-dropdown" aria-labelledby="notificationDropdown">
+                                        <li>
+                                            <h6 class="dropdown-header js-chat-header">Messages</h6>
+                                        </li>
+                                        <!-- container for items -->
+                                        <div class="js-chat-messages-list">
+                                            
+                                        </div>
+                                        <li>
+                                            <hr class="dropdown-divider js-chat-divider" />
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-center js-chat-view-all" href="#">
+                                                View all
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            
+
+                            <div class="dropdown">
+                                <button class="btn admin-profile-btn d-flex align-items-center" type="button"
+                                    id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="avatar-container me-2">
+                                        <!-- <span>{{ current_user.username[0]|upper }}</span> -->
+                                        <span style=""><img src="https://avatar.iran.liara.run/public/boy?username=boniface" style="border-radius: 50%; max-width: 45px;"  alt="Admin Avatar"> </span>
+                                    </div>
+                                    <!-- <span class="d-none d-md-inline">{{ current_user.get_name() }}</span> -->
+                                    <!-- <i class="fas fa-chevron-down ms-2"></i> -->
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="profileDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{{url_for('admin.view_user', user_id=current_user.id)}}"><i class="fas fa-user me-2"></i>Profile</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider" />
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i
+                                                class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+    <!-- Flash messages handling -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const toastContainer = document.querySelector('.toast-container');
+                    {% for category, message in messages %}
+                        const toast = document.createElement('div');
+                        toast.className = 'toast show';
+                        toast.setAttribute('role', 'alert');
+                        toast.setAttribute('aria-live', 'assertive');
+                        toast.setAttribute('aria-atomic', 'true');
+                        
+                        toast.innerHTML = `
+                            <div class="toast-header">
+                                <strong class="me-auto">Notification</strong>
+                                <small>Just now</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body bg-{{ category if category != 'message' else 'info' }} text-white">
+                                {{ message }}
+                            </div>
+                        `;
+                        
+                        toastContainer.appendChild(toast);
+                        
+                        setTimeout(() => {
+                            toast.remove();
+                        }, 5000);
+                    {% endfor %}
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+
+<script>
+    // Admin Interface and Notification System
+    class AdminInterface {
+        constructor() {
+            this.elements = {};
+            this.notificationSystem = null;
+            this.chatSystem = null;
+            this.isInitialized = false;
+            
+            this.init();
+        }
+        
+        init() {
+            if (this.isInitialized) return;
+            
+            this.cacheElements();
+            this.initSidebar();
+            this.initMobileHandlers();
+            this.addCustomStyles();
+            
+            this.notificationSystem = new NotificationSystem();
+            this.chatSystem = new ChatSystem();
+            
+            this.isInitialized = true;
+        }
+        
+        cacheElements() {
+            this.elements = {
+                sidebarToggle: document.getElementById('sidebar-toggle'),
+                adminSidebar: document.getElementById('admin-sidebar'),
+                mainContent: document.querySelector('.main-content'),
+                body: document.body
+            };
+        }
+        
+        initSidebar() {
+            const { sidebarToggle, adminSidebar, mainContent } = this.elements;
+            
+            if (!sidebarToggle || !adminSidebar || !mainContent) {
+                console.warn('Sidebar elements not found');
+                return;
+            }
+            
+            sidebarToggle.addEventListener('click', () => {
+                adminSidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            });
+        }
+        
+        initMobileHandlers() {
+            if (window.innerWidth >= 992) return;
+            
+            const { adminSidebar, sidebarToggle, body } = this.elements;
+            
+            if (!adminSidebar || !sidebarToggle) return;
+            
+            // Handle clicks outside sidebar on mobile
+            body.addEventListener('click', (e) => {
+                if (!adminSidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    adminSidebar.classList.remove('show');
+                }
+            });
+            
+            // Toggle sidebar on mobile
+            sidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                adminSidebar.classList.toggle('show');
+            });
+        }
+        
+        addCustomStyles() {
+            if (document.getElementById('admin-custom-styles')) return;
+            
+            const style = document.createElement('style');
+            style.id = 'admin-custom-styles';
+            style.textContent = `
+                .circle-indicator {
+                    display: inline-block;
+                    color: #0d6efd;
+                    font-size: 1.2em;
+                    line-height: 1;
+                    vertical-align: middle;
+                }
+                
+                .notification-dropdown-item {
+                    transition: background-color 0.2s ease;
+                }
+                
+                .notification-dropdown-item:hover {
+                    background-color: #f8f9fa;
+                }
+                
+                .unread-badge {
+                    width: 8px;
+                    height: 8px;
+                    background-color: #0d6efd;
+                    border-radius: 50%;
+                    flex-shrink: 0;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    // Notification System
+    class NotificationSystem {
+        constructor() {
+            this.elements = {};
+            this.checkInterval = null;
+            this.isChecking = false;
+            
+            this.init();
+        }
+        
+        init() {
+            this.cacheElements();
+            this.startPeriodicCheck();
+            this.checkForNotifications(); // Initial check
+        }
+        
+        cacheElements() {
+            this.elements = {
+                badge: document.querySelector('.notification-badge'),
+                dropdown: document.querySelector('#notificationDropdown + .dropdown-menu')
+            };
+        }
+        
+        startPeriodicCheck() {
+            // Check immediately, then every 30 seconds
+            this.checkInterval = setInterval(() => {
+                this.checkForNotifications();
+            }, 30000);
+        }
+        
+        async checkForNotifications() {
+            if (this.isChecking) return;
+            this.isChecking = true;
+            
+            try {
+                const response = await fetch('{{url_for('client.get_notifications')}}', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                    this.updateBadge(unreadCount);
+                    this.updateDropdown(data.notifications);
+                }
+            } catch (error) {
+                console.error('Error checking notifications:', error);
+            } finally {
+                this.isChecking = false;
+            }
+        }
+        
+        updateBadge(count) {
+            const { badge } = this.elements;
+            if (!badge) return;
+            
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        updateDropdown(notifications) {
+            const { dropdown } = this.elements;
+            if (!dropdown) {
+                console.error('Notification dropdown not found');
+                return;
+            }
+            
+            const fixedElements = this.getFixedDropdownElements(dropdown);
+            this.clearNotificationItems(dropdown, fixedElements);
+            
+            if (notifications.length === 0) {
+                this.addNoNotificationsItem(dropdown, fixedElements.divider);
+            } else {
+                this.addNotificationItems(dropdown, notifications.slice(0, 5), fixedElements.viewAll);
+            }
+            
+            this.addNotificationClickHandlers();
+        }
+        
+        getFixedDropdownElements(dropdown) {
+            return {
+                header: dropdown.querySelector('.dropdown-header')?.parentElement,
+                divider: dropdown.querySelector('.dropdown-divider')?.parentElement,
+                viewAll: dropdown.querySelector('.dropdown-item.text-center')?.parentElement
+            };
+        }
+        
+        clearNotificationItems(dropdown, fixedElements) {
+            const items = Array.from(dropdown.querySelectorAll('li'));
+            items.forEach(item => {
+                if (!Object.values(fixedElements).includes(item)) {
+                    dropdown.removeChild(item);
+                }
+            });
+        }
+        
+        addNoNotificationsItem(dropdown, beforeElement) {
+            const item = document.createElement('li');
+            item.className = 'px-3 py-2 text-muted text-center';
+            item.innerHTML = '<span class="dropdown-item text-muted">No notifications</span>';
+            dropdown.insertBefore(item, beforeElement);
+        }
+        
+        addNotificationItems(dropdown, notifications, beforeElement) {
+            const fragment = document.createDocumentFragment();
+            
+            notifications.forEach(notification => {
+                const item = this.createNotificationItem(notification);
+                fragment.appendChild(item);
+            });
+            
+            dropdown.insertBefore(fragment, beforeElement);
+        }
+        
+        createNotificationItem(notification) {
+            const item = document.createElement('li');
+            const link = document.createElement('a');
+            
+            link.className = `dropdown-item notification-dropdown-item ${notification.is_read ? '' : 'fw-bold'}`;
+            // link.href = '#';
+            if (notification.link) {
+                link.href = notification.link;
+            } else {
+                link.href = '#';
+            }
+            link.dataset.notificationId = notification.id;
+            
+            // link.innerHTML = `
+            //     <div class="d-flex align-items-start">
+            //         <div class="notification-icon">
+            //             <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
+            //         </div>
+            //         <div class="notification-content">
+            //             <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+            //             <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+            //             <div class="notification-time">${this.timeAgo(notification.created_at)}</div>
+            //         </div>
+            //         <div class="notification-actions">
+            //             ${!notification.is_read ? '<div class="unread-badge"></div>' : ''}
+            //         </div>
+            //     </div>
+            // `;
+
+            link.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-2">
+                    <i class="fas fa-${this.getNotificationIcon(notification.type)} text-${this.getNotificationColor(notification.type)}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="small fw-semibold">${this.escapeHtml(notification.title)}</div>
+                    <div class="small text-muted">${this.escapeHtml(this.truncateText(notification.message, 50))}</div>
+                    <div class="small text-muted">${this.timeAgo(notification.created_at)}</div>
+                </div>
+                ${!notification.is_read ? '<div class="flex-shrink-0 p-3"><span class="badge bg-primary rounded-pill">New</span></div>' : ''}
+            </div>
+        `;
+
+            
+            item.appendChild(link);
+            return item;
+        }
+        
+        addNotificationClickHandlers() {
+            const items = document.querySelectorAll('[data-notification-id]');
+            
+            items.forEach(item => {
+                // Remove existing listeners by cloning
+                const newItem = item.cloneNode(true);
+                item.parentNode?.replaceChild(newItem, item);
+                
+                newItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const notificationId = newItem.getAttribute('data-notification-id');
+                    if (notificationId && !isNaN(notificationId)) {
+                        this.markAsRead(parseInt(notificationId));
+                        const href = newItem.getAttribute('href') || '#';
+                        window.location.href = href;
+                    }
+                });
+            });
+        }
+        
+        async markAsRead(notificationId) {
+            if (!notificationId || notificationId <= 0) {
+                console.error('Invalid notification ID:', notificationId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/client/mark-notification-read/${notificationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': "{{ csrf_token() }}",
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    this.checkForNotifications();
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+        truncateText(text, maxLength) {
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+        getNotificationIcon(type) {
+            const iconMap = {
+                'info': 'info-circle',
+                'success': 'check-circle',
+                'warning': 'exclamation-triangle',
+                'error': 'exclamation-circle',
+                'message': 'envelope'
+            };
+            return iconMap[type] || 'bell';
+        }
+        getNotificationColor(type) {
+            const colors = {
+                'info': 'primary',
+                'success': 'success',
+                'warning': 'warning',
+                'error': 'danger',
+                'message': 'info',
+                'order': 'primary',
+                'payment': 'success',
+                'system': 'secondary'
+            };
+            return colors[type] || 'primary';
+        }
+        
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            const intervals = [
+                { label: 'year', seconds: 31536000 },
+                { label: 'month', seconds: 2592000 },
+                { label: 'day', seconds: 86400 },
+                { label: 'hour', seconds: 3600 },
+                { label: 'minute', seconds: 60 }
+            ];
+            
+            for (const interval of intervals) {
+                const count = Math.floor(seconds / interval.seconds);
+                if (count > 0) {
+                    return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
+                }
+            }
+            
+            return 'Just now';
+        }
+        
+        destroy() {
+            if (this.checkInterval) {
+                clearInterval(this.checkInterval);
+                this.checkInterval = null;
+            }
+        }
+    }
+
+    // Chat System
+    class ChatSystem {
+        constructor() {
+            this.socket = null;
+            this.currentChatId = null;
+            this.currentUserId = null;
+            this.elements = {};
+            this.isConnected = false;
+            
+            this.init();
+        }
+        
+        init() {
+            this.getCurrentUserId();
+            this.cacheElements();
+            this.initSocket();
+            this.bindEvents();
+            this.updateUnreadCount();
+            this.updateRecentMessages();
+
+        }
+        
+        getCurrentUserId() {
+            const userIdMeta = document.querySelector('meta[name="user-id"]');
+            this.currentUserId = userIdMeta?.getAttribute('content') || null;
+        }
+        
+        cacheElements() {
+            this.elements = {
+                chatMessages: document.querySelector('.chat-messages'),
+                messageForm: document.querySelector('#message-form'),
+                messageInput: document.querySelector('#message-input'),
+                chatDropdown: document.querySelector('.js-chat-dropdown'),
+                chatBadge: document.querySelector('.js-chat-badge'),
+                chatMessagesList: document.querySelector('.js-chat-messages-list'),
+                chatToggle: document.querySelector('.js-chat-toggle'),
+                chatContainer: document.querySelector('#chat-container')
+            };
+            
+            // Get current chat ID if we're on a chat page
+            if (this.elements.chatContainer) {
+                this.currentChatId = this.elements.chatContainer.dataset.chatId;
+            }
+        }
+        
+        initSocket() {
+            if (typeof io === 'undefined') {
+                console.warn('Socket.IO not available');
+                return;
+            }
+            
+            this.socket = io();
+            this.setupSocketHandlers();
+        }
+        
+        setupSocketHandlers() {
+            if (!this.socket) return;
+            
+            this.socket.on('connect', () => {
+                console.log('Connected to socket server');
+                this.isConnected = true;
+                
+                // Join personal room
+                if (this.currentUserId) {
+                    this.socket.emit('join', { room: `user_${this.currentUserId}` });
+                }
+                
+                // Join chat room if we're on a chat page
+                if (this.currentChatId) {
+                    this.socket.emit('join_chat', { chat_id: this.currentChatId });
+                    this.socket.emit('mark_messages_read', { chat_id: this.currentChatId });
+                }
+            });
+            
+            this.socket.on('disconnect', () => {
+                console.log('Disconnected from socket server');
+                this.isConnected = false;
+            });
+            
+            this.socket.on('new_message', (message) => {
+                this.handleNewMessage(message);
+            });
+            
+            this.socket.on('update_unread_count', (data) => {
+                if (data.user_id == this.currentUserId) {
+                    this.updateUnreadCount();
+                    this.updateRecentMessages();
+                }
+            });
+            
+            this.socket.on('messages_marked_read', (data) => {
+                if (this.currentChatId && this.currentChatId == data.chat_id) {
+                    this.removeUnreadIndicators();
+                }
+            });
+        }
+        
+        bindEvents() {
+            const { messageForm, chatToggle } = this.elements;
+            
+            if (messageForm) {
+                messageForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+            }
+            
+            if (chatToggle) {
+                chatToggle.addEventListener('click', () => {
+                    this.updateRecentMessages();
+                });
+            }
+        }
+        
+        async updateUnreadCount() {
+            try {
+                const response = await fetch('{{url_for('api.get_unread_count')}}', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                this.updateChatBadge(data.unread_count);
+            } catch (error) {
+                console.error('Error fetching unread count:', error);
+            }
+        }
+        
+        updateChatBadge(count) {
+            const { chatBadge } = this.elements;
+            if (!chatBadge) return;
+            
+            if (count > 0) {
+                chatBadge.textContent = count;
+                chatBadge.style.display = 'inline-block';
+            } else {
+                chatBadge.style.display = 'none';
+            }
+        }
+        
+        async updateRecentMessages() {
+            const { chatMessagesList } = this.elements;
+            if (!chatMessagesList) return;
+            
+            try {
+                const response = await fetch('{{url_for('api.get_recent_messages')}}', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const messages = await response.json();
+                this.renderRecentMessages(messages);
+            } catch (error) {
+                console.error('Error fetching recent messages:', error);
+            }
+        }
+        
+        // renderRecentMessages(messages) {
+        //     const { chatMessagesList } = this.elements;
+        //     if (!chatMessagesList) return;
+            
+        //     chatMessagesList.innerHTML = '';
+            
+        //     if (messages.length === 0) {
+        //         chatMessagesList.innerHTML = '<li class="dropdown-item">No new messages</li>';
+        //         return;
+        //     }
+            
+        //     const fragment = document.createDocumentFragment();
+            
+        //     messages.forEach(message => {
+        //         const messageItem = this.createMessageItem(message);
+        //         fragment.appendChild(messageItem);
+        //     });
+            
+        //     chatMessagesList.appendChild(fragment);
+        // }
+        
+        // createMessageItem(message) {
+        //     const item = document.createElement('li');
+        //     item.className = 'dropdown-item message-preview';
+            
+        //     if (!message.is_read) {
+        //         item.classList.add('unread');
+        //     }
+            
+        //     item.innerHTML = `
+        //         <a href="/admin/chats/${message.chat_id}" class="text-decoration-none text-dark">
+        //             <div class="d-flex align-items-start">
+        //                 <div class="message-preview-content">
+        //                     <div class="fw-bold">${this.escapeHtml(message.subject)}</div>
+        //                     <small>${this.escapeHtml(message.sender_name)}: ${this.escapeHtml(message.content)}</small>
+        //                     <div class="text-muted small">${message.created_at}</div>
+        //                 </div>
+        //                 ${!message.is_read ? '<span class="badge rounded-pill bg-primary ms-auto">New</span>' : ''}
+        //             </div>
+        //         </a>
+        //     `;
+            
+        //     return item;
+        // }
+
+        renderRecentMessages(chats) {
+            const { chatMessagesList } = this.elements;
+            if (!chatMessagesList) return;
+            
+            chatMessagesList.innerHTML = '';
+            
+            if (chats.length === 0) {
+                chatMessagesList.innerHTML = '<li class="dropdown-item text-center text-muted"><em>No recent conversations</em></li>';
+                return;
+            }
+            
+            const fragment = document.createDocumentFragment();
+            
+            chats.forEach(chat => {
+                const chatItem = this.createChatItem(chat);
+                fragment.appendChild(chatItem);
+            });
+            
+            chatMessagesList.appendChild(fragment);
+        }
+
+        createChatItem(chat) {
+            const item = document.createElement('li');
+            item.className = 'dropdown-item chat-preview';
+            
+            if (chat.has_unread) {
+                item.classList.add('has-unread');
+            }
+            
+            item.innerHTML = `
+                <a href="/admin/chats/${chat.chat_id}" class="text-decoration-none ">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 fw-bold text-truncate chat-subject" style="max-width: 200px;" title="${this.escapeHtml(chat.subject)}">
+                                    ${this.escapeHtml(chat.subject)}
+                                </h6>
+                                ${chat.unread_count > 0 ? 
+                                    `<span class="badge bg-primary rounded-pill ms-2">${chat.unread_count}</span>` : 
+                                    ''
+                                }
+                            </div>
+                            <div class="text-muted small mb-1">
+                                <strong>${this.escapeHtml(chat.latest_message.sender_name)}:</strong>
+                                <span class="text-truncate d-inline message-content" title="${this.escapeHtml(chat.latest_message.content)}">
+                                    ${this.escapeHtml(chat.latest_message.content)}
+                                </span>
+                            </div>
+                            <div class="text-muted message-time" style="font-size: 0.75rem;">
+                                ${this.timeAgo(chat.latest_message.created_at)}
+                            </div>
+                        </div>
+                        ${chat.has_unread ? 
+                            '<div class="ms-2 unread-indicator"><i class="fas fa-circle text-primary"></i></div>' : 
+                            ''
+                        }
+                    </div>
+                </a>
+            `;
+            
+            // Add hover effects
+            const link = item.querySelector('a');
+            link.addEventListener('mouseenter', () => {
+                if (!chat.has_unread) {
+                    item.style.backgroundColor = '#f8f9fa';
+                }
+            });
+            link.addEventListener('mouseleave', () => {
+                if (!chat.has_unread) {
+                    item.style.backgroundColor = '';
+                }
+            });
+            
+            return item;
+        }
+
+        // Enhanced time ago function for better readability
+        timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'Just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes}m ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours}h ago`;
+            } else if (diffInSeconds < 604800) {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days}d ago`;
+            } else {
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                });
+            }
+        }
+
+        // Add CSS styles for the admin dropdown
+        addAdminDropdownStyles() {
+            if (document.getElementById('admin-chat-dropdown-styles')) return;
+            
+            const style = document.createElement('style');
+            style.id = 'admin-chat-dropdown-styles';
+            style.textContent = `
+                /* Admin Chat Dropdown Styles */
+                .chat-preview {
+                    border: none !important;
+                    padding: 0 !important;
+                    transition: all 0.2s ease;
+                }
+                
+                .chat-preview:not(:last-child) {
+                    border-bottom: 1px solid #e9ecef;
+                }
+                
+                .chat-preview.has-unread {
+                    background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%) !important;
+                    border-left: 3px solid #0d6efd !important;
+                }
+                
+                .chat-preview:hover {
+                    background-color: #f8f9fa !important;
+                    transform: translateX(2px);
+                }
+                
+                .chat-preview.has-unread:hover {
+                    background: linear-gradient(135deg, #e8f2ff 0%, #d1e7ff 100%) !important;
+                }
+                
+                .chat-preview a {
+                    transition: all 0.2s ease;
+                    border-radius: 4px;
+                }
+                
+                .chat-subject {
+                    max-width: 200px;
+                    color: #2c3e50;
+                    font-size: 0.9rem;
+                }
+                
+                .chat-preview.has-unread .chat-subject {
+                    color: #0d6efd;
+                }
+                
+                .message-content {
+                    max-width: 180px;
+                    color: #6c757d;
+                }
+                
+                .message-time {
+                    color: #adb5bd;
+                    font-weight: 500;
+                }
+                
+                .unread-indicator i {
+                    font-size: 0.5rem;
+                    animation: pulse 2s infinite;
+                }
+                
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                    100% { opacity: 1; }
+                }
+                
+                .min-width-0 {
+                    min-width: 0;
+                }
+                
+                /* Dropdown container styling */
+                .dropdown-menu .chat-preview {
+                    margin: 0;
+                }
+                
+                .dropdown-menu {
+                    max-height: 400px;
+                    overflow-y: auto;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                    border: 1px solid #e9ecef;
+                }
+                
+                /* Custom scrollbar for dropdown */
+                .dropdown-menu::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .dropdown-menu::-webkit-scrollbar-track {
+                    background: #f8f9fa;
+                    border-radius: 3px;
+                }
+                
+                .dropdown-menu::-webkit-scrollbar-thumb {
+                    background: #dee2e6;
+                    border-radius: 3px;
+                }
+                
+                .dropdown-menu::-webkit-scrollbar-thumb:hover {
+                    background: #adb5bd;
+                }
+                
+                /* Badge styling */
+                .badge.bg-primary {
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    min-width: 18px;
+                    height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                /* Empty state styling */
+                .dropdown-item em {
+                    color: #6c757d;
+                    font-style: normal;
+                    opacity: 0.8;
+                }
+                
+                /* Responsive adjustments */
+                @media (max-width: 768px) {
+                    .chat-subject {
+                        max-width: 150px;
+                    }
+                    
+                    .message-content {
+                        max-width: 120px;
+                    }
+                }
+                
+                /* Loading state (if needed) */
+                .chat-preview.loading {
+                    opacity: 0.6;
+                    pointer-events: none;
+                }
+                
+                .chat-preview.loading::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    right: 10px;
+                    width: 12px;
+                    height: 12px;
+                    border: 2px solid #0d6efd;
+                    border-top: 2px solid transparent;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    transform: translateY(-50%);
+                }
+                
+                @keyframes spin {
+                    0% { transform: translateY(-50%) rotate(0deg); }
+                    100% { transform: translateY(-50%) rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        
+        handleNewMessage(message) {
+            // Update chat messages if we're on the right chat page
+            if (this.currentChatId && this.currentChatId == message.chat_id) {
+                this.appendMessageToChat(message);
+                
+                // Mark as read if message is from another user
+                if (message.user_id != this.currentUserId && this.socket) {
+                    this.socket.emit('mark_messages_read', { chat_id: this.currentChatId });
+                }
+            }
+            
+            // Update unread count and recent messages if message is from another user
+            if (message.user_id != this.currentUserId) {
+                this.updateUnreadCount();
+                this.updateRecentMessages();
+            }
+        }
+        
+        appendMessageToChat(message) {
+            const { chatMessages } = this.elements;
+            if (!chatMessages) return;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            
+            if (message.user_id == this.currentUserId) {
+                messageElement.classList.add('message-outgoing');
+            } else {
+                messageElement.classList.add('message-incoming');
+            }
+            
+            messageElement.innerHTML = `
+                <div class="message-content">
+                    <div class="message-text">${this.escapeHtml(message.content)}</div>
+                    <div class="message-time">${message.created_at}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        sendMessage() {
+            const { messageInput } = this.elements;
+            if (!messageInput || !this.socket || !this.isConnected) return;
+            
+            const content = messageInput.value.trim();
+            if (!content || !this.currentChatId) return;
+            
+            this.socket.emit('send_message', {
+                chat_id: this.currentChatId,
+                content: content
+            });
+            
+            messageInput.value = '';
+        }
+        
+        removeUnreadIndicators() {
+            const unreadBadges = document.querySelectorAll('.message-unread-indicator');
+            unreadBadges.forEach(badge => badge.remove());
+        }
+        
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    }
+
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        new AdminInterface();
+    });
+
+    // markChatAsViewed(chatId) {
+    //     // You can implement this to make an API call to mark messages as read
+    //     fetch(`/api/chats/${chatId}/mark_read`, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'X-CSRFToken': this.getCSRFToken() // If using CSRF protection
+    //         }
+    //     }).catch(error => {
+    //         console.error('Error marking chat as read:', error);
+    //     });
+    // }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        // Cleanup notification system
+        if (window.notificationSystem) {
+            window.notificationSystem.destroy();
+        }
+    });
+</script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,702 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-0">Dashboard Overview</h4>
+            <p class="text-muted">
+                Welcome back, {{ current_user.get_name() }}. Here's what's happening today.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Revenue</h6>
+                            <h3 class="mb-0">${{ '{:,.2f}'.format(total_revenue) }}</h3>
+                            <p class="small text-success mb-0">
+                                <i class="fas fa-arrow-up me-1"></i>Month over month
+                            </p>
+                        </div>
+                        <div class="icon-container">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Active Orders</h6>
+                            <h3 class="mb-0">{{ orders_count }}</h3>
+                            <p class="small text-success mb-0">
+                                <i class="fas fa-arrow-up me-1"></i>{{ pending_count + in_progress_count }} in progress
+                            </p>
+                        </div>
+                        <div class="icon-container icon-blue">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Client Satisfaction</h6>
+                            <h3 class="mb-0">{{ satisfaction_rate }}%</h3>
+                            <p class="small text-success mb-0">
+                                <i class="fas fa-arrow-up me-1"></i>Based on completed orders
+                            </p>
+                        </div>
+                        <div class="icon-container icon-orange">
+                            <i class="fas fa-smile"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">New Clients</h6>
+                            <h3 class="mb-0">{{ new_clients }}</h3>
+                            <p class="small text-success mb-0">
+                                <i class="fas fa-redo-alt me-1"></i>{{ returning_rate }}% return rate
+                            </p>
+                        </div>
+                        <div class="icon-container icon-purple">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Chart and Orders Overview -->
+    <div class="row">
+        <!-- Revenue Chart -->
+        <div class="col-xl-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Revenue Overview</h6>
+                        <div class="btn-group" role="group" aria-label="Revenue period">
+                            <button type="button" class="btn btn-sm btn-outline-secondary active" id="revenue-weekly">Weekly</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="revenue-monthly">Monthly</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="revenue-yearly">Yearly</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="revenueChart" height="300"></canvas>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-primary"></div>
+                                <div class="ms-2">
+                                    <h6 class="mb-0" id="current-period-label">Current Week</h6>
+                                    <small class="text-muted" id="current-period-total"></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-success"></div>
+                                <div class="ms-2">
+                                    <h6 class="mb-0" id="previous-period-label">Previous Week</h6>
+                                    <small class="text-muted" id="previous-period-total"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders by Status -->
+        <div class="col-xl-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h6 class="mb-0">Orders by Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container mb-4">
+                        <canvas id="orderStatusChart" height="200"></canvas>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-warning"></div>
+                                <div class="ms-2">
+                                    <small class="text-muted">Pending</small>
+                                    <h6 class="mb-0">{{ pending_count }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-primary"></div>
+                                <div class="ms-2">
+                                    <small class="text-muted">In Progress</small>
+                                    <h6 class="mb-0">{{ in_progress_count }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-success"></div>
+                                <div class="ms-2">
+                                    <small class="text-muted">Completed</small>
+                                    <h6 class="mb-0">{{ completed_count }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator bg-danger"></div>
+                                <div class="ms-2">
+                                    <small class="text-muted">Cancelled</small>
+                                    <h6 class="mb-0">{{ cancelled_count }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders and Most Popular Services -->
+    <div class="row">
+        <!-- Recent Orders -->
+        <div class="col-xl-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Recent Orders</h6>
+                        <a href="{{ url_for('admin.list_orders') }}" class="btn btn-sm btn-link">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Client</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-medium">{{ order.order_number }}</span>
+                                    </td>
+                                    <td>{{ order.client.username }}</td>
+                                    <td>{{ order.subject|default('General') }}</td>
+                                    <td>
+                                        <span class="badge {% if order.status == 'Completed' %}bg-success{% elif order.status == 'In Progress' %}bg-primary{% elif order.status == 'Pending' %}bg-warning{% elif order.status == 'Revision' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                    <td>${{ '{:,.2f}'.format(order.total_price|default(0)) }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.view_order', order_id=order.id) }}" class="btn btn-sm action-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not recent_orders %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-3">No recent orders found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Popular Services -->
+        <div class="col-xl-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h6 class="mb-0">Popular Services</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="servicesChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Insights and Support Tickets -->
+    <div class="row">
+        <!-- Client Insights -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h6 class="mb-0">Client Insights</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="insight-card bg-light rounded p-3">
+                                <div class="insight-icon mb-2">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h3 class="mb-1">{{ new_clients }}</h3>
+                                <p class="text-muted mb-0">New Clients</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-card bg-light rounded p-3">
+                                <div class="insight-icon mb-2">
+                                    <i class="fas fa-redo-alt"></i>
+                                </div>
+                                <h3 class="mb-1">{{ returning_rate }}%</h3>
+                                <p class="text-muted mb-0">Return Rate</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-card bg-light rounded p-3">
+                                <div class="insight-icon mb-2">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h3 class="mb-1">{{ satisfaction_rate }}%</h3>
+                                <p class="text-muted mb-0">Satisfaction</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-card bg-light rounded p-3">
+                                <div class="insight-icon mb-2">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <h3 class="mb-1">{{ unread_messages_count }}</h3>
+                                <p class="text-muted mb-0">Unread Messages</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks and Reminders -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Tasks & Reminders</h6>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                            <i class="fas fa-plus me-1"></i>Add Task
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task1">
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Review pending orders</h6>
+                                    <p class="text-muted small mb-0">{{unread_messages_count}}</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-warning">High</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task2">
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Respond to client messages</h6>
+                                    <p class="text-muted small mb-0">{{ unread_messages_count }} unread messages</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-danger">Urgent</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task3">
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Approve testimonials</h6>
+                                    <p class="text-muted small mb-0">{{ pending_testimonials_count }} pending approvals</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-info">Normal</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task4">
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Check revision requests</h6>
+                                    <p class="text-muted small mb-0">{{ revision_count }} revision requests</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-primary">Medium</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="#" class="btn btn-link">View All Tasks</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Task Title</label>
+                        <input type="text" class="form-control" id="taskTitle" placeholder="Enter task title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="taskDescription" rows="3" placeholder="Enter task description"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskDueDate" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="taskDueDate">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskPriority" class="form-label">Priority</label>
+                                <select class="form-select" id="taskPriority">
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue Chart initialization
+        let revenueChart;
+        let orderStatusChart;
+        let servicesChart;
+        
+        const revenueChartCtx = document.getElementById('revenueChart').getContext('2d');
+        const orderStatusChartCtx = document.getElementById('orderStatusChart').getContext('2d');
+        const servicesChartCtx = document.getElementById('servicesChart').getContext('2d');
+        
+        // Function to initialize revenue chart
+        function initRevenueChart(period = 'weekly') {
+            const url = `{{ url_for('admin.revenue_chart_data') }}?period=${period}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Destroy existing chart if it exists
+                    if (revenueChart) {
+                        revenueChart.destroy();
+                    }
+                    
+                    // Update period labels
+                    if (period === 'weekly') {
+                        document.getElementById('current-period-label').textContent = 'Current Week';
+                        document.getElementById('previous-period-label').textContent = 'Previous Week';
+                    } else if (period === 'monthly') {
+                        document.getElementById('current-period-label').textContent = 'Current Year';
+                        document.getElementById('previous-period-label').textContent = 'Previous Year';
+                    } else {
+                        document.getElementById('current-period-label').textContent = 'Revenue';
+                        document.getElementById('previous-period-label').textContent = '';
+                    }
+                    
+                    // Calculate totals
+                    const currentTotal = data.current.reduce((a, b) => a + b, 0);
+                    document.getElementById('current-period-total').textContent = `$${currentTotal.toFixed(2)}`;
+                    
+                    if (data.previous.length > 0) {
+                        const previousTotal = data.previous.reduce((a, b) => a + b, 0);
+                        document.getElementById('previous-period-total').textContent = `$${previousTotal.toFixed(2)}`;
+                    } else {
+                        document.getElementById('previous-period-total').textContent = '';
+                    }
+                    
+                    // Create new chart
+                    revenueChart = new Chart(revenueChartCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [
+                                {
+                                    label: 'Current',
+                                    data: data.current,
+                                    borderColor: '#4CAF50',
+                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                ...(data.previous.length > 0 ? [{
+                                    label: 'Previous',
+                                    data: data.previous,
+                                    borderColor: '#2196F3',
+                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }] : [])
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += new Intl.NumberFormat('en-US', {
+                                                    style: 'currency',
+                                                    currency: 'USD'
+                                                }).format(context.parsed.y);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        borderDash: [2, 2]
+                                    },
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading revenue chart data:', error));
+        }
+        
+        // Initialize status chart
+        function initOrderStatusChart() {
+            fetch('{{ url_for('admin.orders_by_status') }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Destroy existing chart if it exists
+                    if (orderStatusChart) {
+                        orderStatusChart.destroy();
+                    }
+                    
+                    // Create new chart
+                    orderStatusChart = new Chart(orderStatusChartCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.data,
+                                backgroundColor: data.colors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = Math.round((value / total) * 100);
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            cutout: '65%'
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading order status chart data:', error));
+        }
+        
+        // Initialize services chart
+        function initServicesChart() {
+            fetch('{{ url_for('admin.orders_by_service') }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Destroy existing chart if it exists
+                    if (servicesChart) {
+                        servicesChart.destroy();
+                    }
+                    
+                    // Create new chart
+                    servicesChart = new Chart(servicesChartCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Orders',
+                                data: data.data,
+                                backgroundColor: [
+                                    'rgba(76, 175, 80, 0.7)',
+                                    'rgba(33, 150, 243, 0.7)',
+                                    'rgba(255, 152, 0, 0.7)',
+                                    'rgba(156, 39, 176, 0.7)',
+                                    'rgba(0, 188, 212, 0.7)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading services chart data:', error));
+        }
+        
+        // Initialize all charts
+        initRevenueChart('weekly');
+        initOrderStatusChart();
+        initServicesChart();
+        
+        // Period buttons event listeners
+        document.getElementById('revenue-weekly').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('revenue-monthly').classList.remove('active');
+            document.getElementById('revenue-yearly').classList.remove('active');
+            initRevenueChart('weekly');
+        });
+        
+        document.getElementById('revenue-monthly').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('revenue-weekly').classList.remove('active');
+            document.getElementById('revenue-yearly').classList.remove('active');
+            initRevenueChart('monthly');
+        });
+        
+        document.getElementById('revenue-yearly').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('revenue-weekly').classList.remove('active');
+            document.getElementById('revenue-monthly').classList.remove('active');
+            initRevenueChart('yearly');
+        });
+        
+        // Task checkbox event listeners
+        document.querySelectorAll('.form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const listItem = this.closest('.list-group-item');
+                if (this.checked) {
+                    listItem.style.opacity = '0.6';
+                    listItem.querySelector('h6').style.textDecoration = 'line-through';
+                } else {
+                    listItem.style.opacity = '1';
+                    listItem.querySelector('h6').style.textDecoration = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

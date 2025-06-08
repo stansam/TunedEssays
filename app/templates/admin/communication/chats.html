@@ -1,0 +1,126 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">Chat Management</h4>
+                    <p class="text-muted">Manage client conversations</p>
+                </div>
+                <a href="{{ url_for('admin.create_chat') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Start New Chat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Search chats...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat List -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Order</th>
+                            <th>Status</th>
+                            <th>Last Activity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for chat in chats %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-container me-2">
+                                        {{ chat.user.username[0]|upper }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ chat.user.username }}</h6>
+                                        <small class="text-muted">{{ chat.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if chat.order %}
+                                <a href="{{ url_for('admin.view_order', order_id=chat.order.id) }}">
+                                    {{ chat.order.order_number }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">No order</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chat.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Closed</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.view_chat', chat_id=chat.id) }}" class="btn btn-sm btn-primary me-2">
+                                    <i class="fas fa-comments"></i>
+                                </a>
+                                {% if chat.status == 'active' %}
+                                <form action="{{ url_for('admin.close_chat', chat_id=chat.id) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form action="{{ url_for('admin.reopen_chat', chat_id=chat.id) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <p class="text-muted mb-0">No chats found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

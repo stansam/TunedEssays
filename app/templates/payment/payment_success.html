@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 text-center">
+            <div class="card shadow-sm">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success display-1"></i>
+                    </div>
+                    <h1 class="mb-4">Payment Successful!</h1>
+                    <p class="lead mb-4">Thank you for your payment. Your order is now being processed.</p>
+                    
+                    <div class="mt-5">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('client.dashboard') }}" class="btn btn-primary">View My Orders</a>
+                        {% else %}
+                            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Home</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

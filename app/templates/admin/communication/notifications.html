@@ -1,0 +1,968 @@
+{% extends "admin/base.html" %}
+
+{% block title %}System Notifications | TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<style>
+    .notification-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .notification-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .notification-card.unread {
+        background-color: rgba(250, 250, 250, 0.9);
+    }
+    
+    .notification-card.info {
+        border-left-color: var(--secondary);
+    }
+    
+    .notification-card.success {
+        border-left-color: var(--success);
+    }
+    
+    .notification-card.warning {
+        border-left-color: var(--warning);
+    }
+    
+    .notification-card.error {
+        border-left-color: var(--danger);
+    }
+    
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .notification-icon.info {
+        background-color: rgba(33, 150, 243, 0.1);
+        color: var(--secondary);
+    }
+    
+    .notification-icon.success {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--success);
+    }
+    
+    .notification-icon.warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+    
+    .notification-icon.error {
+        background-color: rgba(244, 67, 54, 0.1);
+        color: var(--danger);
+    }
+    
+    .notification-date {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+    
+    .notification-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .notification-actions {
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.2s ease;
+    }
+    
+    .notification-card:hover .notification-actions {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    .filter-btn.active {
+        background-color: var(--primary-subtle);
+        color: var(--primary);
+        border-color: var(--primary-light);
+    }
+    
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--gray-light);
+        margin-bottom: 1rem;
+    }
+    
+    /* Animation for new notifications */
+    @keyframes highlight {
+        0% {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+        100% {
+            background-color: transparent;
+        }
+    }
+    
+    .notification-highlight {
+        animation: highlight 2s ease;
+    }
+    
+    /* Tooltip styles */
+    .tooltip-inner {
+        max-width: 200px;
+        padding: 0.5rem;
+        background-color: var(--dark);
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Modal customization */
+    .modal-notification .modal-header {
+        border-bottom: 3px solid;
+    }
+    
+    .modal-notification.info .modal-header {
+        border-bottom-color: var(--secondary);
+    }
+    
+    .modal-notification.success .modal-header {
+        border-bottom-color: var(--success);
+    }
+    
+    .modal-notification.warning .modal-header {
+        border-bottom-color: var(--warning);
+    }
+    
+    .modal-notification.error .modal-header {
+        border-bottom-color: var(--danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0">System Notifications</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Notifications</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Notifications</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="markAllRead">
+                            <i class="fas fa-check-double"></i> Mark All Read
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="bulkActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog"></i> Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bulkActionsDropdown">
+                                <li><a class="dropdown-item" href="#" id="deleteRead"><i class="fas fa-trash-alt me-2"></i>Delete Read Notifications</a></li>
+                                <li><a class="dropdown-item" href="#" id="deleteAll"><i class="fas fa-trash me-2"></i>Delete All Notifications</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" id="refreshNotifications"><i class="fas fa-sync me-2"></i>Refresh Notifications</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <button type="button" class="btn btn-sm filter-btn active" data-filter="all">
+                            All <span class="badge bg-secondary ms-1">{{ notifications|length }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-btn" data-filter="unread">
+                            Unread <span class="badge bg-primary ms-1">{{ notifications|selectattr('is_read', 'equalto', false)|list|length }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-btn" data-filter="info">
+                            Info <span class="badge bg-info ms-1">{{ notifications|selectattr('type', 'equalto', 'info')|list|length }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-btn" data-filter="success">
+                            Success <span class="badge bg-success ms-1">{{ notifications|selectattr('type', 'equalto', 'success')|list|length }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-btn" data-filter="warning">
+                            Warning <span class="badge bg-warning ms-1">{{ notifications|selectattr('type', 'equalto', 'warning')|list|length }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-btn" data-filter="error">
+                            Error <span class="badge bg-danger ms-1">{{ notifications|selectattr('type', 'equalto', 'error')|list|length }}</span>
+                        </button>
+                    </div>
+
+                    <div class="notifications-list">
+                        {% if notifications %}
+                            {% for notification in notifications %}
+                                <div class="notification-card card mb-3 {{ notification.type }} {% if not notification.is_read %}unread{% endif %}" data-type="{{ notification.type }}" data-read="{{ notification.is_read|lower }}" data-id="{{ notification.id }}">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start">
+                                            <div class="notification-icon {{ notification.type }} me-3">
+                                                {% if notification.type == 'info' %}
+                                                    <i class="fas fa-info"></i>
+                                                {% elif notification.type == 'success' %}
+                                                    <i class="fas fa-check"></i>
+                                                {% elif notification.type == 'warning' %}
+                                                    <i class="fas fa-exclamation"></i>
+                                                {% elif notification.type == 'error' %}
+                                                    <i class="fas fa-times"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <h6 class="mb-0">{{ notification.title }}</h6>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if not notification.is_read %}
+                                                            <span class="badge bg-primary me-2">New</span>
+                                                        {% endif %}
+                                                        <span class="notification-date">{{ notification.created_at.strftime('%b %d, %Y at %H:%M') }}</span>
+                                                    </div>
+                                                </div>
+                                                <p class="mb-0 text-muted">{{ notification.message|truncate(100) }}</p>
+                                                <div class="notification-actions mt-2">
+                                                    <div class="d-flex">
+                                                        <button class="btn btn-sm btn-link p-0 me-3 view-notification" data-bs-toggle="modal" data-bs-target="#notificationModal" data-id="{{ notification.id }}" data-title="{{ notification.title }}" data-message="{{ notification.message }}" data-type="{{ notification.type }}" data-date="{{ notification.created_at.strftime('%b %d, %Y at %H:%M') }}">
+                                                            <i class="fas fa-eye me-1"></i> View
+                                                        </button>
+                                                        {% if not notification.is_read %}
+                                                            <button class="btn btn-sm btn-link p-0 me-3 mark-read" data-id="{{ notification.id }}">
+                                                                <i class="fas fa-check me-1"></i> Mark as Read
+                                                            </button>
+                                                        {% endif %}
+                                                        <button class="btn btn-sm btn-link p-0 text-danger delete-notification" data-id="{{ notification.id }}">
+                                                            <i class="fas fa-trash-alt me-1"></i> Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-bell-slash"></i>
+                                </div>
+                                <h4>No Notifications</h4>
+                                <p class="text-muted">You don't have any notifications at the moment.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Detail Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-notification">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="notification-icon me-3">
+                        <i class="notification-modal-icon"></i>
+                    </div>
+                    <div>
+                        <h5 class="notification-modal-title mb-0"></h5>
+                        <small class="notification-modal-date text-muted"></small>
+                    </div>
+                </div>
+                <div class="notification-modal-content">
+                    <p class="notification-modal-message"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary mark-read-modal" data-id="">Mark as Read</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete this notification? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger confirm-delete" data-id="">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkDeleteModalLabel">Confirm Bulk Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="delete-modal-message mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger confirm-bulk-delete" data-action="">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Filter notifications
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const notificationCards = document.querySelectorAll('.notification-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Toggle active class on buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Filter notifications
+                notificationCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else if (filter === 'unread') {
+                        card.style.display = card.getAttribute('data-read') === 'false' ? 'block' : 'none';
+                    } else {
+                        card.style.display = card.getAttribute('data-type') === filter ? 'block' : 'none';
+                    }
+                });
+                
+                // Check if there are visible notifications
+                const visibleNotifications = document.querySelectorAll('.notification-card[style="display: block;"]');
+                const notificationsList = document.querySelector('.notifications-list');
+                
+                if (visibleNotifications.length === 0) {
+                    // Create empty state if no notifications match the filter
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <h4>No Matching Notifications</h4>
+                        <p class="text-muted">No notifications match the selected filter.</p>
+                    `;
+                    
+                    // Remove any existing empty state
+                    const existingEmptyState = notificationsList.querySelector('.empty-state');
+                    if (existingEmptyState) {
+                        notificationsList.removeChild(existingEmptyState);
+                    }
+                    
+                    notificationsList.appendChild(emptyState);
+                } else {
+                    // Remove empty state if there are visible notifications
+                    const existingEmptyState = notificationsList.querySelector('.empty-state');
+                    if (existingEmptyState) {
+                        notificationsList.removeChild(existingEmptyState);
+                    }
+                }
+            });
+        });
+
+        // View notification modal
+        const notificationModal = document.getElementById('notificationModal');
+        notificationModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            const message = button.getAttribute('data-message');
+            const type = button.getAttribute('data-type');
+            const date = button.getAttribute('data-date');
+            
+            const modalTitle = notificationModal.querySelector('.notification-modal-title');
+            const modalMessage = notificationModal.querySelector('.notification-modal-message');
+            const modalDate = notificationModal.querySelector('.notification-modal-date');
+            const modalIcon = notificationModal.querySelector('.notification-modal-icon');
+            const markReadBtn = notificationModal.querySelector('.mark-read-modal');
+            const modalContent = notificationModal.querySelector('.modal-content');
+            
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalDate.textContent = date;
+            markReadBtn.setAttribute('data-id', id);
+            
+            // Set the modal classes based on notification type
+            modalContent.className = 'modal-content modal-notification ' + type;
+            
+            // Set the icon based on notification type
+            modalIcon.className = 'notification-modal-icon fas';
+            switch(type) {
+                case 'info':
+                    modalIcon.classList.add('fa-info');
+                    break;
+                case 'success':
+                    modalIcon.classList.add('fa-check');
+                    break;
+                case 'warning':
+                    modalIcon.classList.add('fa-exclamation');
+                    break;
+                case 'error':
+                    modalIcon.classList.add('fa-times');
+                    break;
+            }
+            
+            // Update notification icon class
+            const iconContainer = notificationModal.querySelector('.notification-icon');
+            iconContainer.className = 'notification-icon ' + type + ' me-3';
+            
+            // Check if notification is already read
+            const notificationCard = document.querySelector(`.notification-card[data-id="${id}"]`);
+            const isRead = notificationCard.getAttribute('data-read') === 'true';
+            
+            // Show/hide mark as read button
+            if (isRead) {
+                markReadBtn.style.display = 'none';
+            } else {
+                markReadBtn.style.display = 'block';
+            }
+        });
+
+        // Delete notification dialog
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteButtons = document.querySelectorAll('.delete-notification');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const confirmDeleteBtn = document.querySelector('.confirm-delete');
+                
+                confirmDeleteBtn.setAttribute('data-id', id);
+                
+                const deleteModalInstance = new bootstrap.Modal(deleteModal);
+                deleteModalInstance.show();
+            });
+        });
+
+        // Bulk delete dialog
+        const bulkDeleteModal = document.getElementById('bulkDeleteModal');
+        const deleteReadBtn = document.getElementById('deleteRead');
+        const deleteAllBtn = document.getElementById('deleteAll');
+        
+        deleteReadBtn.addEventListener('click', function() {
+            const messageElement = bulkDeleteModal.querySelector('.delete-modal-message');
+            const confirmDeleteBtn = bulkDeleteModal.querySelector('.confirm-bulk-delete');
+            
+            messageElement.textContent = 'Are you sure you want to delete all read notifications? This action cannot be undone.';
+            confirmDeleteBtn.setAttribute('data-action', 'read');
+            
+            const bulkDeleteModalInstance = new bootstrap.Modal(bulkDeleteModal);
+            bulkDeleteModalInstance.show();
+        });
+        
+        deleteAllBtn.addEventListener('click', function() {
+            const messageElement = bulkDeleteModal.querySelector('.delete-modal-message');
+            const confirmDeleteBtn = bulkDeleteModal.querySelector('.confirm-bulk-delete');
+            
+            messageElement.textContent = 'Are you sure you want to delete ALL notifications? This action cannot be undone.';
+            confirmDeleteBtn.setAttribute('data-action', 'all');
+            
+            const bulkDeleteModalInstance = new bootstrap.Modal(bulkDeleteModal);
+            bulkDeleteModalInstance.show();
+        });
+
+        // Mark as read functionality
+        const markReadButtons = document.querySelectorAll('.mark-read');
+        
+        markReadButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                markNotificationAsRead(id);
+            });
+        });
+        
+        // Mark as read from modal
+        const markReadModalBtn = document.querySelector('.mark-read-modal');
+        
+        markReadModalBtn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            markNotificationAsRead(id);
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(notificationModal);
+            modal.hide();
+        });
+        
+        // Mark all as read
+        const markAllReadBtn = document.getElementById('markAllRead');
+        
+        markAllReadBtn.addEventListener('click', function() {
+            const unreadNotifications = document.querySelectorAll('.notification-card[data-read="false"]');
+            
+            if (unreadNotifications.length === 0) {
+                showToast('All notifications are already read.', 'info');
+                return;
+            }
+            
+            // Simulate marking all as read
+            unreadNotifications.forEach(card => {
+                const id = card.getAttribute('data-id');
+                markNotificationAsRead(id, false);
+            });
+            
+            showToast('All notifications marked as read.', 'success');
+            
+            // Update the unread count
+            const unreadBadge = document.querySelector('.filter-btn[data-filter="unread"] .badge');
+            unreadBadge.textContent = '0';
+        });
+        
+        // Delete notification confirmation
+        const confirmDeleteBtn = document.querySelector('.confirm-delete');
+        
+        confirmDeleteBtn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            deleteNotification(id);
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(deleteModal);
+            modal.hide();
+        });
+        
+        // Bulk delete confirmation
+        const confirmBulkDeleteBtn = document.querySelector('.confirm-bulk-delete');
+        
+        confirmBulkDeleteBtn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            
+            if (action === 'read') {
+                // Delete all read notifications
+                const readNotifications = document.querySelectorAll('.notification-card[data-read="true"]');
+                
+                if (readNotifications.length === 0) {
+                    showToast('No read notifications to delete.', 'info');
+                } else {
+                    readNotifications.forEach(card => {
+                        const id = card.getAttribute('data-id');
+                        card.remove();
+                    });
+                    
+                    showToast(`${readNotifications.length} read notifications deleted.`, 'success');
+                    updateNotificationCounters();
+                }
+            } else if (action === 'all') {
+                // Delete all notifications
+                const allNotifications = document.querySelectorAll('.notification-card');
+                
+                if (allNotifications.length === 0) {
+                    showToast('No notifications to delete.', 'info');
+                } else {
+                    allNotifications.forEach(card => {
+                        card.remove();
+                    });
+                    
+                    showToast(`${allNotifications.length} notifications deleted.`, 'success');
+                    
+                    // Add empty state
+                    const notificationsList = document.querySelector('.notifications-list');
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <h4>No Notifications</h4>
+                        <p class="text-muted">You don't have any notifications at the moment.</p>
+                    `;
+                    
+                    notificationsList.appendChild(emptyState);
+                    updateNotificationCounters();
+                }
+            }
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(bulkDeleteModal);
+            modal.hide();
+        });
+        
+        // Refresh notifications
+        const refreshBtn = document.getElementById('refreshNotifications');
+        
+        refreshBtn.addEventListener('click', function() {
+            // Simulate refreshing notifications
+            showToast('Notifications refreshed successfully.', 'success');
+        });
+        
+        // Helper functions
+        function markNotificationAsRead(id, showToastMessage = true) {
+            const notificationCard = document.querySelector(`.notification-card[data-id="${id}"]`);
+            
+            if (notificationCard) {
+                notificationCard.classList.remove('unread');
+                notificationCard.setAttribute('data-read', 'true');
+                
+                // Remove the new badge
+                const newBadge = notificationCard.querySelector('.badge.bg-primary');
+                if (newBadge) {
+                    newBadge.remove();
+                }
+                
+                // Remove the mark as read button
+                const markReadBtn = notificationCard.querySelector('.mark-read');
+                if (markReadBtn) {
+                    markReadBtn.remove();
+                }
+                
+                if (showToastMessage) {
+                    showToast('Notification marked as read.', 'success');
+                }
+                
+                // Update the unread count
+                updateNotificationCounters();
+            }
+        }
+        
+        function deleteNotification(id) {
+            const notificationCard = document.querySelector(`.notification-card[data-id="${id}"]`);
+            
+            if (notificationCard) {
+                notificationCard.remove();
+                showToast('Notification deleted successfully.', 'success');
+                
+                // Check if there are any notifications left
+                const remainingNotifications = document.querySelectorAll('.notification-card');
+                if (remainingNotifications.length === 0) {
+                    // Add empty state
+                    const notificationsList = document.querySelector('.notifications-list');
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <h4>No Notifications</h4>
+                        <p class="text-muted">You don't have any notifications at the moment.</p>
+                    `;
+                    
+                    notificationsList.appendChild(emptyState);
+                }
+                
+                // Update notification counters
+                updateNotificationCounters();
+            }
+        }
+        
+        function updateNotificationCounters() {
+            // Get all notifications
+            const allNotifications = document.querySelectorAll('.notification-card');
+            const unreadNotifications = document.querySelectorAll('.notification-card[data-read="false"]');
+            const infoNotifications = document.querySelectorAll('.notification-card[data-type="info"]');
+            const successNotifications = document.querySelectorAll('.notification-card[data-type="success"]');
+            const warningNotifications = document.querySelectorAll('.notification-card[data-type="warning"]');
+            const errorNotifications = document.querySelectorAll('.notification-card[data-type="error"]');
+            
+            // Update badge counts
+            document.querySelector('.filter-btn[data-filter="all"] .badge').textContent = allNotifications.length;
+            document.querySelector('.filter-btn[data-filter="unread"] .badge').textContent = unreadNotifications.length;
+            document.querySelector('.filter-btn[data-filter="info"] .badge').textContent = infoNotifications.length;
+            document.querySelector('.filter-btn[data-filter="success"] .badge').textContent = successNotifications.length;
+            document.querySelector('.filter-btn[data-filter="warning"] .badge').textContent = warningNotifications.length;
+            document.querySelector('.filter-btn[data-filter="error"] .badge').textContent = errorNotifications.length;
+            
+            // Update top navbar notification badge
+            const navbarBadge = document.querySelector('.notification-badge');
+            if (navbarBadge) {
+                navbarBadge.textContent = unreadNotifications.length;
+                navbarBadge.style.display = unreadNotifications.length > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // function showToast(message, type = 'info') {
+        //     const toastContainer = document.querySelector('.toast-container');
+        //     const toast = document.createElement('div');
+        //     toast.className = 'toast show';
+        //     toast.setAttribute('role', 'alert');
+        //     toast.setAttribute('aria-live', 'assertive');
+        //     toast.setAttribute('aria-atomic', 'true');
+            
+        //     // Set icon based on
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            // Set icon based on type
+            let icon;
+            switch(type) {
+                case 'success':
+                    icon = 'fa-check-circle';
+                    break;
+                case 'warning':
+                    icon = 'fa-exclamation-triangle';
+                    break;
+                case 'error':
+                case 'danger':
+                    icon = 'fa-times-circle';
+                    break;
+                default:
+                    icon = 'fa-info-circle';
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-header bg-${type} text-white">
+                    <i class="fas ${icon} me-2"></i>
+                    <strong class="me-auto">Notification</strong>
+                    <small>Just now</small>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+            
+            // If toast container doesn't exist, create it
+            if (!toastContainer) {
+                const newToastContainer = document.createElement('div');
+                newToastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(newToastContainer);
+                newToastContainer.appendChild(toast);
+            } else {
+                toastContainer.appendChild(toast);
+            }
+            
+            // Auto hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Function to check for visible notifications when filtering
+        function checkVisibleNotifications() {
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+            const notificationsList = document.querySelector('.notifications-list');
+            
+            let visibleCount = 0;
+            
+            if (activeFilter === 'all') {
+                visibleCount = document.querySelectorAll('.notification-card').length;
+            } else if (activeFilter === 'unread') {
+                visibleCount = document.querySelectorAll('.notification-card[data-read="false"]').length;
+            } else {
+                visibleCount = document.querySelectorAll(`.notification-card[data-type="${activeFilter}"]`).length;
+            }
+            
+            // If no visible notifications, show empty state
+            if (visibleCount === 0) {
+                const existingEmptyState = notificationsList.querySelector('.empty-state');
+                
+                if (!existingEmptyState) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    
+                    if (activeFilter === 'all') {
+                        emptyState.innerHTML = `
+                            <div class="empty-state-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <h4>No Notifications</h4>
+                            <p class="text-muted">You don't have any notifications at the moment.</p>
+                        `;
+                    } else {
+                        emptyState.innerHTML = `
+                            <div class="empty-state-icon">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <h4>No Matching Notifications</h4>
+                            <p class="text-muted">No notifications match the selected filter.</p>
+                        `;
+                    }
+                    
+                    notificationsList.appendChild(emptyState);
+                }
+            } else {
+                // Remove empty state if there are visible notifications
+                const existingEmptyState = notificationsList.querySelector('.empty-state');
+                if (existingEmptyState) {
+                    existingEmptyState.remove();
+                }
+            }
+        }
+        
+        // Real-time event listeners for notification status changes
+        document.addEventListener('notification:read', function(e) {
+            updateNotificationCounters();
+            checkVisibleNotifications();
+        });
+        
+        document.addEventListener('notification:delete', function(e) {
+            updateNotificationCounters();
+            checkVisibleNotifications();
+        });
+        
+        // Initialize socket connection for real-time notifications
+        function initializeRealTimeNotifications() {
+            // This is a placeholder for WebSocket implementation
+            console.log('Real-time notification system initialized');
+            
+            // Simulate receiving a new notification after 5 seconds
+            setTimeout(() => {
+                const newNotification = {
+                    id: 'new-' + Date.now(),
+                    title: 'New System Update',
+                    message: 'A new system update is available. Please refresh your browser to see the latest changes.',
+                    type: 'info',
+                    created_at: new Date().toLocaleString('en-US', { 
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    })
+                };
+                
+                addNewNotification(newNotification);
+            }, 5000);
+        }
+        
+        function addNewNotification(notification) {
+            const notificationsList = document.querySelector('.notifications-list');
+            const emptyState = notificationsList.querySelector('.empty-state');
+            
+            // Remove empty state if it exists
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            // Create new notification card
+            const notificationCard = document.createElement('div');
+            notificationCard.className = `notification-card card mb-3 ${notification.type} unread notification-highlight`;
+            notificationCard.setAttribute('data-type', notification.type);
+            notificationCard.setAttribute('data-read', 'false');
+            notificationCard.setAttribute('data-id', notification.id);
+            
+            notificationCard.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon ${notification.type} me-3">
+                            <i class="fas fa-${notification.type === 'info' ? 'info' : 
+                                             notification.type === 'success' ? 'check' : 
+                                             notification.type === 'warning' ? 'exclamation' : 'times'}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0">${notification.title}</h6>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">New</span>
+                                    <span class="notification-date">${notification.created_at}</span>
+                                </div>
+                            </div>
+                            <p class="mb-0 text-muted">${notification.message.length > 100 ? notification.message.substring(0, 100) + '...' : notification.message}</p>
+                            <div class="notification-actions mt-2">
+                                <div class="d-flex">
+                                    <button class="btn btn-sm btn-link p-0 me-3 view-notification" data-bs-toggle="modal" data-bs-target="#notificationModal" data-id="${notification.id}" data-title="${notification.title}" data-message="${notification.message}" data-type="${notification.type}" data-date="${notification.created_at}">
+                                        <i class="fas fa-eye me-1"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-link p-0 me-3 mark-read" data-id="${notification.id}">
+                                        <i class="fas fa-check me-1"></i> Mark as Read
+                                    </button>
+                                    <button class="btn btn-sm btn-link p-0 text-danger delete-notification" data-id="${notification.id}">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert at the beginning of the list
+            if (notificationsList.firstChild) {
+                notificationsList.insertBefore(notificationCard, notificationsList.firstChild);
+            } else {
+                notificationsList.appendChild(notificationCard);
+            }
+            
+            // Update notification counters
+            updateNotificationCounters();
+            
+            // Show toast notification
+            showToast('New notification received.', 'info');
+            
+            // Add event listeners to the new notification
+            const viewBtn = notificationCard.querySelector('.view-notification');
+            const markReadBtn = notificationCard.querySelector('.mark-read');
+            const deleteBtn = notificationCard.querySelector('.delete-notification');
+            
+            viewBtn.addEventListener('click', function() {
+                const modal = document.getElementById('notificationModal');
+                const event = new CustomEvent('show.bs.modal', { 
+                    bubbles: true, 
+                    cancelable: true,
+                    relatedTarget: this
+                });
+                modal.dispatchEvent(event);
+            });
+            
+            markReadBtn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                markNotificationAsRead(id);
+            });
+            
+            deleteBtn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const confirmDeleteBtn = document.querySelector('.confirm-delete');
+                
+                confirmDeleteBtn.setAttribute('data-id', id);
+                
+                const deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteModal'));
+                deleteModalInstance.show();
+            });
+        }
+        
+        // Initialize real-time notifications
+        initializeRealTimeNotifications();
+    });
+</script>
+{% endblock %}

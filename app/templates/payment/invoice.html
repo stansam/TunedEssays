@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+    }
+    .invoice-header {
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+    .invoice-company {
+        margin-bottom: 30px;
+    }
+    .invoice-details {
+        margin-bottom: 30px;
+    }
+    .invoice-items {
+        margin-bottom: 30px;
+    }
+    .invoice-total {
+        text-align: right;
+        border-top: 2px solid #dee2e6;
+        padding-top: 20px;
+    }
+    .payment-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        display: inline-block;
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .payment-status.paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .payment-status.unpaid {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4 no-print">
+        <div class="col">
+            <a href="{{ url_for('orders.order_detail', order_number=invoice.order.order_number) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Order
+            </a>
+            <button class="btn btn-primary float-end" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print Invoice
+            </button>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <!-- Invoice Header -->
+                    <div class="invoice-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="mb-0">INVOICE</h1>
+                            <p class="text-muted mb-0">#{{ invoice.invoice_number }}</p>
+                        </div>
+                        <div>
+                            <span class="payment-status {{ 'paid' if invoice.paid else 'unpaid' }}">
+                                {{ 'Paid' if invoice.paid else 'Unpaid' }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Company Info and Client Info -->
+                    <div class="row invoice-company">
+                        <div class="col-md-6">
+                            <h5>To</h5>
+                            <p class="mb-0"><strong>TunedEssays.co</strong></p>
+                            <!-- <p class="mb-0">123 Business Street</p>
+                            <p class="mb-0">City, State ZIP</p>-->
+                            <p class="mb-0">Email: contact@tunedessays.com</p> 
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h5>From</h5>
+                            <p class="mb-0"><strong>{{ current_user.get_name() }} </strong></p>
+                            <p class="mb-0">{{ current_user.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Details -->
+                    <div class="row invoice-details">
+                        <div class="col-md-6">
+                            <h5>Invoice Details</h5>
+                            <table class="table table-borderless table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Invoice Number:</td>
+                                        <td><strong>{{ invoice.invoice_number }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Order Number:</td>
+                                        <td><strong>{{ invoice.order.order_number }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Issue Date:</td>
+                                        <td>{{ invoice.created_at.strftime('%B %d, %Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Due Date:</td>
+                                        <td>{{ invoice.due_date.strftime('%B %d, %Y') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Items -->
+                    <div class="invoice-items">
+                        <h5>Order Details</h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Word Count</th>
+                                    <th>Report Type</th>
+                                    <th class="text-end">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>{{ invoice.order.title }}</strong><br>
+                                        <small class="text-muted">Paper Writing Service</small>
+                                    </td>
+                                    <td>{{ invoice.order.word_count }}</td>
+                                    <td>
+                                        <strong>{{ invoice.order.report_type }}</strong>
+
+                                        </td>
+                                </tr>
+                                {% if invoice.discount > 0 %}
+                                <tr>
+                                    <td colspan="2" class="text-end">Discount:</td>
+                                    <td class="text-end">-${{ "%.2f"|format(invoice.discount) }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if invoice.tax > 0 %}
+                                <tr>
+                                    <td colspan="2" class="text-end">Tax:</td>
+                                    <td class="text-end">${{ "%.2f"|format(invoice.tax) }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Invoice Total -->
+                    <div class="invoice-total">
+                        <h3>Total: ${{ "%.2f"|format(invoice.total) }}</h3>
+                    </div>
+                    
+                    <!-- Payment Info -->
+                    <div class="mt-5">
+                        <h5>Payment Information</h5>
+                        <p class="mb-0">
+                            {% if invoice.paid %}
+                                This invoice has been paid on {{ invoice.payment.updated_at.strftime('%B %d, %Y') if invoice.payment else invoice.created_at.strftime('%B %d, %Y') }}.
+                            {% else %}
+                                <a href="{{ url_for('payment.payment_page', order_number=invoice.order.order_number) }}" class="btn btn-primary no-print">
+                                    Pay Now
+                                </a>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mt-5">
+                        <h5>Notes</h5>
+                        <p>Thank you for your business! If you have any questions about this invoice, please contact our customer support.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

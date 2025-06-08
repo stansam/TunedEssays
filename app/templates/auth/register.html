@@ -1,0 +1,716 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block meta_description %}Create an account to place orders, track your academic papers, and access exclusive benefits on our academic writing service.{% endblock %}
+
+{% block body_class %}auth-page register-page{% endblock %}
+
+{% block content %}
+    <!-- Page Header with Animated Icons -->
+    <section class="page-header text-black py-5 position-relative overflow-hidden"style="background-image: url('{{url_for('static', filename='assets/hero5.jpg')}}'); background-size: cover; background-repeat: no-repeat;" >
+        <div class="floating-icons">
+            <i class="fas fa-file-alt icon-float" style="top: 12%; left: 8%; animation-delay: 0.2s;"></i>
+            <i class="fas fa-pencil-ruler icon-float" style="top: 22%; left: 18%; animation-delay: 0.7s;"></i>
+            <i class="fas fa-brain icon-float" style="top: 15%; left: 35%; animation-delay: 1.2s;"></i>
+            <i class="fas fa-clipboard-check icon-float" style="top: 25%; left: 55%; animation-delay: 1.7s;"></i>
+            <i class="fas fa-medal icon-float" style="top: 18%; left: 75%; animation-delay: 2.2s;"></i>
+            <i class="fas fa-globe icon-float" style="top: 10%; left: 90%; animation-delay: 2.7s;"></i>
+        </div>
+        <div class="container position-relative">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="register-header-icon mb-3">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h1 class="display-4 fw-bold">Register</h1>
+                    <p class="lead">Join our community, no paper is undoable!</p>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-black"><i class="fas fa-home me-1"></i> Home</a></li>
+                            <li class="breadcrumb-item active text-black-50" aria-current="page"><i class="fas fa-user-plus me-1"></i> Register</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="wave-shape">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#4CAF50"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Registration Form Section -->
+    <section class="py-5 position-relative">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- Registration Progress Indicator -->
+                    <div class="registration-progress mb-4">
+                        <div class="progress-step active">
+                            <div class="step-icon"><i class="fas fa-user-edit"></i></div>
+                            <div class="step-label">Account Details</div>
+                        </div>
+                        <div class="progress-connector"></div>
+                        <div class="progress-step">
+                            <div class="step-icon"><i class="fas fa-envelope-open-text"></i></div>
+                            <div class="step-label">Verification</div>
+                        </div>
+                        <div class="progress-connector"></div>
+                        <div class="progress-step">
+                            <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="step-label">Complete</div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Card -->
+                    <div class="card border-0 shadow-lg rounded-4  registration-card mt-4">
+                        <div class="card-header text-white text-center py-4 position-relative" style="background: var(--gradient-primary);">
+                            <div class="header-icon-container">
+                                <div class="header-icon">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                            </div>
+                            <h4 class="mb-0 fw-bold">Create Your Account</h4>
+                            <p class="mb-0 text-white-50">Fill in your details to get started</p>
+                        </div>
+                        <div class="card-body p-4 p-lg-5">
+                            
+                            <!-- Flash Messages -->
+                            {#{% with messages = get_flashed_messages(with_categories=true) %}#}
+                                {#{% if messages %}#}
+                                    {#{% for category, message in messages %}#}
+                                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                            {#{{ message }}#}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    {#{% endfor %}#}
+                                {#{% endif %}#}
+                            {#{% endwith %}#}
+                            
+                            <form action="{{ url_for('auth.register') }}" method="post" class="needs-validation" novalidate>
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label for="username" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-user-tag text-primary"></i></span>
+                                            <input type="text" class="form-control-reg border-0 bg-light" id="username" name="username" placeholder="Choose a username" required>
+                                        </div>
+                                        <div class="form-text"><i class="fas fa-info-circle me-1 text-primary"></i> Username must be unique, 3-20 characters long.</div>
+                                        <div class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Please choose a username.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                        <label for="email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-at text-primary"></i></span>
+                                            <input type="email" class="form-control-reg border-0 bg-light" id="email" name="email" placeholder="Enter your email" required>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Please enter a valid email address.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label for="first_name" class="form-label fw-bold">First Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-id-card text-primary"></i></span>
+                                            <input type="text" class="form-control-reg border-0 bg-light" id="first_name" name="first_name" placeholder="Enter your first name">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                        <label for="last_name" class="form-label fw-bold">Last Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-id-card text-primary"></i></span>
+                                            <input type="text" class="form-control-reg border-0 bg-light" id="last_name" name="last_name" placeholder="Enter your last name">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label for="gender" class="form-label fw-bold">Gender <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-venus-mars text-primary"></i></span>
+                                            <select class="form-control-reg border-0 bg-light" id="gender" name="gender" required>
+                                                <option value="">Select Gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Please select your gender.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label for="password" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-key text-primary"></i></span>
+                                            <input type="password" class="form-control-reg border-0 bg-light" id="password" name="password" placeholder="Create a password" required>
+                                            <button class="btn btn-light border-0" type="button" id="togglePassword">
+                                                <i class="fas fa-eye text-primary" id="togglePasswordIcon"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text"><i class="fas fa-shield-alt me-1 text-primary"></i> Password must be at least 8 characters long.</div>
+                                        <div class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Please create a password.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                        <label for="confirm_password" class="form-label fw-bold">Confirm Password <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-check-double text-primary"></i></span>
+                                            <input type="password" class="form-control-reg border-0 bg-light" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                                            <button class="btn btn-light border-0" type="button" id="toggleConfirmPassword">
+                                                <i class="fas fa-eye text-primary" id="toggleConfirmPasswordIcon"></i>
+                                            </button>
+                                        </div>
+                                        <div class="password-strength mt-2 d-none">
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <small class="strength-text text-muted mt-1">Password strength: <span>Weak</span></small>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Please confirm your password.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4 form-check custom-checkbox">
+                                    <input type="checkbox" class="form-check-input" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        <i class="fas fa-handshake text-primary me-1"></i> I agree to the <a href="{{ url_for('main.terms') }}" target="_blank" class="text-primary">Terms of Service</a> and <a href="{{ url_for('main.privacy') }}" target="_blank" class="text-primary">Privacy Policy</a>
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        <i class="fas fa-exclamation-circle me-1"></i> You must agree to the terms and conditions.
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg register-btn">
+                                        <i class="fas fa-user-plus me-2"></i> Create Account
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-4 text-center">
+                                <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-primary fw-bold">Login here <i class="fas fa-arrow-right"></i></a></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Benefits Section -->
+                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mt-4">
+                        <div class="card-body p-4">
+                            <h5 class="text-center mb-4"><i class="fas fa-gift text-primary me-2"></i> Benefits of Registration</h5>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="benefit-item text-center">
+                                        <div class="benefit-icon">
+                                            <i class="fas fa-percentage"></i>
+                                        </div>
+                                        <h6 class="mt-3">Exclusive Discounts</h6>
+                                        <p class="text-muted small">Enjoy special offers and loyalty rewards</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="benefit-item text-center">
+                                        <div class="benefit-icon">
+                                            <i class="fas fa-history"></i>
+                                        </div>
+                                        <h6 class="mt-3">Order History</h6>
+                                        <p class="text-muted small">Track and manage all your orders</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="benefit-item text-center">
+                                        <div class="benefit-icon">
+                                            <i class="fas fa-bell"></i>
+                                        </div>
+                                        <h6 class="mt-3">Updates & Alerts</h6>
+                                        <p class="text-muted small">Get notified about your order status</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decorative elements -->
+        <div class="decoration-dot dot-1"></div>
+        <div class="decoration-dot dot-2"></div>
+        <div class="decoration-dot dot-3"></div>
+        <div class="decoration-dot dot-4"></div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        
+        // Fetch all forms with the needs-validation class
+        var forms = document.querySelectorAll('.needs-validation')
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    
+                    // Custom validation for password match
+                    var password = document.getElementById('password')
+                    var confirmPassword = document.getElementById('confirm_password')
+                    
+                    if (password.value !== confirmPassword.value) {
+                        confirmPassword.setCustomValidity('Passwords do not match')
+                        event.preventDefault()
+                        event.stopPropagation()
+                    } else {
+                        confirmPassword.setCustomValidity('')
+                    }
+                    
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+    
+    // Toggle password visibility for password field
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+    
+    // Toggle password visibility for confirm password field
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('confirm_password');
+        const toggleIcon = document.getElementById('toggleConfirmPasswordIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+    
+    // Real-time password match validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        var password = document.getElementById('password').value;
+        var confirmPassword = this.value;
+        
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    // Password strength meter
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strengthBar = document.querySelector('.progress-bar');
+        const strengthText = document.querySelector('.strength-text span');
+        const passwordStrength = document.querySelector('.password-strength');
+        
+        if (password.length > 0) {
+            passwordStrength.classList.remove('d-none');
+            
+            // Simple password strength calculation
+            let strength = 0;
+            if (password.length >= 8) strength += 25;
+            if (password.match(/[A-Z]/)) strength += 25;
+            if (password.match(/[0-9]/)) strength += 25;
+            if (password.match(/[^A-Za-z0-9]/)) strength += 25;
+            
+            strengthBar.style.width = strength + '%';
+            
+            if (strength < 25) {
+                strengthBar.className = 'progress-bar bg-danger';
+                strengthText.textContent = 'Very Weak';
+            } else if (strength < 50) {
+                strengthBar.className = 'progress-bar bg-warning';
+                strengthText.textContent = 'Weak';
+            } else if (strength < 75) {
+                strengthBar.className = 'progress-bar bg-info';
+                strengthText.textContent = 'Medium';
+            } else {
+                strengthBar.className = 'progress-bar bg-success';
+                strengthText.textContent = 'Strong';
+            }
+        } else {
+            passwordStrength.classList.add('d-none');
+        }
+    });
+
+    // Add subtle animation to the register button on hover
+    document.querySelector('.register-btn').addEventListener('mouseover', function() {
+        this.innerHTML = '<i class="fas fa-rocket me-2"></i> Get Started';
+    });
+    
+    document.querySelector('.register-btn').addEventListener('mouseout', function() {
+        this.innerHTML = '<i class="fas fa-user-plus me-2"></i> Create Account';
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #388E3C;
+        --primary-light: #A5D6A7;
+        --gradient-primary: linear-gradient(135deg, #4CAF50, #2E7D32);
+    }
+
+    /* Floating icons animation */
+    .floating-icons {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+     /* .input-group {
+        
+        margin: 5px;
+    }  */
+    .icon-float {
+        position: absolute;
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.5);
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0.3;
+        }
+        50% {
+            transform: translateY(-20px) rotate(10deg);
+            opacity: 0.8;
+        }
+        100% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0.3;
+        }
+    }
+    
+    /* Wave shape divider */
+    .wave-shape {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        line-height: 0;
+    }
+    
+    .wave-shape svg {
+        position: relative;
+        display: block;
+        width: calc(100% + 1.3px);
+        height: 70px;
+        padding-top: 5px;
+    }
+    
+    /* Register header icon */
+    .register-header-icon {
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 50%;
+        background-color: white;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        display: inline-block;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Header icon in card */
+    /* .header-icon-container {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%); 
+    } */
+    
+    .header-icon {
+        
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        background-color: white;
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        display: inline-block;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Progress Steps */
+    .registration-progress {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+    
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #f1f1f1;
+        color: #999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .step-label {
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .progress-step.active .step-icon {
+        background-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2);
+    }
+    
+    .progress-step.active .step-label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .progress-connector {
+        flex: 1;
+        height: 3px;
+        background-color: #f1f1f1;
+        margin: 0 10px;
+        position: relative;
+        top: -25px;
+        z-index: 0;
+    }
+    
+    /* Registration card styling */
+    .registration-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .registration-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Custom form styling */
+    .form-control-reg:focus {
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+        border-color: var(--primary-color);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    /* Login button styling */
+    .register-btn {
+        background: var(--gradient-primary);
+        border: none;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .register-btn:hover {
+        background: var(--primary-dark);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Benefit icons */
+    .benefit-icon {
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .benefit-item:hover .benefit-icon {
+        background-color: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Decorative dots */
+    .decoration-dot {
+        position: absolute;
+        border-radius: 50%;
+        background-color: rgba(76, 175, 80, 0.1);
+        z-index: -1;
+    }
+    
+    .dot-1 {
+        width: 150px;
+        height: 150px;
+        top: 20%;
+        left: 10%;
+    }
+    
+    .dot-2 {
+        width: 80px;
+        height: 80px;
+        top: 50%;
+        left: 5%;
+    }
+    
+    .dot-3 {
+        width: 120px;
+        height: 120px;
+        bottom: 10%;
+        right: 15%;
+    }
+    
+    .dot-4 {
+        width: 60px;
+        height: 60px;
+        top: 30%;
+        right: 8%;
+    }
+    
+    /* Custom styling for breadcrumb */
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Rounded corners */
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+    
+    /* Custom checkbox styling */
+    .custom-checkbox .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+    }
+    
+    .custom-checkbox .form-check-label {
+        padding-left: 0.2rem;
+    }
+    
+    /* Text primary color */
+    .text-primary {
+        color: var(--primary-color) !important;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+    
+    /* Required field styling */
+    .form-label .text-danger {
+        font-size: 1.2rem;
+        line-height: 0;
+        position: relative;
+        top: 2px;
+    }
+    
+    /* Form info text styling */
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    /* Media queries for responsive design */
+    @media (max-width: 767px) {
+        .registration-progress {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 1rem;
+        }
+        
+        .progress-step {
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .step-icon {
+            margin-bottom: 0;
+            margin-right: 1rem;
+        }
+        
+        .progress-connector {
+            width: 3px;
+            height: 30px;
+            margin: 0;
+            position: absolute;
+            left: 25px;
+            top: 50px;
+        }
+    }
+</style>
+{% endblock %}

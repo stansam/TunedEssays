@@ -1,0 +1,652 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Blog Management - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .blog-stats-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .blog-stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .blog-table th {
+        font-weight: 600;
+        color: #606060;
+    }
+    
+    .blog-table td {
+        vertical-align: middle;
+    }
+    
+    .post-title {
+        font-weight: 500;
+        color: #333;
+        transition: color 0.2s ease;
+    }
+    
+    .post-title:hover {
+        color: var(--primary);
+    }
+    
+    .status-badge {
+        border-radius: 30px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .published {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--success);
+    }
+    
+    .draft {
+        background-color: rgba(158, 158, 158, 0.1);
+        color: var(--gray);
+    }
+    
+    .search-filter-section {
+        background-color: white;
+        border-radius: 10px;
+    }
+    
+    .blog-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+    }
+    
+    .blog-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .featured-image-container {
+        height: 140px;
+        background-color: #f8f9fa;
+        overflow: hidden;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .featured-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background-color: var(--gray-light);
+        color: var(--gray);
+        font-size: 2rem;
+    }
+    
+    .category-pill {
+        background-color: var(--primary-subtle);
+        color: var(--primary);
+        border-radius: 30px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
+        background-color: var(--gray-light);
+    }
+    
+    .grid-view-btn.active, .list-view-btn.active {
+        color: var(--primary);
+        background-color: var(--primary-subtle);
+    }
+    
+    .truncate-2-lines {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .grid-view, .list-view {
+        display: none;
+    }
+    
+    .grid-view.active, .list-view.active {
+        display: block;
+    }
+    
+    .dropdown-toggle::after {
+        display: none;
+    }
+    
+    .sort-indicator {
+        font-size: 0.7rem;
+        margin-left: 0.25rem;
+    }
+    
+    .page-header {
+        background-color: white;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Animated placeholder for empty state */
+    .empty-placeholder {
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: var(--gray);
+        background-color: white;
+        border-radius: 10px;
+        padding: 2rem;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        color: var(--gray-light);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="page-header shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1">Blog Management</h4>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Blog</li>
+                    </ol>
+                </nav>
+            </div>
+            <a href="{{ url_for('admin.create_blog_post') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Post
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Stats Cards -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card blog-stats-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Posts</h6>
+                            <h3 class="mb-0">{{ total_posts }}</h3>
+                        </div>
+                        <div class="icon-container">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card blog-stats-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Published</h6>
+                            <h3 class="mb-0">{{ published_posts }}</h3>
+                        </div>
+                        <div class="icon-container icon-blue">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card blog-stats-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Drafts</h6>
+                            <h3 class="mb-0">{{ draft_posts }}</h3>
+                        </div>
+                        <div class="icon-container icon-orange">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card blog-stats-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Categories</h6>
+                            <h3 class="mb-0">{{ categories|length }}</h3>
+                        </div>
+                        <div class="icon-container icon-purple">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card search-filter-section shadow-sm mb-4">
+        <div class="card-body p-4">
+            <form method="get" action="{{ url_for('admin.list_blog_posts') }}">
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control bg-light border-0" name="search" placeholder="Search posts..." value="{{ search_query }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3">
+                        <select class="form-select bg-light border-0 category-select" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category_filter == category.id|string %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-lg-3">
+                        <select class="form-select bg-light border-0" name="published">
+                            <option value="">All Status</option>
+                            <option value="true" {% if published_filter == 'true' %}selected{% endif %}>Published</option>
+                            <option value="false" {% if published_filter == 'false' %}selected{% endif %}>Draft</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-lg-2">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Blog Posts -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Blog Posts</h5>
+                
+                <div class="d-flex align-items-center">
+                    <!-- Sort Options -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-sort me-1"></i> Sort by
+                        </button>
+                        <ul class="dropdown-menu shadow-sm" aria-labelledby="sortDropdown">
+                            <li>
+                                <a class="dropdown-item {% if sort_by == 'created_at' %}active{% endif %}" 
+                                   href="{{ url_for('admin.list_blog_posts', search=search_query, category=category_filter, published=published_filter, sort_by='created_at', sort_order='desc' if sort_order == 'asc' and sort_by == 'created_at' else 'asc') }}">
+                                    Date Created
+                                    {% if sort_by == 'created_at' %}
+                                        <i class="fas fa-sort-{{ 'down' if sort_order == 'desc' else 'up' }} sort-indicator"></i>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if sort_by == 'title' %}active{% endif %}" 
+                                   href="{{ url_for('admin.list_blog_posts', search=search_query, category=category_filter, published=published_filter, sort_by='title', sort_order='desc' if sort_order == 'asc' and sort_by == 'title' else 'asc') }}">
+                                    Title
+                                    {% if sort_by == 'title' %}
+                                        <i class="fas fa-sort-{{ 'down' if sort_order == 'desc' else 'up' }} sort-indicator"></i>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if sort_by == 'published_at' %}active{% endif %}" 
+                                   href="{{ url_for('admin.list_blog_posts', search=search_query, category=category_filter, published=published_filter, sort_by='published_at', sort_order='desc' if sort_order == 'asc' and sort_by == 'published_at' else 'asc') }}">
+                                    Publish Date
+                                    {% if sort_by == 'published_at' %}
+                                        <i class="fas fa-sort-{{ 'down' if sort_order == 'desc' else 'up' }} sort-indicator"></i>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- View Toggle -->
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm list-view-btn active" id="listViewBtn">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm grid-view-btn" id="gridViewBtn">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            {% if posts|length > 0 %}
+                <!-- List View -->
+                <div class="list-view active">
+                    <div class="table-responsive">
+                        <table class="table blog-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 40%;">Title</th>
+                                    <th style="width: 15%;">Category</th>
+                                    <th style="width: 15%;">Date</th>
+                                    <th style="width: 15%;">Status</th>
+                                    <th style="width: 15%;" class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in posts %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3" style="width: 40px; height: 40px; overflow: hidden; border-radius: 5px;">
+                                                {% if post.featured_image %}
+                                                <img src="{{ url_for('static', filename=post.featured_image.replace('\\', '/')) }}" alt="{{ post.title }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
+                                                {% else %}
+                                                <div class="bg-light text-muted d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="post-title text-decoration-none">{{ post.title }}</a>
+                                                <div class="small text-muted truncate-2-lines">{{ post.excerpt or (post.content|striptags|truncate(100)) }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if post.category %}
+                                        <span class="category-pill">{{ post.category.name }}</span>
+                                        {% else %}
+                                        <span class="badge bg-light text-muted">Uncategorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            {% if post.is_published and post.published_at %}
+                                            <div>Published: {{ post.published_at.strftime('%b %d, %Y') }}</div>
+                                            {% endif %}
+                                            <div class="text-muted">Created: {{ post.created_at.strftime('%b %d, %Y') }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {% if post.is_published %}published{% else %}draft{% endif %}">
+                                            {% if post.is_published %}
+                                            <i class="fas fa-check-circle me-1"></i> Published
+                                            {% else %}
+                                            <i class="fas fa-edit me-1"></i> Draft
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end">
+                                            <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="btn btn-sm action-btn" title="Edit">
+                                                <i class="fas fa-edit text-info"></i>
+                                            </a>
+                                            {% if post.is_published %}
+                                            <a href="#" class="btn btn-sm action-btn" title="View on site" target="_blank">
+                                                <i class="fas fa-eye text-success"></i>
+                                            </a>
+                                            {% endif %}
+                                            <button class="btn btn-sm action-btn delete-post-btn" data-post-id="{{ post.id }}" data-post-title="{{ post.title }}" title="Delete">
+                                                <i class="fas fa-trash-alt text-danger"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Grid View -->
+                <div class="grid-view p-3">
+                    <div class="row g-4">
+                        {% for post in posts %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-card card h-100">
+                                <div class="featured-image-container">
+                                    {% if post.featured_image %}
+                                    <img src="{{ url_for('static', filename=post.featured_image.replace('\\', '/')) }}" alt="{{ post.title }}" class="featured-image">
+                                    {% else %}
+                                    <div class="no-image">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        {% if post.category %}
+                                        <span class="category-pill">{{ post.category.name }}</span>
+                                        {% else %}
+                                        <span class="badge bg-light text-muted">Uncategorized</span>
+                                        {% endif %}
+                                        <span class="status-badge {% if post.is_published %}published{% else %}draft{% endif %}">
+                                            {% if post.is_published %}
+                                            <i class="fas fa-check-circle me-1"></i> Published
+                                            {% else %}
+                                            <i class="fas fa-edit me-1"></i> Draft
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <h5 class="card-title mb-2">
+                                        <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="text-decoration-none post-title">{{ post.title }}</a>
+                                    </h5>
+                                    <p class="card-text text-muted truncate-2-lines small">{{ post.excerpt or (post.content|striptags|truncate(100)) }}</p>
+                                </div>
+                                <div class="card-footer bg-white py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            {{ post.published_at.strftime('%b %d, %Y') if post.is_published and post.published_at else post.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                        <div>
+                                            <a href="{{ url_for('admin.edit_blog_post', post_id=post.id) }}" class="btn btn-sm action-btn" title="Edit">
+                                                <i class="fas fa-edit text-info"></i>
+                                            </a>
+                                            {% if post.is_published %}
+                                            <a href="#" class="btn btn-sm action-btn" title="View on site" target="_blank">
+                                                <i class="fas fa-eye text-success"></i>
+                                            </a>
+                                            {% endif %}
+                                            <button class="btn btn-sm action-btn delete-post-btn" data-post-id="{{ post.id }}" data-post-title="{{ post.title }}" title="Delete">
+                                                <i class="fas fa-trash-alt text-danger"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-placeholder">
+                    <div class="empty-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h4>No blog posts found</h4>
+                    <p class="text-muted mb-4">You haven't created any blog posts yet or none match your current filters.</p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('admin.create_blog_post') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create New Post
+                        </a>
+                        <a href="{{ url_for('admin.list_blog_posts') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt me-2"></i>Clear Filters
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if posts|length > 0 %}
+        <div class="card-footer bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                    Showing {{ posts|length }} blog posts
+                </div>
+                <!-- Pagination can be added here if needed -->
+                <div>
+                    <a href="{{ url_for('admin.create_blog_post') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i> New Post
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePostModal" tabindex="-1" aria-labelledby="deletePostModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePostModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the post <strong id="postTitleToDelete"></strong>?</p>
+                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deletePostForm" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Select2
+        $('.category-select').select2({
+            placeholder: "Select Category",
+            allowClear: true,
+            theme: "classic"
+        });
+        
+        // View toggle functionality
+        const listViewBtn = document.getElementById('listViewBtn');
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const listView = document.querySelector('.list-view');
+        const gridView = document.querySelector('.grid-view');
+        
+        listViewBtn.addEventListener('click', function() {
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            listView.classList.add('active');
+            gridView.classList.remove('active');
+            
+            // Save preference to local storage
+            localStorage.setItem('blogViewPreference', 'list');
+        });
+        
+        gridViewBtn.addEventListener('click', function() {
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            gridView.classList.add('active');
+            listView.classList.remove('active');
+            
+            // Save preference to local storage
+            localStorage.setItem('blogViewPreference', 'grid');
+        });
+        
+        // Load view preference from local storage
+        const savedView = localStorage.getItem('blogViewPreference');
+        if (savedView === 'grid') {
+            gridViewBtn.click();
+        }
+        
+        // Handle delete post buttons
+        const deleteButtons = document.querySelectorAll('.delete-post-btn');
+        const deletePostForm = document.getElementById('deletePostForm');
+        const postTitleToDelete = document.getElementById('postTitleToDelete');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const postId = this.getAttribute('data-post-id');
+                const postTitle = this.getAttribute('data-post-title');
+                
+                postTitleToDelete.textContent = postTitle;
+                deletePostForm.action = `/admin/blog/${postId}/delete`;
+                
+                const deleteModal = new bootstrap.Modal(document.getElementById('deletePostModal'));
+                deleteModal.show();
+            });
+        });
+        
+        // Add visual indicator to current sort option
+        const sortLinks = document.querySelectorAll('.dropdown-item');
+        sortLinks.forEach(link => {
+            if (link.classList.contains('active')) {
+                const sortText = link.textContent.trim().split('\n')[0];
+                document.getElementById('sortDropdown').innerHTML = `<i class="fas fa-sort me-1"></i> ${sortText}`;
+            }
+        });
+    });
+</script>
+{% endblock %}
