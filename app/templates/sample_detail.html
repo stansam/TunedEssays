@@ -121,7 +121,7 @@
                                     <span class="text-muted small">{{ related_sample.word_count }} words</span>
                                 </div>
                                 <p class="card-text mb-4">{{ related_sample.excerpt }}</p>
-                                <a href="{{ url_for('main.sample_detail', sample_id=related_sample.id) }}" class="btn btn-outline-success stretched-link">Read Full Sample</a>
+                                <a href="{{ url_for('main.sample_detail', slug=related_sample.slug) }}" class="btn btn-outline-success stretched-link">Read Full Sample</a>
                             </div>
                         </div>
                     </div>

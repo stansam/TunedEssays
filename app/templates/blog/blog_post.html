@@ -36,14 +36,14 @@
                         <div class="post-meta mb-3">
                             <a href="{{ url_for('blog.category', slug=post.category.slug) }}" class="badge bg-success me-2">{{ post.category.name }}</a>
                             <span class="text-muted me-3"><i class="far fa-calendar-alt me-1"></i> {{ post.published_at.strftime('%B %d, %Y') }}</span>
-                            <span class="text-muted"><i class="far fa-user me-1"></i> {{ post.author.first_name }} {{ post.author.last_name }}</span>
+                            <span class="text-muted"><i class="far fa-user me-1"></i> {{ post.author }}</span>
                         </div>
                     </div>
                     
                     <!-- Featured Image -->
                     {% if post.featured_image %}
                         <div class="post-featured-image mb-4">
-                            <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid rounded">
+                            <img src="{{ url_for('static', filename=post.featured_image) }}" alt="{{ post.title }}" class="img-fluid rounded">
                         </div>
                     {% endif %}
                     
@@ -88,13 +88,13 @@
                             <div class="col-md-2 mb-3 mb-md-0 text-center">
                                 <div class="author-avatar mx-auto">
                                     <div class="avatar-placeholder bg-success text-white rounded-circle" style="width: 70px; height: 70px; font-size: 1.8rem;">
-                                        {{ post.author.first_name[0] | upper }}
+                                        {{ post.author[0] | upper }}
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-10">
-                                <h4 class="author-name h5 mb-2">{{ post.author.first_name }} {{ post.author.last_name }}</h4>
-                                <p class="author-description mb-0">Academic writer and researcher with expertise in multiple fields. Dedicated to helping students achieve their academic goals through quality content and guidance.</p>
+                                <h4 class="author-name h5 mb-2">{{ post.author }}</h4>
+                                <p class="author-description mb-0">Professional writer and researcher with expertise in multiple fields. Dedicated to helping clients achieve their goals through quality content and guidance.</p>
                             </div>
                         </div>
                     </div>
@@ -107,7 +107,7 @@
                                 <div class="col-md-6 mb-4">
                                     <div class="card h-100 border-0 shadow-sm">
                                         {% if related_post.featured_image %}
-                                            <img src="{{ related_post.featured_image }}" class="card-img-top" alt="{{ related_post.title }}">
+					<img src="{{ url_for('static', filename=related_post.featured_image) }}" class="card-img-top" alt="{{ related_post.title }}">
                                         {% else %}
                                             <div class="card-img-top bg-light py-4 text-center">
                                                 <svg width="150" height="100" viewBox="0 0 150 100" class="img-fluid">

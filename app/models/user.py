@@ -21,12 +21,13 @@ class User(UserMixin, db.Model):
     referral_code = db.Column(db.String(10), unique=True) 
     reward_points = db.Column(db.Integer, default=0)
     braintree_customer_id = db.Column(db.String(50))
+    phone_number = db.Column(db.String(20), nullable=True)
     # Relationships
     orders = db.relationship('Order', foreign_keys='Order.client_id', backref='client', lazy=True)
     referrals = db.relationship('Referral', foreign_keys='Referral.referrer_id', backref='referrer', lazy=True)
     referred_by = db.relationship('Referral', foreign_keys='Referral.referred_id', backref='referred', lazy=True)
     notifications = db.relationship('Notification', backref='user', lazy=True)
-    blog_posts = db.relationship('BlogPost', backref='author', lazy=True)
+    #blog_posts = db.relationship('BlogPost', backref='author', lazy=True)
     testimonials = db.relationship('Testimonial', backref='author', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):

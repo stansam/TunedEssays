@@ -62,7 +62,7 @@
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 class="metric-number">{{ total_orders }}</h3>
+                        <h3 class="metric-number" style="padding-left: 0.5rem;">{{ total_orders }}</h3>
                         <p class="metric-label">Total Orders</p>
                         <span class="metric-trend">
                             <i class="fas fa-arrow-up"></i>
@@ -79,7 +79,7 @@
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 class="metric-number">${{ "%.2f"|format(total_spent) }}</h3>
+                        <h3 class="metric-number" style="padding-left: 0.5rem;">${{ "%.2f"|format(total_spent) }}</h3>
                         <p class="metric-label">Total Spent</p>
                         <span class="metric-trend">
                             <i class="fas fa-arrow-up"></i>
@@ -96,7 +96,7 @@
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 class="metric-number">${{ "%.2f"|format(avg_order_value) }}</h3>
+                        <h3 class="metric-number" style="padding-left: 0.5rem;">${{ "%.2f"|format(avg_order_value) }}</h3>
                         <p class="metric-label">Avg Order Value</p>
                         <span class="metric-trend">
                             <i class="fas fa-minus"></i>
@@ -113,7 +113,7 @@
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 class="metric-number">{{ reward_points }}</h3>
+                        <h3 class="metric-number" style="padding-left: 0.5rem;">{{ reward_points }}</h3>
                         <p class="metric-label">Reward Points</p>
                         <span class="metric-trend">
                             <i class="fas fa-gift"></i>
@@ -139,7 +139,7 @@
                         </div>
                     </div>
                     <div class="status-footer">
-                        <a href="{{ url_for('orders.order_list', status='pending') }}" class="status-link">
+                        <a href="{{ url_for('orders.list_orders') }}" class="status-link">
                             View All <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -159,7 +159,7 @@
                         </div>
                     </div>
                     <div class="status-footer">
-                        <a href="{{ url_for('orders.order_list', status='active') }}" class="status-link">
+                        <a href="{{ url_for('orders.list_orders') }}" class="status-link">
                             View All <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -179,7 +179,7 @@
                         </div>
                     </div>
                     <div class="status-footer">
-                        <a href="{{ url_for('orders.order_list', status='completed') }}" class="status-link">
+                        <a href="{{ url_for('orders.list_orders') }}" class="status-link">
                             View History <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -200,7 +200,7 @@
                     </div>
                     <div class="status-footer">
                         {% if overdue_orders|length > 0 %}
-                        <a href="{{ url_for('orders.order_list', status='overdue') }}" class="status-link text-danger">
+                        <a href="{{ url_for('orders.list_orders') }} " class="us-link text-danger">
                             Requires Attention <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                         {% else %}
@@ -219,7 +219,7 @@
                         <h5 class="dashboard-card-title">
                             <i class="fas fa-list-alt me-2"></i>Recent Orders
                         </h5>
-                        <a href="{{ url_for('orders.order_list') }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ url_for('orders.list_orders') }}" class="btn btn-sm btn-outline-primary">
                             View All Orders
                         </a>
                     </div>

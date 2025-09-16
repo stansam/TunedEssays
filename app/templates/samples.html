@@ -83,20 +83,22 @@
                                         <span>{{ sample.page_count|default(1) }} {% if sample.page_count|default(1) > 1 %}pages{% else %}page{% endif %}</span>
                                     </div>
                                 </div>
-                                <p class="card-text mb-4">{{ sample.excerpt }}</p>
+                                <p class="card-text mb-4">{{ sample.excerpt| truncate(100) }}</p>
                                 <div class="sample-topics mb-4">
                                     <div class="d-flex flex-wrap gap-2">
+					    {% if sample.tags %}
                                         {% for tag in sample.tags.split(',')|default([]) %}
                                             <a href="{{url_for('main.search', q=tag)}}"><span class="btn btn-outline-success rounded-pill  text-small">{{ tag }}</span></a>
                                         {% else %}
-                                            <span class="badge bg-light text-dark">Academic</span>
+                                            <span class="badge bg-light text-dark">Writing</span>
                                             <span class="badge bg-light text-dark">{{ sample.service.name }}</span>
                                         {% endfor %}
+					{% endif %}
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer bg-white p-4 border-0">
-                                <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="btn btn-success w-100">
+                                <a href="{{ url_for('main.sample_detail', slug=sample.slug) }}" class="btn btn-success w-100">
                                     <i class="fas fa-book-open me-2"></i>Read Full Sample
                                 </a>
                             </div>

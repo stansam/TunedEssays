@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from flask_login import login_user, logout_user, current_user, login_required
 from app.extensions import db, limiter, get_token_serializer
 from app.models.user import User
-from app.utils.email import send_verification_email
+from app.utils.email import send_verification_email, send_welcome_email
 import logging
 
 auth_bp = Blueprint('auth', __name__)
@@ -57,6 +57,7 @@ def login():
             if not user.email_verified:
                 flash('Please verify your email first.', 'warning')
                 send_verification_email(user)
+                send_welcome_email(user)
                 return redirect(url_for('auth.login'))
             # Login user with Flask-Login
             login_user(user, remember=remember)
@@ -127,6 +128,7 @@ def register():
 
         # Send verification email
         send_verification_email(new_user)
+        send_welcome_email(new_user)
 
         flash('Registration successful! Please check your email to verify your account.', 'success')
         return redirect(url_for('auth.login'))

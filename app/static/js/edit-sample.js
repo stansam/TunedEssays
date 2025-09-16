@@ -1,271 +1,74 @@
-// // Edit Sample Modal Handler
-// document.addEventListener('DOMContentLoaded', function() {
-//     const editModal = document.getElementById('editSampleModal');
-//     const editForm = document.getElementById('editSampleForm');
-//     const editButtons = document.querySelectorAll('[data-bs-target="#editSampleModal"]');
-    
-//     // Handle edit button clicks
-//     editButtons.forEach(button => {
-//         button.addEventListener('click', function() {
-//             const sampleId = this.getAttribute('data-sample-id');
-//             if (sampleId) {
-//                 loadSampleForEdit(sampleId);
-//             }
-//         });
-//     });
-    
-//     // Load sample data for editing
-//     function loadSampleForEdit(sampleId) {
-//         // Show loading state
-//         showEditModalLoading(true);
-        
-//         fetch(`/admin/samples/edit/${sampleId}`, {
-//             method: 'GET',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-//             }
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 populateEditForm(data.sample);
-//                 showEditModalLoading(false);
-//             } else {
-//                 showToast('Error loading sample: ' + data.message, 'error');
-//                 hideModal(editModal);
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error loading sample:', error);
-//             showToast('Error loading sample data', 'error');
-//             hideModal(editModal);
-//         });
-//     }
-    
-//     // Populate form with sample data
-//     function populateEditForm(sample) {
-//         document.getElementById('edit_sample_id').value = sample.id;
-//         document.getElementById('edit_title').value = sample.title || '';
-//         document.getElementById('edit_excerpt').value = sample.excerpt || '';
-//         document.getElementById('edit_content').value = sample.content || '';
-//         document.getElementById('edit_word_count').value = sample.word_count || 0;
-//         document.getElementById('edit_featured').checked = sample.featured || false;
-        
-//         // Set service selection
-//         const serviceSelect = document.getElementById('edit_service_id');
-//         serviceSelect.value = sample.service_id || '';
-        
-//         // Trigger Select2 update if you're using Select2
-//         if ($(serviceSelect).hasClass('select2')) {
-//             $(serviceSelect).trigger('change');
-//         }
-        
-//         // Handle current image preview
-//         const currentImagePreview = document.getElementById('current_image_preview');
-//         const currentImage = document.getElementById('current_image');
-        
-//         if (sample.image) {
-//             currentImage.src = `/static/uploads/samples/${sample.image}`;
-//             currentImagePreview.style.display = 'block';
-//         } else {
-//             currentImagePreview.style.display = 'none';
-//         }
-        
-//         // Update form action URL
-//         editForm.action = `/admin/samples/${sample.id}`;
-//     }
-    
-//     // Handle form submission
-//     editForm.addEventListener('submit', function(e) {
-//         e.preventDefault();
-        
-//         const sampleId = document.getElementById('edit_sample_id').value;
-//         const formData = new FormData(editForm);
-        
-//         // Add method override for PUT request
-//         formData.append('_method', 'PUT');
-        
-//         // Show loading state
-//         const submitBtn = editForm.querySelector('button[type="submit"]');
-//         const originalText = submitBtn.innerHTML;
-//         submitBtn.disabled = true;
-//         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
-        
-//         fetch(`/admin/samples/edit/${sampleId}`, {
-//             method: 'POST', // Using POST with method override
-//             body: formData,
-//             headers: {
-//                 'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-//             }
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 showToast('Sample updated successfully', 'success');
-//                 hideModal(editModal);
-                
-//                 // Refresh the samples table/list
-//                 if (typeof refreshSamplesList === 'function') {
-//                     refreshSamplesList();
-//                 } else {
-//                     // Fallback: reload page
-//                     setTimeout(() => location.reload(), 1000);
-//                 }
-//             } else {
-//                 showToast('Error updating sample: ' + data.message, 'error');
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error updating sample:', error);
-//             showToast('Error updating sample', 'error');
-//         })
-//         .finally(() => {
-//             // Reset button state
-//             submitBtn.disabled = false;
-//             submitBtn.innerHTML = originalText;
-//         });
-//     });
-    
-//     // Show/hide loading state in modal
-//     function showEditModalLoading(show) {
-//         const modalBody = editModal.querySelector('.modal-body');
-//         const loadingOverlay = editModal.querySelector('.loading-overlay');
-        
-//         if (show) {
-//             if (!loadingOverlay) {
-//                 const overlay = document.createElement('div');
-//                 overlay.className = 'loading-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
-//                 overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-//                 overlay.style.zIndex = '1000';
-//                 overlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
-//                 modalBody.style.position = 'relative';
-//                 modalBody.appendChild(overlay);
-//             }
-//         } else {
-//             if (loadingOverlay) {
-//                 loadingOverlay.remove();
-//             }
-//         }
-//     }
-    
-//     // Reset form when modal is closed
-//     editModal.addEventListener('hidden.bs.modal', function() {
-//         editForm.reset();
-//         document.getElementById('current_image_preview').style.display = 'none';
-        
-//         // Reset Select2 if used
-//         const serviceSelect = document.getElementById('edit_service_id');
-//         if ($(serviceSelect).hasClass('select2')) {
-//             $(serviceSelect).val('').trigger('change');
-//         }
-//     });
-    
-//     // Image preview functionality
-//     const imageInput = document.getElementById('edit_image');
-//     if (imageInput) {
-//         imageInput.addEventListener('change', function(e) {
-//             const file = e.target.files[0];
-//             if (file) {
-//                 // Validate file type
-//                 const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-//                 if (!allowedTypes.includes(file.type)) {
-//                     showToast('Please select a valid image file (JPEG, PNG, GIF, or WebP)', 'error');
-//                     this.value = '';
-//                     return;
-//                 }
-                
-//                 // Validate file size (5MB limit)
-//                 const maxSize = 5 * 1024 * 1024; // 5MB
-//                 if (file.size > maxSize) {
-//                     showToast('Image file size must be less than 5MB', 'error');
-//                     this.value = '';
-//                     return;
-//                 }
-                
-//                 // Show preview
-//                 const reader = new FileReader();
-//                 reader.onload = function(e) {
-//                     const currentImage = document.getElementById('current_image');
-//                     const currentImagePreview = document.getElementById('current_image_preview');
-//                     currentImage.src = e.target.result;
-//                     currentImagePreview.style.display = 'block';
-//                 };
-//                 reader.readAsDataURL(file);
-//             }
-//         });
-//     }
-    
-//     // Auto-calculate word count when content changes
-//     const contentTextarea = document.getElementById('edit_content');
-//     const wordCountInput = document.getElementById('edit_word_count');
-    
-//     if (contentTextarea && wordCountInput) {
-//         contentTextarea.addEventListener('input', function() {
-//             const content = this.value.trim();
-//             const wordCount = content ? content.split(/\s+/).length : 0;
-//             wordCountInput.value = wordCount;
-//         });
-//     }
-// });
-
-// // Utility functions
-// function hideModal(modal) {
-//     const bsModal = bootstrap.Modal.getInstance(modal);
-//     if (bsModal) {
-//         bsModal.hide();
-//     }
-// }
-
-// function showToast(message, type = 'info') {
-//     // Assuming you have a toast system in place
-//     // Replace with your actual toast implementation
-//     if (typeof Toastify !== 'undefined') {
-//         Toastify({
-//             text: message,
-//             duration: 3000,
-//             gravity: "top",
-//             position: "right",
-//             backgroundColor: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'
-//         }).showToast();
-//     } else {
-//         // Fallback to alert
-//         alert(message);
-//     }
-// }
-
-// // Function to refresh samples list (implement based on your table structure)
-// function refreshSamplesList() {
-//     // If you're using DataTables
-//     if (typeof samplesTable !== 'undefined' && samplesTable.ajax) {
-//         samplesTable.ajax.reload(null, false);
-//         return;
-//     }
-    
-//     // If you're using a custom function to load samples
-//     if (typeof loadSamples === 'function') {
-//         loadSamples();
-//         return;
-//     }
-    
-//     // Fallback: reload the page
-//     location.reload();
-// }
-// Edit Sample Modal Handler
 document.addEventListener('DOMContentLoaded', function() {
     const editModal = document.getElementById('editSampleModal');
     const editForm = document.getElementById('editSampleForm');
     const editButtons = document.querySelectorAll('[data-bs-target="#editSampleModal"]');
     
-    // Initialize Quill editor
     let editContentQuill = null;
+    let editTagsTagify = null;
     
-    // Initialize Quill when modal is shown
     editModal.addEventListener('shown.bs.modal', function() {
         if (!editContentQuill) {
             initializeQuillEditor();
         }
+        if (!editTagsTagify) {
+            initializeTagify();
+        }
     });
+    function initializeTagify() {
+        const tagsInput = document.getElementById('edit_tags');
+        
+        if (!tagsInput) {
+            console.error('Tags input element not found');
+            return;
+        }
+        
+        if (typeof Tagify === 'undefined') {
+            console.error('Tagify library not loaded');
+            return;
+        }
+        
+        // Destroy existing instance if it exists
+        if (editTagsTagify) {
+            try {
+                editTagsTagify.destroy();
+            } catch (e) {
+                console.warn('Error destroying existing Tagify instance:', e);
+            }
+        }
+        
+        try {
+            editTagsTagify = new Tagify(tagsInput, {
+                placeholder: 'Add tags...',
+                delimiters: ',',
+                trim: true,
+                duplicates: false,
+                enforceWhitelist: false,
+                dropdown: {
+                    enabled: 0,
+                    maxItems: 10,
+                    closeOnSelect: false
+                },
+                editTags: {
+                    clicks: 2,
+                    keepInvalid: false
+                },
+                maxTags: 20,
+                tagTextProp: 'value',
+                transformTag: function(tagData) {
+                    // Clean and format tag
+                    tagData.value = tagData.value.toLowerCase().trim();
+                },
+                validate: function(tagData) {
+                    
+                    return /^[a-zA-Z0-9\-\s]{2,}$/.test(tagData.value);
+                }
+            });
+            
+            console.log('Tagify initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Tagify:', error);
+        }
+    }
     
     
     // Initialize Quill Rich Text Editor
@@ -423,13 +226,46 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('edit_word_count').value = sample.word_count || 0;
         document.getElementById('edit_featured').checked = sample.featured || false;
         
-        // Set content in Quill editor
-        // if (editContentQuill) {
-        //     const content = sample.content || '';
-        //     editContentQuill.root.innerHTML = content;
-        //     // Also update the hidden textarea
-        //     document.getElementById('edit_content').value = content;
-        // }
+        if (editTagsTagify && sample.tags) {
+            try {
+                // Parse tags - handle both comma-separated string and JSON array
+                let tagsArray = [];
+                if (typeof sample.tags === 'string') {
+                    if (sample.tags.startsWith('[') && sample.tags.endsWith(']')) {
+                        // JSON array format
+                        try {
+                            tagsArray = JSON.parse(sample.tags);
+                        } catch (e) {
+                            // Fallback to comma-separated
+                            tagsArray = sample.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+                        }
+                    } else {
+                        // Comma-separated string
+                        tagsArray = sample.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+                    }
+                } else if (Array.isArray(sample.tags)) {
+                    tagsArray = sample.tags;
+                }
+                
+                // Clear existing tags and add new ones
+                editTagsTagify.removeAllTags();
+                if (tagsArray.length > 0) {
+                    editTagsTagify.addTags(tagsArray);
+                }
+            } catch (error) {
+                console.warn('Error setting tags:', error);
+                // Fallback to setting the raw value
+                const tagsInput = document.getElementById('edit_tags');
+                if (tagsInput) {
+                    tagsInput.value = sample.tags || '';
+                }
+            }
+        } else {
+            const tagsInput = document.getElementById('edit_tags');
+            if (tagsInput) {
+                tagsInput.value = sample.tags || '';
+            }
+        }
         
         const content = sample.content || '';
         const hiddenTextarea = document.getElementById('edit_content');
@@ -485,8 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             currentImagePreview.style.display = 'none';
         }
-        
-        // Update form action URL
         editForm.action = `/admin/samples/edit/${sample.id}`;
     }
     
@@ -507,6 +341,16 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.warn('Could not get Quill content, using textarea value:', error);
                 // Fallback to textarea value if Quill fails
+            }
+        }
+        if (editTagsTagify) {
+            try {
+                const tagsArray = editTagsTagify.value.map(tag => tag.value);
+                const tagsString = tagsArray.join(',');
+                document.getElementById('edit_tags').value = tagsString;
+            } catch (error) {
+                console.warn('Could not get Tagify values:', error);
+                // Fallback to original input value
             }
         }
         
@@ -600,6 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear Quill editor content
         if (editContentQuill) {
             editContentQuill.setText('');
+        }
+        if (editTagsTagify) {
+            editTagsTagify.removeAllTags();
         }
         
         // Reset Select2 if used

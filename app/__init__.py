@@ -48,6 +48,7 @@ def create_app(config_name="default"):
     from app.routes.client import client_bp
     from app.routes.blog import blog_bp
     from app.routes.payment import payment_bp
+    from app.routes.confirm_payment import confirm_payment_bp
     from app.routes.api import api_bp
     from app.routes.notifications import notifications_bp
     from app.routes.admin_order_delivery import admin_delivery_bp
@@ -55,6 +56,10 @@ def create_app(config_name="default"):
     from app.routes.order_results import results_services_bp
     from app.routes.activity import activity_bp
     from app.routes.order_activity import order_activities_bp
+    from app.routes.order_details import details_bp
+    from app.routes.main import remove_headings_filter
+
+    app.jinja_env.filters['remove_headings'] = remove_headings_filter
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -63,6 +68,7 @@ def create_app(config_name="default"):
     app.register_blueprint(client_bp, url_prefix='/client') 
     app.register_blueprint(blog_bp, url_prefix='/blog')
     app.register_blueprint(payment_bp, url_prefix='/payment')
+    app.register_blueprint(confirm_payment_bp, url_prefix='/api/payment')
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(admin_delivery_bp, prefix='/admin')
     app.register_blueprint(notifications_bp, url_prefix='/notifications')
@@ -70,6 +76,7 @@ def create_app(config_name="default"):
     app.register_blueprint(results_services_bp, url_prefix='/result-services')
     app.register_blueprint(order_activities_bp, url_prefix='/order-activities')
     app.register_blueprint(activity_bp, url_prefix='/activity')
+    app.register_blueprint(details_bp, url_prefix='/details')
     uploads_dir = os.path.join(app.static_folder, 'uploads')
     os.makedirs(uploads_dir, exist_ok=True)
     os.makedirs(os.path.join(uploads_dir, 'orders'), exist_ok=True)

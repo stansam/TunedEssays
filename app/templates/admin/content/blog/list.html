@@ -205,6 +205,9 @@
             <a href="{{ url_for('admin.create_blog_post') }}" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>New Post
             </a>
+            <button type="button" class="btn btn-outline-primary" style="text-transform: none;" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Add Category">
+                <i class="fas fa-plus"> </i>Add a Category
+            </button>
         </div>
     </div>
 
@@ -577,9 +580,59 @@
         </div>
     </div>
 </div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Category
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addCategoryForm">
+                <div class="modal-body">
+                    <div class="alert alert-danger d-none" id="categoryErrorAlert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="categoryErrorMessage"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required maxlength="100">
+                        <div class="form-text">Enter a descriptive name for the category (max 100 characters)</div>
+                    </div>
+                    
+
+                    
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="3" placeholder="Optional description for this category"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveCategoryBtn">
+                        <span class="btn-text">
+                            <i class="fas fa-save me-2"></i>Save Category
+                        </span>
+                        <span class="btn-loading d-none">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Saving...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<script src="{{url_for('static', filename='js/blog-man.js')}}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Select2

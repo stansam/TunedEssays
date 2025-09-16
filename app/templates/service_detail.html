@@ -1024,7 +1024,7 @@
             <div class="slide-content">
                 <h3 class="slide-title">{{ related_service.name }}</h3>
                 <p class="slide-description">{{ related_service.description[:120]|safe }}{% if related_service.description|length > 120 %}...{% endif %}</p>
-                <a href="{{ url_for('services.service_detail', id=related_service.id) }}" class="slide-link">
+                <a href="{{ url_for('services.service_detail', slug=related_service.slug) }}" class="slide-link">
                     Learn More <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

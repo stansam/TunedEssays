@@ -81,7 +81,7 @@
                                         <div class="card h-100 border-0 shadow-sm hover-card">
                                             <div class="card-img-wrapper">
                                                 {% if post.featured_image %}
-                                                    <img src="{{ post.featured_image }}" class="card-img-top" alt="{{ post.title }}">
+                                                    <img src="{{ url_for('static', filename=post.featured_image) }}" class="card-img-top" alt="{{ post.title }}">
                                                 {% else %}
                                                     <div class="card-img-top bg-light py-4 text-center">
                                                         <svg width="150" height="100" viewBox="0 0 150 100" class="img-fluid">
@@ -107,14 +107,15 @@
                                                     Read More <i class="fas fa-long-arrow-alt-right ms-1"></i>
                                                 </a>
                                             </div>
-                                        </div>
-                                        <div class="blog-tags">
+                                        
+                                        <div class="blog-tags mb-4">
                                             {% if post.tags%} 
                                             {%for tag in post.tags.split(',')%}
-                                                <a href="{{url_for('main.search', q=tag)}}" class="btn btn-sm btn-outline-success rounded-pill">{{ tag }}</a>
+                                                <a href="{{url_for('main.search', q=tag)}}" class="btn btn-sm btn-outline-success rounded-pill mb-2">{{ tag }}</a>
                                             {% endfor %}
                                             {% endif %}
                                         </div>
+					</div>
                                     </div>
                                 {% endif %}
                             {% else %}
@@ -234,7 +235,7 @@
                                             <a href="{{ url_for('blog.post', slug=post.slug) }}" class="d-flex align-items-center text-decoration-none p-3 {% if not loop.last %}border-bottom{% endif %} recent-post-link">
                                                 <div class="flex-shrink-0">
                                                     {% if post.featured_image %}
-                                                        <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="recent-post-thumb rounded" width="70" height="70">
+                                                        <img src="{{ url_for('static', filename=post.featured_image) }}" alt="{{ post.title }}" class="recent-post-thumb rounded" width="70" height="70">
                                                     {% else %}
                                                         <div class="recent-post-thumb bg-light rounded d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
                                                             <i class="fas fa-newspaper text-success"></i>
@@ -263,9 +264,9 @@
                                 <p class="mb-3">Subscribe to our newsletter for the latest academic writing tips and guides delivered to your inbox.</p>
                                 <form action="{{ url_for('main.newsletter_subscribe') }}" method="POST" class="newsletter-form">
                                     <div class="mb-3">
-                                        <div class="input-group">
+                                        <div class="d-flex input-group">
                                             <span class="input-group-text bg-success text-white"><i class="fas fa-at"></i></span>
-                                            <input type="email" class="form-control" placeholder="Your email address" name="email" required>
+                                            <input type="email" class="input-group-text" placeholder="Your email address" name="email" required>
                                         </div>
                                     </div>
                                     <div class="d-grid">

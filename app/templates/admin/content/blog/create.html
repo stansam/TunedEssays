@@ -163,6 +163,10 @@
                             <div class="slug-preview">Permalink: <span id="slugPreview" class="fw-bold">your-post-title</span></div>
                         </div>
                         <div class="mb-3">
+                            <label for="author" class="form-label">Author <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="author" name="author" required placeholder="Enter author name">
+                        </div>
+                        <div class="mb-3">
                             <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="content" name="content" required rows="10"></textarea>
                             <div class="d-flex justify-content-between align-items-center mt-2">
@@ -340,7 +344,7 @@
                                     <span>{{ current_user.username[0]|upper }}</span>
                                 </div>
                                 <div>
-                                    <span>{{ current_user.get_name() }}</span>
+                                    <span id="previewAuthor">Author name</span>
                                     <span class="mx-2">•</span>
                                     <span id="previewDate"></span>
                                 </div>
@@ -416,7 +420,11 @@
             }
             showSavingStatus();
         });
-        
+        const authorInput = document.getElementById('author');
+        authorInput.addEventListener('input', function() {
+            showSavingStatus();
+        });
+
         // Featured image preview
         const imageInput = document.getElementById('featured_image');
         const imagePreview = document.getElementById('imagePreview');
@@ -500,13 +508,14 @@
         // Preview Button
         document.getElementById('previewBtn').addEventListener('click', function() {
             const title = document.getElementById('title').value || 'Post Title';
+            const author = document.getElementById('author').value || 'Author Name';
             const content = $('#content').summernote('code') || '<p>No content yet.</p>';
             const tags = document.getElementById('tags').value;
             const featuredImage = document.getElementById('imagePreview').src;
             
             document.getElementById('previewTitle').textContent = title;
             document.getElementById('previewContent').innerHTML = content;
-            
+            document.getElementById('previewAuthor').textContent = author;
             // Set date
             const today = new Date();
             document.getElementById('previewDate').textContent = today.toLocaleDateString('en-US', {

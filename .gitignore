@@ -8,4 +8,4 @@
 /ngroke.exe
 *.exe
 /zed
-
+__pycache__/

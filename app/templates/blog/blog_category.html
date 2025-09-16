@@ -8,7 +8,7 @@
 
 {% block content %}
     <!-- Page Header -->
-    <section class="page-header text-white py-5" style="background: var(--gradient-primary);">
+    <section class="page-header text-white bg-success py-5">
         <div class="container">
             <div class="row">
                 <div class="col-12 text-center">
@@ -16,7 +16,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb justify-content-center">
                             <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-white">Home</a></li>
-                            <li class="breadcrumb-item"><a href="{{ url_for('main.blog') }}" class="text-white">Blog</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('blog.index') }}" class="text-white">Blog</a></li>
                             <li class="breadcrumb-item active text-white-50" aria-current="page">{{ category.name }}</li>
                         </ol>
                     </nav>
@@ -54,7 +54,7 @@
                             <div class="blog-card">
                                 <div class="card h-100 border-0 shadow-sm">
                                     {% if post.featured_image %}
-                                        <img src="{{ post.featured_image }}" class="card-img-top" alt="{{ post.title }}">
+                                        <img src="{{ url_for('static', filename=post.featured_image) }}" class="card-img-top" alt="{{ post.title }}">
                                     {% else %}
                                         <div class="card-img-top bg-light py-4 text-center">
                                             <svg width="150" height="100" viewBox="0 0 150 100" class="img-fluid">
@@ -66,14 +66,14 @@
                                     {% endif %}
                                     <div class="card-body">
                                         <div class="post-meta mb-2">
-                                            <span class="badge bg-primary me-2">{{ post.category.name }}</span>
+                                            <span class="badge bg-success me-2">{{ post.category.name }}</span>
                                             <span class="text-muted small"><i class="far fa-calendar-alt me-1"></i> {{ post.published_at.strftime('%b %d, %Y') }}</span>
                                         </div>
                                         <h3 class="card-title h5 mb-3">{{ post.title }}</h3>
                                         <p class="card-text">{{ post.excerpt | truncate(120) }}</p>
                                     </div>
                                     <div class="card-footer bg-transparent border-0 pt-0">
-                                        <a href="{{ url_for('main.blog_post', slug=post.slug) }}" class="btn btn-link text-primary p-0">Read More <i class="fas fa-arrow-right ms-1"></i></a>
+                                        <a href="{{ url_for('blog.post', slug=post.slug) }}" class="btn btn-link text-success p-0">Read More <i class="fas fa-arrow-right ms-1"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -90,7 +90,7 @@
                             <ul class="pagination justify-content-center">
                                 {% if pagination.has_prev %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('blog_category', slug=category.slug, page=pagination.prev_num) }}" aria-label="Previous">
+                                        <a class="page-link" href="{{ url_for('blog.category', slug=category.slug, page=pagination.prev_num) }}" aria-label="Previous">
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
                                     </li>
@@ -108,7 +108,7 @@
                                             </li>
                                         {% else %}
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ url_for('main.blog_category', slug=category.slug, page=page) }}">{{ page }}</a>
+                                                <a class="page-link" href="{{ url_for('blog.category', slug=category.slug, page=page) }}">{{ page }}</a>
                                             </li>
                                         {% endif %}
                                     {% else %}
@@ -120,7 +120,7 @@
                                 
                                 {% if pagination.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('main.blog_category', slug=category.slug, page=pagination.next_num) }}" aria-label="Next">
+                                        <a class="page-link" href="{{ url_for('blog.category', slug=category.slug, page=pagination.next_num) }}" aria-label="Next">
                                             <span aria-hidden="true">&raquo;</span>
                                         </a>
                                     </li>
@@ -139,16 +139,16 @@
                     <!-- Blog Categories -->
                     <div class="sidebar-widget mb-4">
                         <div class="card border-0 shadow-sm">
-                            <div class="card-header text-white" style="background: var(--gradient-primary);">
+                            <div class="card-header text-white bg-success">
                                 <h3 class="widget-title h5 mb-0">Categories</h3>
                             </div>
                             <div class="card-body">
                                 <ul class="category-list list-unstyled mb-0">
                                     {% for cat in categories %}
                                         <li class="category-item">
-                                            <a href="{{ url_for('main.blog_category', slug=cat.slug) }}" class="d-flex justify-content-between align-items-center py-2 border-bottom {% if cat.id == category.id %}text-primary fw-bold{% endif %}">
+                                            <a href="{{ url_for('blog.category', slug=cat.slug) }}" class="d-flex justify-content-between align-items-center py-2 border-bottom {% if cat.id == category.id %}text-success fw-bold{% endif %}">
                                                 <span>{{ cat.name }}</span>
-                                                <span class="badge bg-primary rounded-pill">{{ cat.posts | length }}</span>
+                                                <span class="badge bg-success rounded-pill">{{ cat.posts | length }}</span>
                                             </a>
                                         </li>
                                     {% endfor %}
@@ -160,14 +160,14 @@
                     <!-- Search -->
                     <div class="sidebar-widget mb-4">
                         <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header bg-success text-white">
                                 <h3 class="widget-title h5 mb-0">Search</h3>
                             </div>
                             <div class="card-body">
-                                <form action="{{ url_for('main.blog') }}" method="GET">
+                                <form action="{{ url_for('blog.index') }}" method="GET">
                                     <div class="input-group">
                                         <input type="text" class="form-control" placeholder="Search posts..." name="q" value="{{ request.args.get('q', '') }}">
-                                        <button class="btn btn-primary" type="submit">
+                                        <button class="btn btn-success" type="submit">
                                             <i class="fas fa-search"></i>
                                         </button>
                                     </div>
@@ -179,20 +179,20 @@
                     <!-- Recent Posts -->
                     <div class="sidebar-widget mb-4">
                         <div class="card border-0 shadow-sm">
-                            <div class="card-header text-white" style="background: var(--gradient-primary);">
+                            <div class="card-header text-white bg-success">
                                 <h3 class="widget-title h5 mb-0">Recent Posts</h3>
                             </div>
                             <div class="card-body">
                                 <ul class="recent-posts-list list-unstyled mb-0">
                                     {% for post in recent_posts %}
                                         <li class="recent-post-item mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
-                                            <a href="{{ url_for('main.blog_post', slug=post.slug) }}" class="d-flex align-items-center text-decoration-none">
+                                            <a href="{{ url_for('blog.post', slug=post.slug) }}" class="d-flex align-items-center text-decoration-none">
                                                 <div class="flex-shrink-0">
                                                     {% if post.featured_image %}
-                                                        <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="recent-post-thumb" width="60" height="60">
+                                                        <img src="{{ url_for('static', filename=post.featured_image) }}" alt="{{ post.title }}" class="recent-post-thumb" width="60" height="60">
                                                     {% else %}
                                                         <div class="recent-post-thumb bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                                            <i class="fas fa-newspaper text-primary"></i>
+                                                            <i class="fas fa-newspaper text-success"></i>
                                                         </div>
                                                     {% endif %}
                                                 </div>
@@ -211,7 +211,7 @@
                     <!-- Newsletter Signup -->
                     <div class="sidebar-widget">
                         <div class="card border-0 shadow-sm">
-                            <div class="card-header  text-white" style="background: var(--gradient-primary);">
+                            <div class="card-header  text-white bg-success">
                                 <h3 class="widget-title h5 mb-0">Newsletter</h3>
                             </div>
                             <div class="card-body">
@@ -221,7 +221,7 @@
                                         <input type="email" class="form-control" placeholder="Your email address" name="email" required>
                                     </div>
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                                        <button type="submit" class="btn btn-success">Subscribe</button>
                                     </div>
                                 </form>
                             </div>

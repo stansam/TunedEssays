@@ -1,5 +1,8 @@
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
     """Base configuration."""
@@ -15,17 +18,22 @@ class Config:
     BRAIN_TREE_PUBLIC_KEY=os.environ.get("BRAIN_TREE_PUBLIC_KEY")
     BRAIN_TREE_PRIVATE_KEY=os.environ.get("BRAIN_TREE_PRIVATE_KEY")
     # SQLAlchemy
-    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI", "sqlite:///academic_writing.db")
+    #SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI", "sqlite:///academic_writing.db")
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}"
+#    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
+        'pool_size': 10,
+        'max_overflow': 20
     }
     
     # Flask-Mail
-    MAIL_SERVER = "smtp.gmail.com"
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
+    MAIL_SERVER =os.environ.get("EMAIL_HOST")
+    MAIL_PORT = os.environ.get("EMAIL_PORT")
+    MAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() in ['true', '1', 'yes']
+    MAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").lower() in ['true', '1', 'yes']
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")

@@ -21,8 +21,9 @@ class BlogPost(db.Model):
     excerpt = db.Column(db.Text)
     featured_image = db.Column(db.String(255))
     tags = db.Column(db.String(255))  # Comma-separated tags
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    author = db.Column(db.String(100), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('blog_category.id'))
+    meta_description = db.Column(db.String(220))
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     published_at = db.Column(db.DateTime)

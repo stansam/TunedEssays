@@ -12,7 +12,7 @@ from app.models.communication import Notification, Chat
 from app.models.content import Testimonial, Sample
 from app.models.blog import BlogPost, BlogCategory, BlogComment
 from app.models.service import Service, AcademicLevel, Deadline, ServiceCategory
-from app.models.payment import Payment, Refund, Discount
+from app.models.payment import Payment, Refund, Discount, Invoice
 from app.models.tools import PlagiarismCheck, ChatMessage
 from app.models.price import PriceRate, PricingCategory
 from app.models.referral import Referral
@@ -22,6 +22,7 @@ from app.extensions import socketio
 from app.routes.main import notify
 from app.config import Config
 from PIL import Image
+from app.utils.email import send_order_completed_email, send_extension_request_email, send_payment_confirmation_email
 from datetime import datetime, timedelta
 import calendar
 import uuid
@@ -31,7 +32,7 @@ from app.utils.file_upload import allowed_file
 from werkzeug.security import generate_password_hash
 import os
 import re
-
+import json
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -350,7 +351,8 @@ def create_blog_post():
         category_id = request.form.get('category_id')
         published = True if request.form.get('published') == 'true' else False
         meta_description = request.form.get('meta_description', '')
-        tags = request.form.get('tags', '').split(',')
+        tags = ','.join([tag['value'].strip() for tag in json.loads(request.form.get('tags', '[]')) if tag.get('value')]) or None
+        author = request.form.get('author')
         # tags = [tag.strip() for tag in tags if tag.strip()]
         # if tags and len(tags) > 0:
         #     for tag in tags:
@@ -380,8 +382,7 @@ def create_blog_post():
                 file.save(file_path)
                 
                 # Save the path relative to static directory
-                featured_image = f"uploads/blog/{unique_filename}"
-        
+                featured_image = os.path.join('uploads', 'blog', unique_filename).replace('\\', '/')       
         # Create new blog post
         post = BlogPost(
             title=title,
@@ -389,8 +390,9 @@ def create_blog_post():
             content=content,
             excerpt=excerpt,
             featured_image=featured_image,
-            tags = ','.join(cleaned_tags),
-            author_id=current_user.id,
+            tags = tags.strip() or None,
+            author=author,
+            meta_description=meta_description,
             category_id=category_id,
             is_published=published,
             published_at=datetime.now() if published else None
@@ -454,84 +456,111 @@ def edit_blog_post(post_id):
         content = request.form.get('content')
         excerpt = request.form.get('excerpt', '')
         category_id = request.form.get('category_id')
+        author = request.form.get('author', current_user.get_name())
         published = True if request.form.get('published') == 'true' else False
         meta_description = request.form.get('meta_description', '')
-        tags = request.form.get('tags', '').split(',')
-        tags = [tag.strip() for tag in tags if tag.strip()]
+        tags = request.form.get('tags', '')
         
-        # Update post details
-        post.title = title
-        post.content = content
-        post.excerpt = excerpt
-        post.category_id = category_id
-        post.meta_description = meta_description
-        post.tags = tags
+        # Validate required fields
+        if not title or not content:
+            flash('Title and content are required', 'error')
+            return redirect(url_for('admin.edit_blog_post', post_id=post.id))
         
-        # Update slug if title changed
-        if post.title != title:
-            post.slug = generate_unique_slug(title, BlogPost, post.id)
-        
-        # Update published status
-        if post.published != published:
-            post.published = published
-            if published and not post.publish_date:
-                post.publish_date = datetime.now()
-        
-        # Handle featured image upload
-        if 'featured_image' in request.files:
-            file = request.files['featured_image']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                
-                # Create directory if it doesn't exist
-                upload_dir = os.path.join('app', 'static', 'uploads', 'blog')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save the file
-                file_path = os.path.join(upload_dir, unique_filename)
-                file.save(file_path)
-                
-                # Delete old image if exists
-                if post.featured_image:
-                    old_path = os.path.join('app', 'static', post.featured_image)
-                    if os.path.exists(old_path):
-                        os.remove(old_path)
-                
-                # Save the path relative to static directory
-                post.featured_image = os.path.join('uploads', 'blog', unique_filename)
         try:
+            # Update post details
+            post.title = title
+            post.content = content
+            post.excerpt = excerpt
+            post.author = author
+            post.meta_description = meta_description
+            post.tags = tags  # Store as comma-separated string
+            
+            # Update category if provided
+            if category_id:
+                try:
+                    post.category_id = int(category_id)
+                except (ValueError, TypeError):
+                    post.category_id = None
+            else:
+                post.category_id = None
+            
+            # Update slug if title changed
+            if post.title != title:
+                post.slug = generate_unique_slug(title, BlogPost, post.id)
+            
+            # Update published status
+            if post.is_published != published:
+                post.is_published = published
+                if published and not post.published_at:
+                    post.published_at = datetime.now()
+                elif not published:
+                    post.published_at = None
+            
+            # Handle featured image upload
+            if 'featured_image' in request.files:
+                file = request.files['featured_image']
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    
+                    # Create directory if it doesn't exist
+                    upload_dir = os.path.join('app', 'static', 'uploads', 'blog')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Save the file
+                    file_path = os.path.join(upload_dir, unique_filename)
+                    file.save(file_path)
+                    
+                    # Delete old image if exists
+                    if post.featured_image:
+                        old_path = os.path.join('app', 'static', post.featured_image)
+                        if os.path.exists(old_path):
+                            try:
+                                os.remove(old_path)
+                            except OSError:
+                                pass  # File doesn't exist or can't be removed
+                    
+                    # Save the path relative to static directory
+                    post.featured_image = os.path.join('uploads', 'blog', unique_filename).replace('\\', '/')
+            
+            # Commit changes
             db.session.commit()
-            other = current_user
-            notify(other, 
-                title=f"Post #{post.title} has been updated by {current_user.get_name()}", 
+            
+            # Send notifications
+            notify(current_user, 
+                title=f"Post '{post.title}' has been updated", 
                 message="Blog post updated successfully", 
                 type='info', 
                 link=url_for('admin.view_blog_post', post_id=post.id))
-            all_users = User.query.all()
-            for user in all_users:
+            
+            # Notify other admin users
+            admin_users = User.query.filter(User.is_admin == True, User.id != current_user.id).all()
+            for user in admin_users:
                 notify(user, 
-                    title=f"Post #{post.title} has been updated by {current_user.get_name()}", 
+                    title=f"Post '{post.title}' has been updated by {current_user.get_name()}", 
                     message="Blog post updated successfully", 
                     type='info', 
                     link=url_for('admin.view_blog_post', post_id=post.id))
             
             flash('Blog post updated successfully', 'success')
-            return redirect(url_for('admin.view_blog_post', post_id=post.id))
+            
+            # Redirect based on publish status
+            if published:
+                return redirect(url_for('admin.view_blog_post', post_id=post.id))
+            else:
+                return redirect(url_for('admin.list_blog_posts'))
 
         except Exception as e:
             db.session.rollback()
-            flash('Failed to update blog', 'error')
-            return redirect(url_for('admin.view_blog_post', post_id=post.id))
-        
+            flash(f'Failed to update blog post: {str(e)}', 'error')
+            return redirect(url_for('admin.edit_blog_post', post_id=post.id))
     
-    # GET request - render form with current values
-    categories = BlogCategory.query.all()
     
-    return render_template('admin/content/blog/edit.html',
-                           post=post,
-                           categories=categories,
-                           title=f'Edit: {post.title}')
+    categories = BlogCategory.query.order_by(BlogCategory.name).all()
+    
+    return render_template('admin/content/blog/edit.html', 
+                         post=post, 
+                         categories=categories)
 
 @admin_bp.route('/blog/<int:post_id>/toggle-published', methods=['POST'])
 @login_required
@@ -662,28 +691,44 @@ def list_blog_categories():
                            categories=categories,
                            title='Blog Categories')
 
-@admin_bp.route('/blog/categories/create', methods=['GET', 'POST'])
+@admin_bp.route('/blog/categories/create', methods=['POST'])
 @login_required
 @admin_required
 def create_blog_category():
     """Create a new blog category."""
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description', '')
-        parent_id = request.form.get('parent_id', None)
+    try:
+        data =request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No data provided'
+            }), 400
+        name = data.get('name')
+        description = data.get('description', '')
         
-        if not parent_id or parent_id == '0':
-            parent_id = None
         
         # Generate slug from name
         slug = generate_unique_slug(name, BlogCategory)
+
+        existing_name = BlogCategory.query.filter_by(name=name).first()
+        if existing_name:
+            return jsonify({
+                'success': False,
+                'message': f'A category with the name "{name}" already exists'
+            }), 400
+        existing_slug = BlogCategory.query.filter_by(slug=slug).first()
+        if existing_slug:
+            return jsonify({
+                'success': False,
+                'message': f'A category with the slug "{slug}" already exists'
+            }), 400
         
         # Create category
         category = BlogCategory(
             name=name,
             slug=slug,
-            description=description,
-            parent_id=parent_id
+            description=description if description else None,
+            
         )
         other = current_user
         notify(other, 
@@ -695,15 +740,34 @@ def create_blog_category():
         db.session.add(category)
         db.session.commit()
         
-        flash('Category created successfully', 'success')
-        return redirect(url_for('admin.list_blog_categories'))
+        return jsonify({
+            'success': True,
+            'message': 'Category created successfully',
+            'category': {
+                'id': category.id,
+                'name': category.name,
+                'slug': category.slug,
+                'description': category.description
+            }
+        }), 201
+        
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': 'A category with this name or slug already exists'
+        }), 400
+        
+    except Exception as e:
+        db.session.rollback()
+        # Log the error for debugging
+        current_app.logger.error(f'Error creating blog category: {str(e)}')
+        
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while creating the category'
+        }), 500    
     
-    # GET request - render form
-    categories = BlogCategory.query.all()
-    
-    return render_template('admin/content/blog/create_category.html',
-                           categories=categories,
-                           title='Create Blog Category')
 
 @admin_bp.route('/blog/categories/<int:category_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -1125,7 +1189,7 @@ def create_sample():
                 service_id=int(form_data.get('service_id')),
                 word_count=word_count,
                 featured=form_data.get('featured', '0') == '1',
-                tags=form_data.get('tags').strip() or None,
+                tags = ','.join([tag['value'].strip() for tag in json.loads(request.form.get('tags', '[]')) if tag.get('value')]) or None,
                 image=image_filename,
                 created_at=datetime.now()
             )
@@ -1290,6 +1354,7 @@ def get_sample_for_edit(sample_id):
             'service_id': sample.service_id,
             'word_count': sample.word_count,
             'featured': sample.featured,
+            'tags' : sample.tags,
             'image': sample.image,
             'created_at': sample.created_at.isoformat() if sample.created_at else None
         }
@@ -1318,6 +1383,7 @@ def update_sample(sample_id):
         excerpt = request.form.get('excerpt', '').strip()
         service_id = request.form.get('service_id')
         featured = request.form.get('featured', 'false').lower() == 'true'
+        tags = request.form.get('tags', '').strip()
         
         # Validation
         if not title:
@@ -1364,6 +1430,7 @@ def update_sample(sample_id):
         sample.service_id = int(service_id) if service_id else None
         sample.word_count = word_count
         sample.featured = featured
+        sample.tags = tags
         sample.image = image_filename
         
         # Commit changes
@@ -1380,6 +1447,7 @@ def update_sample(sample_id):
                 'service_id': sample.service_id,
                 'word_count': sample.word_count,
                 'featured': sample.featured,
+                'tags' : sample.tags,
                 'image': sample.image,
                 'created_at': sample.created_at.isoformat() if sample.created_at else None
             }
@@ -2487,14 +2555,27 @@ def record_payment(order_id):
         order_id=order.id,
         user_id=order.client_id,
         amount=amount,
-        payment_method=payment_method,
-        transaction_id=f"ORD-{order.order_number}-{uuid.uuid4().hex[:8].upper()}",
+        method=payment_method,
+        #transaction_id=f"ORD-{order.order_number}-{uuid.uuid4().hex[:8].upper()}",
         status='completed',
-        payment_date=datetime.now(),
-        created_at=datetime.now()
+        #payment_date=datetime.now(),
+        #created_at=datetime.now()
     )
     
     db.session.add(payment)
+    db.session.flush()
+    invoice = Invoice(
+        order_id=order.id,
+        user_id=current_user.id,
+        payment_id=payment.id,
+        subtotal=order.total_price,
+        total=order.total_price,
+        due_date=order.due_date,
+        paid=True
+    )
+    db.session.add(invoice)
+    db.session.flush()
+
     notify(current_user,
             title=f"Payment for Order #{order.order_number} has been recorded",
             message=f"Payment of ${amount} recorded successfully.",
@@ -2504,15 +2585,16 @@ def record_payment(order_id):
             title=f"Payment for your Order #{order.order_number} has been recorded",
             message=f"Payment of ${amount} recorded successfully.",
             type='info',
-            link=url_for('client.view_order', order_id=order.id))
+            link=url_for('order_details.order_details', order_id=order.id))
     # Update order payment status
-    order.payment_status = 'Paid'
+    order.paid = True
+    order.status = 'active'
     notify(order.client,
             title=f"Your Order #{order.order_number} payment status updated to Paid",
             message="Payment recorded successfully.",
             type='info',
-            link=url_for('client.view_order', order_id=order.id))
-    
+            link=url_for('order_details.order_details', order_id=order.id))
+    send_payment_confirmation_email(invoice, order.client)
     db.session.commit()
     
     flash('Payment recorded successfully', 'success')
@@ -3352,6 +3434,8 @@ def upload_additional_delivery_files(order_id):
         if uploaded_files:
             try:
                 db.session.commit()
+                order = Order.query.filter_by(id=order_id).first()
+                send_order_completed_email(order, order.client)
             except Exception as e:
                 db.session.rollback()
                 # Clean up uploaded files

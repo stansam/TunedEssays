@@ -233,7 +233,7 @@
       </div>
       <h3 class="service-item-title">{{ service.name }}</h3>
       <p class="service-description">
-        {{ service.description }}
+        {{ service.description|truncate(100) }}
       </p>
       <div class="service-footer">
         <!-- <div class="service-price">
@@ -243,7 +243,7 @@
             ${{ "%.2f"|format(service.price_per_page) }}
           {% endif %}#}
         </div> -->
-        <a href="{{url_for('main.service_detail', service_id=service.id)}}" class="see-more-btn">See more</a>
+        <a href="{{url_for('main.services', service_category_id=service.id)}}" class="see-more-btn">See Services</a>
       </div>
     </div>
     {% endfor %}
@@ -335,58 +335,14 @@
           <span class="initials">{{ testimonial.author.first_name[0] | upper }}{{ testimonial.author.last_name[0] | upper }}</span>
         </div>
         <div class="reviewer-details">
-          <h4 class="reviewer-name">{{ testimonial.author.first_name }} {{ testimonial.author.last_name }}</h4>
+          <h4 class="reviewer-name">{{ testimonial.author.username }}</h4>
           <p class="reviewer-title">{{ testimonial.service.name }}</p>
         </div>
       </div>      
     </div>
     {% endfor %}
 
-    <!-- <div class="review-card">
-      <div class="rating">
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-      </div>
-      <p class="review-text">
-        "This plagiarism checker saved me during finals! It's fast, accurate,
-        and easy to use. Highly recommend to any student!"
-      </p>
-      <div class="reviewer-info">
-        <div class="avatar">
-          <span class="initials">EM</span>
-        </div>
-        <div class="reviewer-details">
-          <h4 class="reviewer-name">Emma Johnson</h4>
-          <p class="reviewer-title">University Student</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="review-card">
-      <div class="rating">
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-        <span class="star">★</span>
-      </div>
-      <p class="review-text">
-        "As a full-time writer, maintaining originality is crucial. This tool
-        helps me ensure all my articles are 100% unique before submission."
-      </p>
-      <div class="reviewer-info">
-        <div class="avatar">
-          <span class="initials">MI</span>
-        </div>
-        <div class="reviewer-details">
-          <h4 class="reviewer-name">Michael Lee</h4>
-          <p class="reviewer-title">Content Writer</p>
-        </div>
-      </div>
-    </div>-->
+    
   </div> 
 
   <div class="reviews-navigation">
@@ -442,7 +398,7 @@
         <p class="paper-description">
           {{sample.excerpt}}
         </p>
-        <a href="{{ url_for('main.sample_detail', sample_id=sample.id) }}" class="read-sample-btn">Read Sample</a>
+        <a href="{{ url_for('main.sample_detail', slug=sample.slug) }}" class="read-sample-btn">Read Sample</a>
       </div>
       <div class="tags-field">
         <ul class="tag-list">
@@ -602,13 +558,13 @@
 </div>
 <section class="seo-section fade-in">
     <div class="container">
-        <h2 class="seo-title">Excellence in Academic Writing Services</h2>
+        <h2 class="seo-title">Excellence in Proffessional Writing, Editing and Proofreading Services</h2>
         
         <div class="seo-container">
             <div class="seo-content">
                 <div class="seo-column">
-                    <h3>Professional Essay Writing Services</h3>
-                    <p>TunedEssays provides comprehensive academic writing assistance for students seeking high-quality papers. Our experienced writers specialize in crafting essays, research papers, dissertations, and thesis projects across all academic disciplines. With our write my essay service, students receive original, well-researched content tailored to their specific requirements.</p>
+                    <h3>Professional Essay Writing, Editing and Proofreading Services</h3>
+                    <p>TunedEssays provides comprehensive proffessional writing, editing and proofreading assistance for clients seeking high-quality papers. Our experienced writers specialize in crafting essays, research papers, dissertations, and thesis projects across all disciplines. With our write my essay service, you receive original, well-researched content tailored to their specific requirements.</p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -633,25 +589,25 @@
                         <span class="keyword-tag">essay writing service</span>
                         <span class="keyword-tag">write my essay</span>
                         <span class="keyword-tag">paper writer</span>
-                        <span class="keyword-tag">academic help</span>
+                        <span class="keyword-tag">paper help</span>
                         <span class="keyword-tag">custom essays</span>
                     </div>
                 </div>
 
                 <div class="seo-column">
-                    <h3>Academic Paper Writing Solutions</h3>
-                    <p>From urgent assignments to complex dissertations, our paper writing service covers all academic levels. Students can hire professional writers who hold advanced degrees in their respective fields. Our pay for essay platform ensures secure transactions through Braintree integration, supporting PayPal, Venmo, and card payments for convenient order processing.</p>
+                    <h3>Proffessional Paper Writing, Editing and Proofreading Solutions</h3>
+                    <p>From urgent assignments to complex dissertations, our paper writing service covers all academic levels. Students can hire professional writers who hold advanced degrees in their respective fields. Our pay for essay platform ensures secure transactions through PayPal integration, supporting PayPal and card payments for convenient order processing.</p>
                     
                     <div class="collapsible-content">
                         <h3>Research and Dissertation Assistance</h3>
-                        <p>Our thesis writing service and dissertation help provide comprehensive support for graduate students. Expert researchers and writers collaborate to deliver original, well-cited academic papers that meet university standards. From proposal to final defense, we guide students through every step of their research journey.</p>
+                        <p>Our thesis writing service and dissertation help provide comprehensive support for esteemed clients. Expert researchers and writers collaborate to deliver original, well-cited proffessional papers that meet university standards. From proposal to final defense, we guide clients through every step of their research journey.</p>
                         
                         <div class="seo-keywords">
                             <span class="keyword-tag">dissertation writing</span>
                             <span class="keyword-tag">thesis help</span>
                             <span class="keyword-tag">research papers</span>
                             <span class="keyword-tag">graduate assistance</span>
-                            <span class="keyword-tag">academic research</span>
+                            <span class="keyword-tag">paper research</span>
                         </div>
                     </div>
                     
@@ -673,15 +629,15 @@
 
                 <div class="seo-column">
                     <h3>Quality Assurance & Customer Support</h3>
-                    <p>Every write my paper request undergoes rigorous quality control processes. Our team ensures originality, proper formatting, and adherence to academic standards. With 24/7 customer support, unlimited revisions, and money-back guarantees, TunedEssays prioritizes student satisfaction and academic success.</p>
+                    <p>Every write my paper request undergoes rigorous quality control processes. Our team ensures originality, proper formatting, and adherence to agreed on standards. With 24/7 customer support, unlimited revisions, and money-back guarantees, TunedEssays prioritizes client satisfaction and high quality paper delivery.</p>
                     
                     <div class="seo-keywords">
                         <span class="keyword-tag">quality guarantee</span>
                         <span class="keyword-tag">plagiarism free</span>
                         <span class="keyword-tag">original papers</span>
-                        <span class="keyword-tag">academic standards</span>
+                        <span class="keyword-tag">proffessional standards</span>
                         <span class="keyword-tag">professional writing</span>
-                        <span class="keyword-tag">student support</span>
+                        <span class="keyword-tag">paper support</span>
                     </div>
                 </div>
             </div>

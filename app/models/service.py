@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import re
 
 class ServiceCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,12 +28,23 @@ class Service(db.Model):
     featured = db.Column(db.Boolean, default=False)
     tags = db.Column(db.String(255), nullable=True) 
     pricing_category_id = db.Column(db.Integer, db.ForeignKey('pricing_category.id'))
+    slug = db.Column(db.String(200), unique=True, nullable=False)
     
     orders = db.relationship('Order', backref='service', lazy=True)
     samples = db.relationship('Sample', backref='service', lazy=True)
     testimonials = db.relationship('Testimonial', backref='service', lazy=True)
     pricing_category = db.relationship('PricingCategory', back_populates='service')
     
+    def __init__(self, **kwargs):
+        super(Service, self).__init__(**kwargs)
+        if not self.slug and self.name:
+            self.slug = self.generate_slug(self.name)
+
+    @staticmethod
+    def generate_slug(name):
+        slug = re.sub(r'[^\w\s-]', '', name.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        return slug.strip('-')
     
     def __repr__(self):
         return f'<Service {self.name}>'

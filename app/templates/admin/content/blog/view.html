@@ -286,7 +286,7 @@
                         <h1 class="mb-2">{{ post.title }}</h1>
                         <div class="blog-meta text-white-50">
                             <span><i class="far fa-calendar-alt"></i> {{ post.published_at.strftime('%b %d, %Y') if post.published_at else post.created_at.strftime('%b %d, %Y') }}</span>
-                            <span><i class="far fa-user"></i> {{ post.author.username if post.author else 'Unknown' }}</span>
+                            <span><i class="far fa-user"></i> {{ post.author if post.author else 'Unknown' }}</span>
                             <span>
                                 <i class="far fa-bookmark"></i> 
                                 {{ post.category.name if post.category else 'Uncategorized' }}
@@ -304,7 +304,7 @@
                     </div>
                     <div class="blog-meta mt-2">
                         <span><i class="far fa-calendar-alt"></i> {{ post.published_at.strftime('%b %d, %Y') if post.published_at else post.created_at.strftime('%b %d, %Y') }}</span>
-                        <span><i class="far fa-user"></i> {{ post.author.username if post.author else 'Unknown' }}</span>
+                        <span><i class="far fa-user"></i> {{ post.author if post.author else 'Unknown' }}</span>
                         <span>
                             <i class="far fa-bookmark"></i> 
                             {{ post.category.name if post.category else 'Uncategorized' }}
@@ -337,8 +337,8 @@
                         <div>
                             {% if post.author %}
                             <span class="author-badge">
-                                <span class="author-avatar">{{ post.author.username[0]|upper }}</span>
-                                {{ post.author.username }}
+                                <span class="author-avatar">{{ post.author[0]|upper }}</span>
+                                {{ post.author }}
                             </span>
                             {% endif %}
                         </div>

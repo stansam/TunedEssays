@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.service import Service, AcademicLevel, Deadline
 from app.routes.api import calculate_price
 from app.utils.file_upload import allowed_file
+from app.utils.email import send_payment_completion_email, send_order_created, send_order_confirmation
 import logging
 import requests
 from flask_wtf.csrf import generate_csrf
@@ -23,9 +24,9 @@ orders_bp = Blueprint('orders', __name__)
 
 @orders_bp.route('/orders')
 @login_required
-def order_list():
+def list_orders():
     orders = Order.query.filter_by(client_id=current_user.id).order_by(Order.created_at.desc()).all()
-    return render_template('/orders/order.html', orders=orders, title="My Orders")
+    return render_template('/orders/orders.html', orders=orders, title="My Orders")
 
 # @orders_bp.route('/create', methods=['GET', 'POST'])
 # @login_required
@@ -601,6 +602,10 @@ def create_order():
                                 message="New order created", 
                                 type='info', 
                                 link=url_for('admin.view_order', order_id=new_order.id))
+                        payment_url = url_for('payment.checkout', order_id=new_order.id, _external=True)
+                        send_payment_completion_email(current_user, payment_url, new_order)
+                        send_order_confirmation(new_order, current_user)
+                        send_order_created(admin_user, new_order)
                     except Exception as notification_error:
                         # Log but don't fail the order
                         import logging

@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
-{% block title %}TunedEssays: Writing Services{% endblock %}
+{% block title %}TunedEssays: Writing, editing and proofreading Services{% endblock %}
 
-{% block meta_description %}Explore our comprehensive range of professional academic writing services including essays, research papers, dissertations, case studies, and more.{% endblock %}
+{% block meta_description %}Explore our comprehensive range of professional professional writing, editing and proofreading services including essays, research papers, dissertations, case studies, and more.{% endblock %}
 
 {% block body_class %}services-page{% endblock %}
 
@@ -26,7 +26,8 @@
         font-size: 7px;
         /* font-family: 'Courier New', Courier, monospace; */
 
-        align-items: flex-start;
+        align-items: flex-end;
+	flex-wrap: wrap;
         margin-top: 5px;
         /* padding: 3px 3px; */
         gap: 2px;
@@ -215,7 +216,7 @@
                     <div class="service-icon mx-auto mb-3" style="width: 80px; height: 80px; background: white; color: var(--primary-color);">
                         <i class="fas fa-4x fa-graduation-cap"></i>
                     </div>
-                    <h1 class="page-title display-4">Our Academic Services</h1>
+                    <h1 class="page-title display-4">Services Catalogue</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb justify-content-center">
                             <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-black">Home</a></li>
@@ -230,8 +231,8 @@
     <!-- Services Section -->
     <section class="section py-5 bg-light">
         <div class="container">
-            <h2 class="section-title text-center mb-2">Academic Writing Services</h2>
-            <p class="section-description text-center mb-5">We offer a wide range of high-quality academic writing services tailored to meet your specific needs.</p>
+            <h2 class="section-title text-center mb-2">Professional Writing, Editing and Proofreading Services</h2>
+            <p class="section-description text-center mb-5">We offer a wide range of high-quality professional writing, editing and proofreading services tailored to meet your specific needs.</p>
             {% set service_icons = [
                 'pencil-ruler', 'flask', 'brain', 'landmark', 'chart-line', 
                 'microscope', 'atom', 'heartbeat', 'balance-scale', 'code', 
@@ -246,11 +247,17 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="#all" data-bs-toggle="tab">All Categories</a>
                     </li>
+		    {% if service_category_id %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#category-{{ service_category_id }}" data-bs-toggle="tab">{{ selected_category.name }}</a>
+                        </li>
+                    {% else %}
                     {% for category in categories %}
                         <li class="nav-item">
                             <a class="nav-link" href="#category-{{ category.id }}" data-bs-toggle="tab">{{ category.name }}</a>
                         </li>
                     {% endfor %}
+		    {% endif %}
                 </ul>
             </div>
             
@@ -275,7 +282,7 @@
                                                     <i class=" fas fa-{{ service_icons[icon_index] }} fa-2x"></i>
                                                 </div>
                                                 <h4 class="card-title h5 mb-3 text-primary-dark">{{ service.name }}</h4>
-                                                <p class="card-text flex-grow-1">{{ service.description|safe|truncate(100) }}</p>
+                                                <p class="card-text flex-grow-1">{{ service.description|remove_headings|safe|truncate(100) }}</p>
                                                 
                                                 
                                                 <div class="" style="float: left;">
@@ -283,15 +290,19 @@
                                                         <!-- <a href="{{url_for('main.search', q=service.tags)}}" class="service-price">{{ service.tags }}</a> -->
                                                     {#{% endif %}#}
                                                     <div class="btn btn-success">
-                                                        <a href="{{ url_for('main.service_detail', service_id=service.id) }}" style="color: white; text-decoration: none; ">View Details</a>
+                                                        <a href="{{ url_for('main.service_detail', slug=service.slug) }}" style="color: white; text-decoration: none; ">View Details</a>
                                                     </div>
                                                 </div>
                                             </div>
+					    {% if service.tags%}
                                             <div class="service-tags">
-                                                {% if service.tags%} 
-                                                    <a href="{{url_for('main.search', q=service.tags)}}" class="btn btn-sm btn-outline-success rounded-pill">{{ service.tags }}</a>
+                                                
+						{% for tag in service.tags.split(',') %}
+                                                    <a href="{{url_for('main.search', q=tag)}}" class="btn btn-sm btn-outline-success rounded-pill">{{ tag }}</a>
+						    {% endfor %}
+					    </div>
                                                 {% endif %}
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                 {% else %}
@@ -325,11 +336,17 @@
                                                 <h4 class="card-title h5 mb-3">{{ service.name }}</h4>
                                                 <p class="card-text flex-grow-1">{{ service.description|safe|truncate(100) }}</p>
                                                 <div class="d-flex justify-content-between align-items-center mt-auto">
-                                                    <a href="{{ url_for('main.service_detail', service_id=service.id) }}" class="btn btn-sm btn-order">View Details</a>
+                                                    <a href="{{ url_for('main.service_detail', slug=service.slug) }}" class="btn btn-sm btn-order">View Details</a>
                                                 </div>
                                             </div>
-                                            <a href="{{url_for('main.search', q='service.tags')}}"><span class="btn btn-outline-success rounded-pill" style="margin-top: 2rem;">{{ service.tags }}</span></a>
-                                        </div>
+					    <div class="service-tags" style="font-size: 0.5em;">
+					    {% if service.tags%}
+					    {% for tag in service.tags.split(',') %}
+                                            <a href="{{url_for('main.search', q=tag)}}"><span class="btn btn-outline-success rounded-pill" style="margin-top: 2rem;">{{ tag.replace(" ", "-") }}</span></a>
+					    {% endfor %}
+					    {% endif %}
+					    </div>
+					</div>
                                     </div>
                                 {% else %}
                                     <div class="service-item col-12">
@@ -347,7 +364,7 @@
     <!-- Why Choose Us Section -->
     <section class="section py-5 bg-white">
         <div class="container">
-            <h2 class="section-title text-center mb-2">Why Choose Our Academic Writing Services?</h2>
+            <h2 class="section-title text-center mb-2">Why Choose Our Proffessional Writing, Editing and Proofreading Services?</h2>
             <p class="section-description text-center mb-5">We pride ourselves on delivering high-quality papers that meet your expectations.</p>
             
             <div class="services-grid mt-4">
@@ -409,6 +426,18 @@
             <p class="section-description text-center mb-5">Browse our collection of sample papers to get a feel for our writing quality.</p>
             
             <div class="services-grid">
+		    {% if sample_papers %}
+                {% for paper in sample_papers %}
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-3">{{paper.title}}</h3>
+                        <p class="text-muted mb-3">{{paper.category}} | {{paper.words}}</p>
+                        <p class="card-text flex-grow-1">{{paper.description}}</p>
+                        <a href="{{url_for('main.sample_detail', slug=paper.slug)}}" class="btn btn-outline-success w-100">Read Sample</a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
                 <div class="card h-100">
                     <div class="card-body">
                         <h3 class="card-title h5 mb-3">Artificial Intelligence in Healthcare</h3>
@@ -435,6 +464,7 @@
                         <button class="btn btn-outline-success w-100">Read Sample</button>
                     </div>
                 </div>
+		{% endif %}
             </div>
         </div>
     </section>
@@ -443,7 +473,7 @@
     <section class="section py-5 bg-white">
         <div class="container">
             <h2 class="section-title text-center mb-2">How It Works</h2>
-            <p class="section-description text-center mb-5">Our simple process makes it easy to get the academic help you need.</p>
+            <p class="section-description text-center mb-5">Our simple process makes it easy to get the proffessional help you need.</p>
             
             <div class="row g-4">
                 <div class="col-md-4">
@@ -485,7 +515,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-9 mb-4 mb-lg-0">
                     <h2 class="mb-2">Ready to Get Started?</h2>
-                    <p class="lead mb-0">Order your custom academic paper today and experience our professional writing service.</p>
+                    <p class="lead mb-0">Order your custom professional paper today and experience our professional writing service.</p>
                 </div>
                 <div class="col-lg-3 text-lg-end">
                     <a href="{{ url_for('orders.create_order') }}" style="border-radius: 25px;" class="btn-outline-dark btn btn-lg btn-order">Order Now</a>

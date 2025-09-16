@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Manual Payment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .payment-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a9c4a, #2d7a2d);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* flex-direction: column; */
+        }
+        .header h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+
+        .shield-icon img {
+            width: 45px;
+            height: 45px;
+            /* background: rgba(255,255,255,0.2); */
+            border-radius: 50%;
+            /* display: inline-block; */
+            align-items: center;
+            justify-content: center;
+            /* margin-right: 10px; */
+            /* font-size: 16px; */
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .intro-text {
+            font-size: 14px;
+            color: #161616;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .payment-option {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .payment-option.recommended {
+            border-color: #4a9c4a;
+            background: #f0f8f0;
+        }
+
+        .payment-option.recommended::after {
+            content: "Recommended";
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            background: #4a9c4a;
+            color: white;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .payment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            justify-content: center;
+            font-size: px;
+        }
+
+        .payment-logo img {
+            width: 50px;
+            height: 40px;
+            /* background: #003087; */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* font-weight: bold;
+            font-size: 14px;
+            margin-right: 0.5rem;
+            border-radius: 4px; */
+        }
+        .payment-logo-text {
+            font-size: 20px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .payment-logo.payoneer img {
+            width: 40px;
+            height: 40px;
+            /* background: #003087; */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* font-weight: bold;
+            font-size: 14px;
+            margin-right: 0.5rem;
+            border-radius: 4px; */
+        }
+
+        .payment-details {
+            font-size: 14px;
+            color: black;
+            margin-bottom: 5px;
+        }
+        /* .checker-logo {
+            background-color: #4a9c4a;
+        } */
+        .checker-logo img {
+            width: 25px;
+            height: 25px;
+            vertical-align: middle;
+            margin-right: 5px;
+            color: #4a9c4a;
+        }
+
+        .payment-details strong {
+            color: #333;
+        }
+
+        .confirm-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .confirm-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .confirm-header::before {
+            content: "✓";
+            background: #4a9c4a;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .key-details {
+            background: #e8f0fe;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .key-details h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .form-group label {
+            /* display: block; */
+            font-size: 14px;
+            color: #0e0c0c;
+            margin-bottom: 3px;
+        }
+
+        .form-group input, .form-group select {
+            width: 40%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #4a9c4a;
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        /* .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            margin-top: 2px;
+        } */
+        .checkbox-logo img {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .checkbox-label {
+            font-size: 12px;
+            color: #666;
+            line-height: 2;
+        }
+
+        .paid-button {
+            background: #4a9c4a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            float: right;
+            margin-top: 1rem;
+            margin-left: 0.5rem;
+
+        }
+
+        .paid-button:hover {
+            background: #3d8a3d;
+        }
+
+        .paid-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .amount-display {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .amount-display .total {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .amount-display .currency {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: none;
+        }
+
+        .signature {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: cursive;
+            font-size: 40px;
+            color: #ff6600;
+            opacity: 0.5;
+        }
+        .signature img {
+            width: 100px;
+            height: auto;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 480px) {
+            .payment-container {
+                margin: 10px;
+                max-width: none;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="header">
+            <button class="close-btn" onclick="closePayment()">&times;</button>
+            <div class="header-content">
+                <span class="shield-icon"><img src="{{url_for('static', filename='assets/sec_checkout.png')}}"></span>
+                <h2>Secure Manual Payment</h2>
+            </div>
+                <p>{{order.order_number}}: {{order.service.name}}</p>
+        </div>
+
+        <div class="content">
+            <div class="intro-text">
+                Thank you for choosing our services. Since we're currently upgrading our payment system, 
+                we kindly ask you to make payment manually via one of the Secure options below. Once 
+                payment is complete, mark your order as paid using the form below, and we'll process 
+                your order immediately.
+            </div>
+
+            <div class="payment-option recommended">
+                <div class="payment-header">
+                    <div class="payment-logo"><img src="{{url_for('static', filename='assets/PayPal.png')}}"></div>
+                    <span class="payment-logo-text">PayPal</span>
+                </div>
+                <div class="payment-details">
+                    <strong><span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout1.png')}}"></span> Send Payment to:</strong> Tunedessays@gmail.com
+                </div>
+                <div class="payment-details">
+                    <strong><span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout1.png')}}"></span> Amount:</strong> $(Order Amount)
+                </div>
+                <div class="payment-details">
+                    <span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout1.png')}}"></span> Please only add the <strong>order ID</strong> in the notes to help us match your payment
+                </div>
+                <div class="signature"><img src="{{url_for('static', filename='assets/PayPal2.png')}}"></div>
+            </div>
+
+            <div class="payment-option">
+                <div class="payment-header">
+                    <div class="payment-logo payoneer"><img src="{{url_for('static', filename='assets/Venmo.png')}}"></div>
+                    <span class="payment-logo-text">Payoneer</span>
+                </div>
+                <div class="payment-details">
+                    <span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout2.png')}}"></span><strong> Send Payment to:</strong> bbeatish@gmail.com
+                </div>
+                <div class="payment-details">
+                    <span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout2.png')}}"></span><strong> Amount:</strong> $(Order Amount)
+                </div>
+                <div class="payment-details">
+                    <span class="checker-logo"><img src="{{url_for('static', filename='assets/sec_checkout2.png')}}"></span> Add <strong>Order ID </strong> in the review/notes
+                </div>
+                <div class="signature"><img src="{{url_for('static', filename='assets/Payo.png')}}"></div>
+            </div>
+
+            <div class="confirm-section">
+                <div class="confirm-header">
+                    Confirm Your Payment
+                </div>
+
+                <div class="key-details">
+                    <h4>Key Details</h4>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="email">Enter email used to pay:</label>
+                            <input type="email" id="email" name="email" placeholder="example@gmail.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method used:</label>
+                            <select id="paymentMethod" name="paymentMethod" required>
+                                <option value="">Select payment method</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="payoneer">Payoneer</option>
+                            </select>
+                        </div>
+                    </form>
+                    <div class="checkbox-group">
+                        <span class="checkbox-logo"><img src="{{url_for('static', filename='assets/info23.png')}}"></span>
+                        <span class="checkbox-label">
+                            Once we receive your confirmation, we will verify the payment and begin working on your order immediately. You’ll receive a confirmation email within 20 minutes.
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+                <div class="loading" id="loadingMessage">Processing payment confirmation...</div>
+
+                <button type="button" class="paid-button" onclick="confirmPayment()">
+                    ✓ Paid
+                </button>
+            </div>
+
+            <div class="amount-display">
+                <div class="total">${{'%.2f'| format(order.total_price) }}</div>
+                <div class="currency">USD</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            API_BASE_URL: '/api/payment', 
+            TIMEOUT: 30000, 
+            MAX_RETRIES: 3
+        };
+
+        // Logging utility
+        const Logger = {
+            log: function(level, message, data = null) {
+                const timestamp = new Date().toISOString();
+                const logEntry = {
+                    timestamp,
+                    level,
+                    message,
+                    data,
+                    url: window.location.href,
+                    userAgent: navigator.userAgent
+                };
+                
+                console[level](message, data);
+                
+                // Send logs to backend (optional)
+                try {
+                    fetch(`${CONFIG.API_BASE_URL}/logs`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': '{{ csrf_token() }}', 
+                        },
+                        body: JSON.stringify(logEntry)
+                    }).catch(err => console.warn('Failed to send log to backend:', err));
+                } catch (err) {
+                    console.warn('Failed to send log to backend:', err);
+                }
+            },
+            
+            info: function(message, data) { this.log('info', message, data); },
+            warn: function(message, data) { this.log('warn', message, data); },
+            error: function(message, data) { this.log('error', message, data); }
+        };
+
+        // Utility functions
+        function showMessage(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            showMessage('errorMessage', message, true);
+            Logger.error('UI Error displayed', { message });
+        }
+
+        function showSuccess(message) {
+            showMessage('successMessage', message, false);
+            Logger.info('Success message displayed', { message });
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loadingMessage').style.display = show ? 'block' : 'none';
+            document.querySelector('.paid-button').disabled = show;
+        }
+
+        function validateForm() {
+            const email = document.getElementById('email').value.trim();
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            // const confirmCheckbox = document.getElementById('confirmPayment').checked;
+
+            const errors = [];
+
+            if (!email) {
+                errors.push('Email is required');
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errors.push('Please enter a valid email address');
+            }
+
+            if (!paymentMethod) {
+                errors.push('Please select a payment method');
+            }
+
+            // if (!confirmCheckbox) {
+            //     errors.push('Please confirm your payment by checking the confirmation box');
+            // }
+
+            return errors;
+        }
+
+        function getOrderDetails() {
+            // This would typically come from your application context
+            // For now, we'll try to extract from URL parameters or use defaults
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                orderId: '{{order.id}}',//urlParams.get('orderId') || 'ORD-' + Date.now(),
+                amount: parseFloat({{ order.total_price }}).toFixed(2),//urlParams.get('amount') || '12.54',
+                currency: 'USD',//urlParams.get('currency') || 'USD',
+                serviceType: '{{order.service.name}}'//urlParams.get('serviceType') || 'ID Service'
+            };
+        }
+
+        async function makeAPICall(endpoint, data, retryCount = 0) {
+            const url = `${CONFIG.API_BASE_URL}${endpoint}`;
+            
+            try {
+                Logger.info(`Making API call to ${endpoint}`, { data, retryCount });
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': '{{ csrf_token() }}', 
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                Logger.info(`API call successful to ${endpoint}`, { result });
+                return result;
+                
+            } catch (error) {
+                Logger.error(`API call failed to ${endpoint}`, { 
+                    error: error.message, 
+                    retryCount, 
+                    data 
+                });
+                
+                if (retryCount < CONFIG.MAX_RETRIES && !error.name === 'AbortError') {
+                    Logger.info(`Retrying API call to ${endpoint}`, { retryCount: retryCount + 1 });
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+                    return makeAPICall(endpoint, data, retryCount + 1);
+                }
+                
+                throw error;
+            }
+        }
+
+        async function confirmPayment() {
+            try {
+                // Hide previous messages
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'none';
+                
+                // Validate form
+                const validationErrors = validateForm();
+                if (validationErrors.length > 0) {
+                    showError(validationErrors.join(', '));
+                    return;
+                }
+                
+                // Show loading
+                showLoading(true);
+                
+                // Get form data
+                const formData = {
+                    email: document.getElementById('email').value.trim(),
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    timestamp: new Date().toISOString(),
+                    ...getOrderDetails()
+                };
+                
+                Logger.info('Submitting payment confirmation', { formData });
+                
+                // Make API call
+                const result = await makeAPICall('/confirm', formData);
+                
+                // Handle successful response
+                if (result.success) {
+                    showSuccess(result.message || 'Payment confirmation submitted successfully!');
+                    
+                    // Optional: Reset form or redirect
+                    setTimeout(() => {
+                        if (result.redirectUrl) {
+                            window.location.href = result.redirectUrl;
+                        } else {
+                            document.getElementById('paymentForm').reset();
+                            // document.getElementById('confirmPayment').checked = false;
+                        }
+                    }, 2000);
+                    
+                } else {
+                    showError(result.message || 'Payment confirmation failed. Please try again.');
+                }
+                
+            } catch (error) {
+                Logger.error('Payment confirmation failed', { error: error.message });
+                
+                let errorMessage = 'An error occurred while processing your payment confirmation.';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Request timed out. Please check your connection and try again.';
+                } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                } else if (error.message.includes('HTTP 400')) {
+                    errorMessage = 'Invalid payment information. Please check your details and try again.';
+                } else if (error.message.includes('HTTP 500')) {
+                    errorMessage = 'Server error. Please try again later or contact support.';
+                }
+                
+                showError(errorMessage);
+                
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function closePayment() {
+            Logger.info('Payment window closed by user');
+            
+            // You can customize this behavior based on your needs
+            if (confirm('Are you sure you want to close the payment window?')) {
+                window.close();
+                // If window.close() doesn't work (popup blockers), redirect to a safe page
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 100);
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            Logger.info('Payment page loaded');
+            
+            // Update order details in the UI
+            const orderDetails = getOrderDetails();
+            
+            // Update amount displays if elements exist
+            const amountElements = document.querySelectorAll('.payment-details');
+            amountElements.forEach(element => {
+                if (element.textContent.includes('$(Order Amount)')) {
+                    element.innerHTML = element.innerHTML.replace('$(Order Amount)', `$${orderDetails.amount}`);
+                }
+            });
+            
+            // Focus on email input
+            document.getElementById('email').focus();
+            
+            // Add form submission handler
+            document.getElementById('paymentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                confirmPayment();
+            });
+            
+            // Add Enter key handler for form inputs
+            document.querySelectorAll('#paymentForm input, #paymentForm select').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmPayment();
+                    }
+                });
+            });
+        });
+
+        // Error handling for uncaught errors
+        window.addEventListener('error', function(e) {
+            Logger.error('Uncaught error', {
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno,
+                error: e.error
+            });
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            Logger.error('Unhandled promise rejection', {
+                reason: e.reason,
+                promise: e.promise
+            });
+        });
+    </script>
+</body>
+</html>

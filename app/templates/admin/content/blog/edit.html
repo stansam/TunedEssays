@@ -1,0 +1,510 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Blog Post - TunedEssays Admin{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .editor-container {
+        height: 400px;
+    }
+    
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    
+    .image-preview {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 8px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+    
+    .btn-outline-secondary {
+        color: var(--gray);
+        border-color: var(--gray-light);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--gray);
+        border-color: var(--gray);
+    }
+    
+    .tag-input {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+    }
+    
+    .tag-item {
+        background-color: var(--primary);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin: 2px;
+        display: inline-block;
+    }
+    
+    .tag-remove {
+        margin-left: 6px;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    
+    .tag-remove:hover {
+        opacity: 1;
+    }
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-published {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: var(--primary);
+    }
+    
+    .status-draft {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--gray);
+    }
+    
+    .form-switch .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .content-section {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        color: var(--dark);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-subtle);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h4 mb-1">Edit Blog Post</h2>
+            <p class="text-muted mb-0">Update your blog post content and settings</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.view_blog_post', post_id=post.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-eye me-2"></i>Preview
+            </a>
+            <a href="{{ url_for('admin.list_blog_posts') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Posts
+            </a>
+        </div>
+    </div>
+
+    <!-- Current Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            <span class="fw-bold">Current Status:</span>
+                            <span class="status-badge {{ 'status-published' if post.is_published else 'status-draft' }} ms-2">
+                                {{ 'Published' if post.is_published else 'Draft' }}
+                            </span>
+                        </div>
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: {{ post.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="editBlogForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row">
+            <!-- Main Content Column -->
+            <div class="col-lg-8">
+                <!-- Basic Information -->
+                <div class="content-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-edit me-2"></i>Basic Information
+                    </h5>
+                    
+                    <div class="mb-4">
+                        <label for="title" class="form-label">
+                            Post Title <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ post.title }}" required>
+                        <div class="form-text">This will be used to generate the URL slug automatically</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="excerpt" class="form-label">Excerpt</label>
+                        <textarea class="form-control" id="excerpt" name="excerpt" rows="3" 
+                                  placeholder="Brief description of your post...">{{ post.excerpt or '' }}</textarea>
+                        <div class="form-text">A short summary that appears in post previews</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="meta_description" class="form-label">Meta Description</label>
+                        <textarea class="form-control" id="meta_description" name="meta_description" 
+                                  rows="2" maxlength="160" 
+                                  placeholder="SEO meta description (160 characters max)">{{ post.meta_description or '' }}</textarea>
+                        <div class="form-text">
+                            <span id="meta-char-count">{{ (post.meta_description or '')|length }}</span>/160 characters
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Editor -->
+                <div class="content-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-file-alt me-2"></i>Post Content
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
+                        <div id="editor" class="editor-container"></div>
+                        <textarea name="content" id="content" style="display: none;" required>{{ post.content }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="content-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-tags me-2"></i>Tags
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="tags-input" class="form-label">Tags</label>
+                        <input type="text" class="form-control" id="tags-input" 
+                               placeholder="Type a tag and press Enter...">
+                        <div class="form-text">Press Enter or comma to add tags</div>
+                        <input type="hidden" name="tags" id="tags-hidden" value="{{ post.tags or '' }}">
+                        
+                        <div id="tags-container" class="mt-3">
+                            <!-- Tags will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Column -->
+            <div class="col-lg-4">
+                <!-- Publish Settings -->
+                <div class="content-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-cog me-2"></i>Publish Settings
+                    </h5>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="published" name="published" 
+                                   value="true" {{ 'checked' if post.is_published else '' }}>
+                            <label class="form-check-label fw-bold" for="published">
+                                Publish Post
+                            </label>
+                        </div>
+                        <div class="form-text">Make this post visible to the public</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="author" class="form-label">Author</label>
+                        <input type="text" class="form-control" id="author" name="author" 
+                               value="{{ post.author }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    {{ 'selected' if category.id == post.category_id else '' }}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Featured Image -->
+                <div class="content-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-image me-2"></i>Featured Image
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="featured_image" class="form-label">Upload Image</label>
+                        <input type="file" class="form-control" id="featured_image" name="featured_image" 
+                               accept="image/*">
+                        <div class="form-text">Recommended size: 1200x630px</div>
+                    </div>
+
+                    {% if post.featured_image %}
+                    <div class="mb-3">
+                        <label class="form-label">Current Image</label>
+                        <div>
+                            <img src="{{ url_for('static', filename=post.featured_image) }}" 
+                                 alt="Current featured image" class="image-preview img-fluid">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div id="image-preview-container" style="display: none;">
+                        <label class="form-label">New Image Preview</label>
+                        <div>
+                            <img id="image-preview" class="image-preview img-fluid" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="content-section">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>Update Post
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">
+                            <i class="fas fa-file-alt me-2"></i>Save as Draft
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
+    <div class="d-flex justify-content-center align-items-center h-100">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Quill Editor -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Quill editor
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: 'Write your blog post content here...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['blockquote', 'code-block'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Set initial content
+    const initialContent = document.getElementById('content').value;
+    if (initialContent) {
+        quill.root.innerHTML = initialContent;
+    }
+
+    // Update hidden textarea when editor content changes
+    quill.on('text-change', function() {
+        document.getElementById('content').value = quill.root.innerHTML;
+    });
+
+    // Initialize Select2 for category
+    $('#category_id').select2({
+        placeholder: 'Select a category',
+        allowClear: true
+    });
+
+    // Tags functionality
+    let tags = [];
+    const existingTags = document.getElementById('tags-hidden').value;
+    if (existingTags) {
+        tags = existingTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        renderTags();
+    }
+
+    function renderTags() {
+        const container = document.getElementById('tags-container');
+        container.innerHTML = '';
+        
+        tags.forEach((tag, index) => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${tag}
+                <span class="tag-remove" onclick="removeTag(${index})">&times;</span>
+            `;
+            container.appendChild(tagElement);
+        });
+        
+        document.getElementById('tags-hidden').value = tags.join(',');
+    }
+
+    function addTag(tag) {
+        tag = tag.trim();
+        if (tag && !tags.includes(tag)) {
+            tags.push(tag);
+            renderTags();
+        }
+    }
+
+    window.removeTag = function(index) {
+        tags.splice(index, 1);
+        renderTags();
+    };
+
+    // Tags input handler
+    const tagsInput = document.getElementById('tags-input');
+    tagsInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag(this.value);
+            this.value = '';
+        }
+    });
+
+    tagsInput.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            addTag(this.value);
+            this.value = '';
+        }
+    });
+
+    // Meta description character counter
+    const metaDesc = document.getElementById('meta_description');
+    const charCount = document.getElementById('meta-char-count');
+    
+    metaDesc.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        charCount.className = count > 160 ? 'text-danger' : '';
+    });
+
+    // Image preview
+    document.getElementById('featured_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('image-preview');
+                const container = document.getElementById('image-preview-container');
+                preview.src = e.target.result;
+                container.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form submission
+    document.getElementById('editBlogForm').addEventListener('submit', function(e) {
+        // Update content before submission
+        document.getElementById('content').value = quill.root.innerHTML;
+        
+        // Show loading overlay
+        document.getElementById('loading-overlay').style.display = 'block';
+    });
+
+    // Save as draft function
+    window.saveDraft = function() {
+        document.getElementById('published').checked = false;
+        document.getElementById('editBlogForm').submit();
+    };
+
+    // Auto-save functionality (optional)
+    let autoSaveTimer;
+    function autoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            // Implement auto-save logic here if needed
+            console.log('Auto-save triggered');
+        }, 30000); // Auto-save every 30 seconds
+    }
+
+    // Trigger auto-save on content changes
+    quill.on('text-change', autoSave);
+    document.querySelectorAll('input, textarea, select').forEach(element => {
+        element.addEventListener('input', autoSave);
+    });
+});
+</script>
+{% endblock %}

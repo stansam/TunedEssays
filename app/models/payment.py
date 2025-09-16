@@ -15,10 +15,13 @@ class Payment(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, completed, failed, refunded
     method = db.Column(db.String(20), nullable=False)  # credit_card, paypal, apple_pay, google_pay
     
-    # Payment processor info
+    
     processor_id = db.Column(db.String(255))
     processor_response = db.Column(db.Text)
     
+    payer_id = db.Column(db.String(255))  
+    approval_url = db.Column(db.String(500))
+
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     
@@ -28,7 +31,7 @@ class Payment(db.Model):
     transactions = db.relationship('Transaction', backref='payment', lazy=True)
     invoice = db.relationship('Invoice', back_populates='payment', uselist=False)
     
-    def __init__(self, order_id, user_id, amount, method, status='pending', processor_id=None, processor_response=None):
+    def __init__(self, order_id, user_id, amount, method, status='pending', processor_id=None, processor_response=None, payer_id=None):
         self.payment_id = f"PAY-{uuid.uuid4().hex[:12].upper()}"
         self.order_id = order_id
         self.user_id = user_id
@@ -37,6 +40,7 @@ class Payment(db.Model):
         self.method = method
         self.processor_id = processor_id
         self.processor_response = processor_response
+        self.payer_id = payer_id
     
     def __repr__(self):
         return f"Payment {self.payment_id} for Order {self.order_id}"
@@ -64,11 +68,11 @@ class Invoice(db.Model):
     payment = db.relationship('Payment', back_populates='invoice')
     
     def __init__(self, order_id, user_id, subtotal, total, due_date, payment_id=None, discount=0, tax=0, paid=False):
-        # Generate invoice number: INV-YYYYMM-NNNN
+        # INV-YYYYMM-NNNN
         year_month = datetime.now().strftime('%Y%m')
-        # Get count of invoices in this month and year
+        
         count = Invoice.query.filter(
-            func.strftime('%Y%m', Invoice.created_at) == year_month
+           func.to_char(Invoice.created_at, 'YYYYMM') == year_month
         ).count() + 1
         
         self.invoice_number = f"INV-{year_month}-{count:04d}"
@@ -125,13 +129,13 @@ class Discount(db.Model):
     times_used = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     
-    # Relationships
+    
     orders = db.relationship('Order', secondary='order_discount', backref='discounts')
     
     def __repr__(self):
         return f'<Discount {self.code}>'
 
-# Association table for many-to-many relationship between Order and Discount
+
 order_discount = db.Table('order_discount',
     db.Column('order_id', db.Integer, db.ForeignKey('order.id'), primary_key=True),
     db.Column('discount_id', db.Integer, db.ForeignKey('discount.id'), primary_key=True)
@@ -146,6 +150,8 @@ class Refund(db.Model):
     processed_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     refund_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    processor_refund_id = db.Column(db.String(255))
     
     # Relationships
     payment = db.relationship('Payment', backref='refunds')

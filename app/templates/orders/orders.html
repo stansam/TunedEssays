@@ -1,0 +1,781 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #45a049;
+        --light-green: #f1f8e9;
+        --border-color: #e0e0e0;
+        --text-muted: #666;
+        --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #17a2b8;
+    }
+
+    .orders-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .orders-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        text-align: center;
+    }
+
+    .orders-header h1 {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 10px;
+    }
+
+    .orders-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .orders-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+
+    .orders-filters {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .filters-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 10px 15px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .filter-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .order-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .order-title {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .order-title h4 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1.3rem;
+    }
+
+    .order-number {
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .order-status {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-active {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-overdue {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-canceled {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .status-revision {
+        background: #cce7ff;
+        color: #004085;
+    }
+
+    .payment-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .payment-paid {
+        color: var(--primary-color);
+    }
+
+    .payment-unpaid {
+        color: var(--danger-color);
+    }
+
+    .order-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        background: var(--light-green);
+        border-radius: 10px;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-action {
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline {
+        border: 2px solid var(--primary-color);
+        background: transparent;
+        color: var(--primary-color);
+    }
+
+    .btn-outline:hover {
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-warning {
+        background: var(--warning-color);
+        color: #212529;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+        color: #212529;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .empty-text {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .create-order-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .create-order-btn:hover {
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .orders-container {
+            padding: 15px;
+        }
+        
+        .orders-header {
+            padding: 30px 20px;
+        }
+        
+        .orders-header h1 {
+            font-size: 2rem;
+        }
+        
+        .orders-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filters-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .order-status {
+            align-items: flex-start;
+            width: 100%;
+        }
+        
+        .order-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .order-actions {
+            justify-content: center;
+        }
+        
+        .order-card {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="orders-container">
+    <!-- Orders Header -->
+    <div class="orders-header">
+        <h1><i class="fas fa-list-alt me-3"></i>My Orders</h1>
+        <p>Track and manage your writing orders</p>
+    </div>
+
+    {% if orders %}
+    <!-- Orders Statistics -->
+    <div class="orders-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-value">{{ orders|length }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ orders|selectattr('status', 'equalto', 'active')|list|length }}</div>
+            <div class="stat-label">Active Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ orders|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">${{ "%.0f"|format(orders|sum(attribute='total_price')) }}</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+
+    <!-- Orders Filters -->
+    <div class="orders-filters">
+        <form method="GET" class="filters-row">
+            <div class="filter-group">
+                <label for="status">Status</label>
+                <select name="status" id="status">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
+                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="overdue" {% if request.args.get('status') == 'overdue' %}selected{% endif %}>Overdue</option>
+                    <option value="canceled" {% if request.args.get('status') == 'canceled' %}selected{% endif %}>Canceled</option>
+                    <option value="revision" {% if request.args.get('status') == 'revision' %}selected{% endif %}>Revision</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="payment_status">Payment</label>
+                <select name="payment" id="payment_status">
+                    <option value="">All Payments</option>
+                    <option value="paid" {% if request.args.get('payment') == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="unpaid" {% if request.args.get('payment') == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="search">Search</label>
+                <input type="text" name="search" id="search" placeholder="Order number, title..." 
+                       value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="filter-btn">
+                    <i class="fas fa-search me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Orders List -->
+    <div class="orders-list">
+        {% for order in orders %}
+        <div class="order-card">
+            <!-- Order Header -->
+            <div class="order-header">
+                <div class="order-title">
+                    <h4>{{ order.title }}</h4>
+                    <div class="order-number">Order #{{ order.order_number }}</div>
+                </div>
+                <div class="order-status">
+                    <span class="status-badge status-{{ order.status }}">
+                        {{ order.status|title }}
+                    </span>
+                    <div class="payment-status">
+                        <i class="fas fa-{{ 'check-circle' if order.paid else 'exclamation-circle' }}"></i>
+                        <span class="{{ 'payment-paid' if order.paid else 'payment-unpaid' }}">
+                            {{ 'Paid' if order.paid else 'Unpaid' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="order-details">
+                <div class="detail-item">
+                    <div class="detail-label">Service</div>
+                    <div class="detail-value">{{ order.service.name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Academic Level</div>
+                    <div class="detail-value">{{ order.academic_level.name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Word Count</div>
+                    <div class="detail-value">{{ order.word_count }} words</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Due Date</div>
+                    <div class="detail-value">{{ order.due_date.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Total Price</div>
+                    <div class="detail-value">${{ "%.2f"|format(order.total_price) }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Created</div>
+                    <div class="detail-value">{{ order.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+            </div>
+
+            <!-- Order Actions -->
+            <div class="order-actions">
+                {% if not order.paid %}
+                    <a href="{{ url_for('payment.checkout', order_id=order.id) }}" class="btn-action btn-primary">
+                        <i class="fas fa-credit-card"></i>
+                        Pay Now
+                    </a>
+                {% endif %}
+                
+                {% if order.status == 'completed' and order.is_delivered %}
+                    <a href="#" class="btn-action btn-primary">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </a>
+                {% endif %}
+                
+                {% if order.status in ['active', 'revision'] %}
+                    <a href="#" class="btn-action btn-outline">
+                        <i class="fas fa-comments"></i>
+                        Message Writer
+                    </a>
+                {% endif %}
+                
+                <a href="#" class="btn-action btn-outline" onclick="viewOrderDetails({{ order.id }})">
+                    <i class="fas fa-eye"></i>
+                    View Details
+                </a>
+                
+                {% if order.status == 'pending' and not order.paid %}
+                    <button class="btn-action btn-danger" onclick="cancelOrder({{ order.id }})">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                {% endif %}
+                
+                {% if order.status == 'completed' and order.paid %}
+                    <button class="btn-action btn-warning" onclick="requestRevision({{ order.id }})">
+                        <i class="fas fa-edit"></i>
+                        Request Revision
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <h3 class="empty-title">No Orders Yet</h3>
+        <p class="empty-text">You haven't placed any orders yet. Start by creating your first order to get professional writing assistance.</p>
+        <a href="{{ url_for('orders.create_order') }}" class="create-order-btn">
+            <i class="fas fa-plus"></i>
+            Create Your First Order
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // View order details modal or redirect
+    function viewOrderDetails(orderId) {
+        // Redirect to order details page
+        window.location.href = `/orders/${orderId}`;
+    }
+    
+    // Cancel order function
+    function cancelOrder(orderId) {
+        if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+            fetch(`/orders/${orderId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Order cancelled successfully', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Failed to cancel order', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            });
+        }
+    }
+    
+    // Request revision function
+    function requestRevision(orderId) {
+        const reason = prompt('Please provide a reason for the revision request:');
+        if (reason && reason.trim()) {
+            fetch(`/orders/${orderId}/revision`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    reason: reason.trim()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Revision request submitted successfully', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Failed to submit revision request', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            });
+        }
+    }
+    
+    // Get CSRF token
+    function getCSRFToken() {
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        if (tokenMeta) {
+            return tokenMeta.getAttribute('content');
+        }
+        
+        const tokenInput = document.querySelector('input[name="csrf_token"]');
+        if (tokenInput) {
+            return tokenInput.value;
+        }
+        
+        return null;
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 300px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        `;
+        
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+    
+    // Auto-refresh for active orders
+    const hasActiveOrders = {{ 'true' if orders|selectattr('status', 'equalto', 'active')|list|length > 0 else 'false' }};
+    if (hasActiveOrders) {
+        // Refresh every 5 minutes for active orders
+        setInterval(() => {
+            // Only refresh if user is still on the page
+            if (document.hasFocus()) {
+                location.reload();
+            }
+        }, 300000); // 5 minutes
+    }
+    
+    // Show flash messages
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for category, message in messages %}
+                    showToast('{{ message }}', '{{ category }}');
+                {% endfor %}
+            });
+        {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

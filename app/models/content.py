@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import re
 
 class Sample(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,6 +13,18 @@ class Sample(db.Model):
     tags = db.Column(db.String(255), nullable=True) 
     image = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.now)
+    slug = db.Column(db.String(200), unique=True, nullable=False)
+
+    def __init__(self, **kwargs):
+        super(Sample, self).__init__(**kwargs)
+        if not self.slug and self.title:
+            self.slug = self.generate_slug(self.title)
+
+    @staticmethod
+    def generate_slug(title):
+        slug = re.sub(r'[^\w\s-]', '', title.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        return slug.strip('-')
     
     def __repr__(self):
         return f'<Sample {self.title}>'

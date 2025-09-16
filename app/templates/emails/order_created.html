@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TunedEssays Order Confirmation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #2c2c2c;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo {
+            color: #4a9b8e;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .logo-script {
+            font-style: italic;
+            color: #4a9b8e;
+        }
+        .order-info {
+            background-color: #e8f4f2;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .order-info strong {
+            color: #2c2c2c;
+        }
+        .content-area {
+            padding: 20px;
+        }
+        .order-details {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .left-column {
+            background-color: #4a9b8e;
+            color: white;
+            padding: 15px;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .left-column h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .left-column .detail-item {
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .left-column .detail-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 60px;
+        }
+        .right-column {
+            /* display: flex;
+            justify-content: space-between;
+            flex-direction: column; */
+            background-color: #a8d5ce;
+            color: #2c2c2c;
+            padding: 15px;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .right-column h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .right-column .detail-item {
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .right-column .detail-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        .description-section {
+            background-color: #f8f9fa;
+            border: 1px dashed #4a9b8e;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .description-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c2c2c;
+            text-align: center;
+        }
+        .description-text {
+            font-size: 11px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .check-order-btn {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .check-order-btn a {
+            background-color: #d3d3d3;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 14px;
+            color: #666;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .check-order-btn a:hover {
+            background-color: #c0c0c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo"><span class="logo-script">Tuned</span>Essays.com</h1>
+        </div>
+        
+        <!-- Order Info -->
+        <div class="order-info">
+            <strong>New Order: {{ order.id }}</strong><br>
+            Due: {{ order.due_time }}
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Order Details -->
+            <div class="order-details">
+                <div class="left-column">
+                    <div class="detail-item">
+                        <span class="detail-label">Topic:</span> {{ order.title }}
+                    </div>
+                    <hr />
+
+                    <div class="detail-item">
+                        <span class="detail-label">Service:</span> {{ order.service }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Report Type:</span> {{ order.report_type }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">lenght:</span> {{ order.page_count }} pages ({{ order.word_count }} words)
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Level:</span> {{ order.academic_level }}
+                    </div>
+                </div>
+                
+                <div class="right-column">
+                    <h3>Extras</h3>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Track changes:</span> Required
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Format:</span> {{ order.format_style }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Custom Design:</span> None
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Number of Sources:</span> 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description Section -->
+            <div class="description-section">
+                <h3>Description/Instructions</h3>
+                <div class="description-text">
+                    <strong>Topic:</strong> {{ order.title }}<br><br>
+                    {{ order.description }}
+                </div>
+            </div>
+            
+            <!-- Check Order Button -->
+            <div class="check-order-btn">
+                <a href="{{ order_url }}">CHECK ORDER</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

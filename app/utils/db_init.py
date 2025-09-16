@@ -22,14 +22,14 @@ def init_db(app, db):
     if not admin_exists:
         try:
             admin = User(
-                username="admin",
-                email="admin@example.com",
-                password_hash=generate_password_hash("admin123"),  # Change this password!
-                first_name="Admin",
-                last_name="User",
+                username="TunedOps",
+                email="	yatich@tunedessays.com",
+                password_hash=generate_password_hash("YatichBonn1!"),
+                first_name="Bonniface",
+                last_name="Yatich",
                 gender="male",
                 is_admin=True,
-                email_verified=True  # Skip verification for admin
+                email_verified=False
             )
             user1 = User(
                 username="johndoe",
@@ -377,12 +377,22 @@ def init_db(app, db):
             "Cover Letters": "Writing",
             "LinkedIn Profile Optimization": "Writing",
         }
+        category_descriptions = {
+            "Proofreading and Editing": "Whether it is an academic paper, resume, or business document, professional proofreading helps you eliminate errors and improve clarity, style, and coherence.",
+            "Writing": "From essays and dissertations to admission papers, we support you in producing structured, original, well-researched and referenced and compelling writing that meets academic and professional standards.",
+            "Data Analysis": "Make sense of your data and uncover key insights with accurate analysis, visualizations, and interpretation using trusted tools and methods.",
+            "Business and Market Research": "Strengthen your business strategy with detailed, data-driven research. Gain insights into competitors, markets, and industry trends that support smart decisions and professional reports.",
+            "Presentations": "Impress your audience with visually engaging, professionally designed presentations. Communicate complex ideas clearly and confidently in any setting, academic, business, or creative.",
+            "Resume Writing": "Present your experience and skills in the best possible light. Whether you’re applying for your first job or making a career move, we help you create a strong, customized resume and cover letter.",
+            "Technical Writing & Calculations": "Break down complex ideas into clear, well-structured content. From scientific reports to math-based tasks, this service helps you communicate technical details accurately and efficiently."
+        }
         
         existing_pricing_categories = {pc.name: pc for pc in PricingCategory.query.all()}
         # Insert into DB
         for cat_name, svc_list in categories.items():
+            description = category_descriptions.get(cat_name)
             cat = ServiceCategory(name=cat_name,
-                                description=f"{cat_name} services and subcategories.")
+                                description=description)
             db.session.add(cat)
             db.session.flush()  # ensure cat.id is set
 
@@ -399,6 +409,7 @@ def init_db(app, db):
                     featured=True,
                     tags=" ".join(name.split()),
                     pricing_category_id=pricing_cat_id
+                    # slug=name.lower().replace(" ", "-").replace("&", "and")
                 )
                 db.session.add(svc)
 
@@ -418,7 +429,8 @@ def init_db(app, db):
                 service=service_lookup.get("Copyediting"),
                 word_count=2200,
                 tags="Copy-Editing, article",
-                featured=True
+                featured=True,
+                slug="edited-journal-article-linguistic-precision-in-sociolinguistics"
             ),
             Sample(
                 title="The Role of Civil Disobedience in Democratic Societies",
@@ -427,7 +439,8 @@ def init_db(app, db):
                 service=service_lookup.get("Essays"),
                 tags="Essay, paper-writing",
                 word_count=1800,
-                featured=True
+                featured=True,
+                slug="role-of-civil-disobedience-in-democratic-societies"
             ),
             Sample(
                 title="Quantitative Analysis of Student Performance using SPSS",
@@ -436,7 +449,8 @@ def init_db(app, db):
                 service=service_lookup.get("SPSS"),
                 word_count=2600,
                 tags="statistics, research",
-                featured=True
+                featured=True,
+                slug="quantitative-analysis-of-student-performance-using-spss"
             )
         ]
         
@@ -526,22 +540,44 @@ def init_db(app, db):
                 slug="how-to-write-effective-thesis-statement",
                 content="<p>A strong thesis statement is essential for any academic paper...</p><p>This article provides step-by-step guidance on crafting clear, concise, and compelling thesis statements...</p>",
                 excerpt="Learn how to create powerful thesis statements that effectively communicate your paper's main argument.",
-                author=admin_user,
+                author="Vin Vincent",
                 category=categories[0],
                 tags="thesis statement, academic writing, essay tips",
                 is_published=True,
-                published_at=datetime.utcnow()
+                published_at=datetime.now()
             ),
             BlogPost(
                 title="Quantitative vs. Qualitative Research: Choosing the Right Approach",
                 slug="quantitative-vs-qualitative-research",
                 content="<p>Understanding the differences between quantitative and qualitative research is crucial for designing effective studies...</p><p>This article compares the methodologies, data collection techniques, and analysis methods of both approaches...</p>",
                 excerpt="A comprehensive comparison of quantitative and qualitative research methodologies to help you choose the right approach for your study.",
-                author=admin_user,
+                author="Mark Twain",
                 category=categories[1],
                 tags="quantitative research, qualitative research, research methods",
                 is_published=True,
-                published_at=datetime.utcnow()
+                published_at=datetime.now()
+            ),
+            BlogPost(
+                title="Time Management Strategies for Academic Success",
+                slug="time-management-strategies-academic-success",
+                content="<p>Effective time management is the cornerstone of academic achievement. Students who master the art of balancing study schedules, assignment deadlines, and personal commitments often find themselves less stressed and more productive.</p><p>This comprehensive guide explores proven techniques such as the Pomodoro Technique, time-blocking methods, and priority matrix frameworks. We'll also discuss how to create realistic study schedules that accommodate your learning style and lifestyle demands.</p><p>From utilizing digital tools like calendar apps and task managers to developing healthy study habits, this article provides actionable strategies that can transform your academic performance and overall well-being.</p>",
+                excerpt="Discover proven time management techniques and strategies to enhance your academic performance while maintaining a healthy work-life balance.",
+                author="Barry Allan",
+                category=categories[2],  # Student Life
+                tags="time management, study tips, productivity, student life, academic success",
+                is_published=True,
+                published_at=datetime.now() - timedelta(days=7)
+            ),
+            BlogPost(
+                title="The Art of Citation: Mastering APA, MLA, and Chicago Styles",
+                slug="mastering-citation-styles-apa-mla-chicago",
+                content="<p>Proper citation is more than just academic courtesy—it's a fundamental skill that demonstrates scholarly integrity and helps readers trace the sources of your arguments and evidence.</p><p>This detailed guide breaks down the three most commonly used citation styles in academic writing: APA (American Psychological Association), MLA (Modern Language Association), and Chicago Manual of Style. Each style serves different disciplines and has unique formatting requirements for in-text citations, reference lists, and bibliographies.</p><p>We'll explore practical examples, common mistakes to avoid, and tools that can streamline your citation process. Whether you're writing a psychology research paper, a literature analysis, or a historical thesis, understanding these citation styles will elevate the professionalism of your work.</p><p>Additionally, we'll discuss the importance of avoiding plagiarism and how proper citation practices protect both your academic integrity and intellectual property rights.</p>",
+                excerpt="A comprehensive guide to mastering APA, MLA, and Chicago citation styles with practical examples and tips for avoiding common formatting mistakes.",
+                author="Billy The Kid",
+                category=categories[0],  # Academic Writing
+                tags="citation styles, APA, MLA, Chicago, academic writing, referencing, plagiarism",
+                is_published=True,
+                published_at=datetime.now() - timedelta(days=14)
             )
         ]
         

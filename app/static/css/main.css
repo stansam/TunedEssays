@@ -34,6 +34,42 @@ body {
     background-color: var(--white);
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+.navbar .logo-container {
+    overflow: hidden;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+ .logo-text {
+    font-family: 'Leckerli One', cursive;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #222;
+    display: inline-flex;
+    align-items: center;
+}
+
+.logo-text .accent {
+    color: #065f46;
+    font-weight: 600;
+    font-family: 'Leckerli One', cursive;
+}
+.logo-text:hover .accent {
+    color: #25b119;
+    transition: color 0.3s ease;
+}
+.logo-img {
+    width: 40px;
+    height: 40px;
+}
+.navbar a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+.navbar a:hover {
+    color: var(--primary-color);
+}
 .logo {
     font-size: 1.8rem;
     font-weight: bold;
@@ -111,14 +147,15 @@ body {
     
     .menu-toggle {
         display: block;
-        order: 1;
+	margin-right: 10px;
+     
     }
     
     .logo {
         font-size: 1.5rem;
         flex-grow: 1;
         text-align: center;
-        order: 2;
+    
     }
     
     .nav-links {
@@ -167,6 +204,13 @@ body {
     
     .logo {
         font-size: 1.3rem;
+    }
+    .logo-text {
+        display: none;
+    }
+    .logo-img {
+        width: 37px;
+        height: 33px;
     }
     
     .nav-links {
@@ -250,7 +294,7 @@ body {
     padding: 20px;
     perspective: 1000px;
     width: 100%;
-    /* max-height: 400px; */
+    max-height: 100vh; 
     max-width: 100%;
     box-sizing: border-box;
     z-index: 999;
@@ -264,7 +308,8 @@ body {
 .hero {
     position: relative;
     /* flex-wrap: wrap; */
-    height: 460px;
+    min-height: 90vh;
+    max-height: 95vh;
     /* background: url("{{url_for('static', filename='assets/hero-bg-image.png')}}") center/cover no-repeat; */
     display: flex;
     /* flex-direction: row; */

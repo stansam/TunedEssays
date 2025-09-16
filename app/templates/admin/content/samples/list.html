@@ -4,6 +4,7 @@
 
 {% block styles %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.17.9/dist/tagify.css" rel="stylesheet" type="text/css" />
 <style>
     .sample-card {
         transition: all 0.3s ease;
@@ -442,7 +443,13 @@
                     </div>
                     <div class="mb-3">
                         <label for="edit_excerpt" class="form-label">Excerpt</label>
+
                         <textarea class="form-control" id="edit_excerpt" name="excerpt" rows="2" placeholder="Brief summary or excerpt (optional)"></textarea>
+                    </div>
+		    <div class="mb-3">
+                        <label for="edit_tags" class="form-label">Tags</label>
+                        <input type="text" class="form-control" id="edit_tags" name="tags" placeholder="Add tags separated by commas">
+                        <div class="form-text">Add relevant tags to help categorize this sample. Press Enter or comma to add tags.</div>
                     </div>
                     <!-- <div class="mb-3">
                         <label for="edit_content" class="form-label">Content</label>
@@ -511,6 +518,7 @@
 {% block scripts %}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.17.9/dist/tagify.min.js"></script>
 <script src="{{url_for('static', filename='js/edit-sample.js')}}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {

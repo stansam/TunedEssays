@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from app.extensions import db
 from app.models.blog import BlogPost, BlogCategory
 from app.models.service import ServiceCategory, Service
@@ -7,6 +7,8 @@ from app.models.communication import ContactMessage, NewsletterSubscriber, Notif
 from app.models.service import AcademicLevel, Deadline
 from app.models.price import PriceRate, PricingCategory
 import datetime
+from bs4 import BeautifulSoup
+import re
 
 main_bp = Blueprint('main', __name__)
 
@@ -75,14 +77,23 @@ def search():
 
 @main_bp.route('/services')
 def services():
+    service_category_id = request.args.get('service_category_id', type=int)
+    selected_category = None
+    if service_category_id:
+        selected_category = ServiceCategory.query.get_or_404(service_category_id)
+    samples = Sample.query.all()
     categories = ServiceCategory.query.all()
     return render_template('services.html', 
                           categories=categories, 
-                          title="Our Services")
+                          title="Our Services",
+                           sample_papers=samples,
+                          service_category_id=service_category_id if service_category_id else None,
+                          selected_category=selected_category)
 
-@main_bp.route('/service/<int:service_id>')
-def service_detail(service_id):
-    service = Service.query.get_or_404(service_id)
+@main_bp.route('/service/<slug>')
+def service_detail(slug):
+    #service = Service.query.get_or_404(service_id)
+    service = Service.query.filter_by(slug=slug).first_or_404()
     academic_levels = AcademicLevel.query.order_by("order" )
     return render_template('service_detail.html', 
                            service=service,
@@ -125,9 +136,10 @@ def samples():
                           services=services,
                           title="Sample Papers")
 
-@main_bp.route('/samples/<int:sample_id>')
-def sample_detail(sample_id):
-    sample = Sample.query.get_or_404(sample_id)
+@main_bp.route('/samples/<slug>')
+def sample_detail(slug):
+    # sample = Sample.query.get_or_404(sample_id)
+    sample = Sample.query.filter_by(slug=slug).first_or_404()
 
     return render_template('sample_detail.html', 
                           sample=sample,
@@ -222,4 +234,19 @@ def notify(user, title, message, type='info', link=None):
     db.session.add(n)
     db.session.commit()
     return n
+
+def remove_headings_filter(html_content):
+    """Remove heading tags (h1-h6) from HTML content while preserving other formatting"""
+    if not html_content:
+        return html_content
+    
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Remove all heading tags (h1, h2, h3, h4, h5, h6)
+    for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+        heading.decompose()
+    
+    return str(soup)
+
+# Register the filter
 

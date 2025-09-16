@@ -16,7 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return [];
                 }
             }
-
+            function truncateWords(text, wordLimit = 50) {
+                if (!text) return '';
+                const words = text.trim().split(/\s+/);
+                if (words.length <= wordLimit) return text;
+                return words.slice(0, wordLimit).join(' ') + '...';
+            }
             // Function to create blog cards
             async function initBlogCarousel() {
                 const blogPosts = await fetchBlogPosts();
@@ -40,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Handle missing data gracefully
                     const title = post.title || 'Untitled Post';
                     const slug = post.slug || `post-${post.id}`;
-                    const excerpt = post.excerpt || 'No excerpt available.';
+                    const excerpt = truncateWords(post.excerpt || 'No excerpt available.');
                     const featuredImage = post.featured_image ? `/static/${post.featured_image}` : '/static/uploads/placeholder.webp';
                     const categoryName = post.category?.name || 'Uncategorized';
                     const publishedDate = post.published_at || post.created_at || new Date().toISOString();
@@ -51,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     let authorInitials = 'AU';
                     
                     if (post.author) {
-                        authorName = post.author.name || 'Anonymous';
+                        authorName = post.author || 'Anonymous';
                         
                         if (post.author.initials) {
                             authorInitials = post.author.initials;
@@ -92,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </a>
                                 
                             </div>
-                            <div class="blog-tags" style="margin-top: 3rem; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                            <div class="blog-tags" style="margin-top: 2rem; display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-start; font-size:7px;line-height: 1.1; padding:2px;">
                                 ${tagButtons}
                             </div>
                         </div>

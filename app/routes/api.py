@@ -67,28 +67,29 @@ def get_featured_blog_posts():
         formatted_posts = []
         for post in posts:
             # Get author information
-            author_info = None
-            if post.author_id:
-                author = User.query.get(post.author_id)
-                if author:
+            # author_info = None
+            # if not post.author:
+            #     author_info = None
+                # author = User.query.get(post.author_id)
+                # if author:
                     # Use the get_name method from User model
-                    full_name = author.get_name()
+                    # full_name = author.get_name()
                     
                     # Create initials from author's name
-                    initials = ""
-                    if author.first_name and author.last_name:
-                        initials = author.first_name[0] + author.last_name[0]
-                    else:
-                        name_parts = full_name.split()
-                        if len(name_parts) >= 2:
-                            initials = name_parts[0][0] + name_parts[1][0]
-                        elif len(name_parts) == 1:
-                            initials = name_parts[0][0]
+                    # initials = ""
+                    # if author.first_name and author.last_name:
+                    #     initials = author.first_name[0] + author.last_name[0]
+                    # else:
+                    #     name_parts = full_name.split()
+                    #     if len(name_parts) >= 2:
+                    #         initials = name_parts[0][0] + name_parts[1][0]
+                    #     elif len(name_parts) == 1:
+                    #         initials = name_parts[0][0]
                     
-                    author_info = {
-                        'name': full_name,
-                        'initials': initials.upper()
-                    }
+                    # author_info = {
+                    #     'name': full_name,
+                    #     'initials': initials.upper()
+                    # }
             
             # Get category information
             category_info = None
@@ -110,7 +111,7 @@ def get_featured_blog_posts():
                 'featured_image': post.featured_image,
                 'created_at': post.created_at.isoformat(),
                 'published_at': post.published_at.isoformat() if post.published_at else None,
-                'author': author_info,
+                'author': post.author,
                 'category': category_info or {'name': 'Uncategorized', 'slug': 'uncategorized'}
             }
             
